@@ -117,6 +117,11 @@
           <h3 id="overview-activity-title">{{ t("workspace.recent_activity") }}</h3>
           <div id="overview-activity-list" class="workspace-rows"></div>
         </div>
+        <section id="overview-genetics" class="workspace-block workspace-genetics" aria-labelledby="overview-genetics-title" hidden>
+          <h3 id="overview-genetics-title">{{ t("workspace.genetics_title") }}</h3>
+          <p class="workspace-help">{{ t("workspace.genetics_summary") }}</p>
+          <div id="overview-genetics-summary" class="workspace-rows" role="status" aria-live="polite"></div>
+        </section>
       </section>
 
       <section id="review" class="workspace-section" aria-labelledby="review-title">

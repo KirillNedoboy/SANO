@@ -161,6 +161,62 @@ def test_workspace_preserves_machine_values_and_navigation_contracts() -> None:
     assert "shouldApplyResponse" in script
 
 
+def test_workspace_has_person_scoped_genetics_summary_host() -> None:
+    template = (ROOT / "app" / "templates" / "product_core_workspace.html").read_text(
+        encoding="utf-8"
+    )
+    assert 'id="overview-genetics"' in template
+    assert 'id="overview-genetics-summary"' in template
+    assert 'href="/genetics"' not in template
+
+
+def test_workspace_genetics_summary_is_capability_first_and_stale_guarded() -> None:
+    script = (ROOT / "app" / "static" / "product_core_workspace.js").read_text(
+        encoding="utf-8"
+    )
+    assert "capabilities.genetics_read" in script
+    assert "/genetics`" in script
+    assert 'state.geneticsSummary' in script
+    assert "geneticsSummary" in script[script.index("capabilities.genetics_read") :]
+    assert "genetics_read" in script[
+        script.index("capabilities.genetics_read")
+        : script.index("capabilities.genetics_read") + 600
+    ]
+    assert "shouldApplyResponse" in script[script.index("genetics") :]
+
+
+def test_workspace_genetics_summary_localization_has_en_ru_parity() -> None:
+    english = {key for key in TRANSLATIONS["en"] if key.startswith("workspace.genetics_")}
+    russian = {key for key in TRANSLATIONS["ru"] if key.startswith("workspace.genetics_")}
+    assert english
+    assert english == russian
+
+
+def test_workspace_genetics_summary_proves_no_access_is_request_free_and_minimized() -> None:
+    script = (ROOT / "app" / "static" / "product_core_workspace.js").read_text(
+        encoding="utf-8"
+    )
+    load_block = script[
+        script.index("const geneticsLoad") : script.index("if (capabilities.medication_read)")
+    ]
+    render_block = script[
+        script.index("function renderGeneticsSummary") : script.index("function factCandidateCard")
+    ]
+
+    assert "capabilities.genetics_read" in load_block
+    assert "Promise.resolve(null)" in load_block
+    assert "/genetics`" in load_block
+    for forbidden in (
+        "observations",
+        "dataset_id",
+        "source_id",
+        "original_filename",
+        "source_hash",
+    ):
+        assert forbidden not in render_block
+    assert 't("status.request_failed"' in render_block
+
+
 def test_workspace_rerender_clears_person_scoped_review_and_timeline_cards() -> None:
     script = (ROOT / "app" / "static" / "product_core_workspace.js").read_text(
         encoding="utf-8"

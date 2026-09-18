@@ -2,7 +2,7 @@
   "use strict";
 
   const api = "/api/product-core/v1";
-  const state = { person: null, capabilities: {}, candidates: [], medications: [], conditions: [], labs: [], procedures: [], recommendations: [], followUps: [], conditionCandidates: [], labCandidates: [], procedureCandidates: [], recommendationCandidates: [], followUpCandidates: [], conditionEnabled: false, labEnabled: false, procedureEnabled: false, recommendationEnabled: false, followUpEnabled: false, timeline: [], visits: [], visit: null, questions: [], editingQuestion: null, persistedBrief: null, briefRevision: null, briefEvidence: [], briefDirty: false, sources: new Map(), documents: [], selectedDocument: null, selectedPage: null, selectedSpan: null, documentDraft: null, vaultExportTrigger: null, loadVersion: 0, controller: null };
+  const state = { person: null, capabilities: {}, geneticsSummary: { status: "idle" }, candidates: [], medications: [], conditions: [], labs: [], procedures: [], recommendations: [], followUps: [], conditionCandidates: [], labCandidates: [], procedureCandidates: [], recommendationCandidates: [], followUpCandidates: [], conditionEnabled: false, labEnabled: false, procedureEnabled: false, recommendationEnabled: false, followUpEnabled: false, timeline: [], visits: [], visit: null, questions: [], editingQuestion: null, persistedBrief: null, briefRevision: null, briefEvidence: [], briefDirty: false, sources: new Map(), documents: [], selectedDocument: null, selectedPage: null, selectedSpan: null, documentDraft: null, vaultExportTrigger: null, loadVersion: 0, controller: null };
   const byId = (id) => document.getElementById(id);
   const translationPayload = byId("product-shell-translations");
   let translations = {};
@@ -535,7 +535,7 @@
     state.controller?.abort();
     const generation = ++state.loadVersion;
     state.controller = new AbortController();
-    Object.assign(state, { person: { person_id: personId, display_name: t("workspace.loading_person") }, capabilities: {}, candidates: [], medications: [], conditions: [], labs: [], procedures: [], recommendations: [], followUps: [], conditionCandidates: [], labCandidates: [], procedureCandidates: [], recommendationCandidates: [], followUpCandidates: [], conditionEnabled: false, labEnabled: false, procedureEnabled: false, recommendationEnabled: false, followUpEnabled: false, timeline: [], visits: [], visit: null, questions: [], editingQuestion: null, persistedBrief: null, briefRevision: null, briefEvidence: [], briefDirty: false, sources: new Map(), documents: [], selectedDocument: null, selectedPage: null, selectedSpan: null, documentDraft: null, vaultExportTrigger: null });
+    Object.assign(state, { person: { person_id: personId, display_name: t("workspace.loading_person") }, capabilities: {}, geneticsSummary: { status: "idle" }, candidates: [], medications: [], conditions: [], labs: [], procedures: [], recommendations: [], followUps: [], conditionCandidates: [], labCandidates: [], procedureCandidates: [], recommendationCandidates: [], followUpCandidates: [], conditionEnabled: false, labEnabled: false, procedureEnabled: false, recommendationEnabled: false, followUpEnabled: false, timeline: [], visits: [], visit: null, questions: [], editingQuestion: null, persistedBrief: null, briefRevision: null, briefEvidence: [], briefDirty: false, sources: new Map(), documents: [], selectedDocument: null, selectedPage: null, selectedSpan: null, documentDraft: null, vaultExportTrigger: null });
     enableWorkspace(false);
     renderPersonContext();
     const personContext = { personId, generation, signal: state.controller.signal };
@@ -551,8 +551,17 @@
       state.person = person;
       state.capabilities = capabilityResponse.capabilities;
       const capabilities = state.capabilities;
+      state.geneticsSummary = capabilities.genetics_read ? { status: "loading" } : { status: "no_access" };
       const loads = [];
       const add = (key, path) => loads.push(request(path, {}, personContext).then((body) => [key, body]));
+      const geneticsLoad = capabilities.genetics_read
+        ? request(`/people/${encodeURIComponent(personId)}/genetics`, {}, personContext)
+          .then((body) => ({ body }))
+          .catch((error) => {
+            if (error.name === "AbortError") throw error;
+            return { error };
+          })
+        : Promise.resolve(null);
       if (capabilities.medication_read) {
         add("medicationCandidates", `/people/${encodeURIComponent(personId)}/candidates`);
         add("medications", `/people/${encodeURIComponent(personId)}/medications?include_inactive=true`);
@@ -579,7 +588,9 @@
       }
       if (capabilities.timeline_read) add("timeline", `/people/${encodeURIComponent(personId)}/timeline`);
       if (capabilities.visit_read) add("visits", `/people/${encodeURIComponent(personId)}/visits`);
-      const loaded = Object.fromEntries(await Promise.all(loads));
+      const [loadedRows, geneticsResult] = await Promise.all([Promise.all(loads), geneticsLoad]);
+      const loaded = Object.fromEntries(loadedRows);
+      if (capabilities.genetics_read) state.geneticsSummary = geneticsResult?.error ? { status: "error" } : summarizeGeneticsResponse(geneticsResult?.body);
       if (capabilities.document_read) {
         const documentResponse = await loadDocuments(personId);
         if (!OpenCareWorkspaceState.shouldApplyResponse(generation, state.loadVersion)) return;
@@ -614,7 +625,7 @@
       renderPersonContext(); renderSelectionEmptyState([state.person]); enableWorkspace(true); render(); setWorkspaceLoading(false, generation); status(t("workspace.workspace_loaded"), "success");
     } catch (error) {
       if (error.name !== "AbortError" && OpenCareWorkspaceState.shouldApplyResponse(generation, state.loadVersion)) {
-        Object.assign(state, { person: null, capabilities: {}, candidates: [], medications: [], conditions: [], labs: [], procedures: [], recommendations: [], followUps: [], conditionCandidates: [], labCandidates: [], procedureCandidates: [], recommendationCandidates: [], followUpCandidates: [], timeline: [], visits: [], visit: null, questions: [], editingQuestion: null, persistedBrief: null, briefRevision: null, briefEvidence: [], briefDirty: false, sources: new Map(), documents: [], selectedDocument: null, selectedPage: null, selectedSpan: null, documentDraft: null, vaultExportTrigger: null });
+        Object.assign(state, { person: null, capabilities: {}, geneticsSummary: { status: "idle" }, candidates: [], medications: [], conditions: [], labs: [], procedures: [], recommendations: [], followUps: [], conditionCandidates: [], labCandidates: [], procedureCandidates: [], recommendationCandidates: [], followUpCandidates: [], conditionEnabled: false, labEnabled: false, procedureEnabled: false, recommendationEnabled: false, followUpEnabled: false, timeline: [], visits: [], visit: null, questions: [], editingQuestion: null, persistedBrief: null, briefRevision: null, briefEvidence: [], briefDirty: false, sources: new Map(), documents: [], selectedDocument: null, selectedPage: null, selectedSpan: null, documentDraft: null, vaultExportTrigger: null });
         byId("person-selector").value = "";
         renderPersonContext(); renderSelectionEmptyState([{}]); enableWorkspace(false); render();
         status(error.message, "error");
@@ -686,6 +697,53 @@
     const main = make("div", "", "ui-row__main");
     row.append(main);
     return { row, main };
+  }
+
+  function summarizeGeneticsResponse(response) {
+    if (!response || response.__error) return { status: "error" };
+    const findings = Array.isArray(response.findings) ? response.findings : [];
+    const reviewed = findings.filter((finding) => finding?.status === "reviewed");
+    return {
+      status: response.dataset ? "dataset" : "no_dataset",
+      reviewedCount: reviewed.length,
+      pgxCount: reviewed.filter((finding) => finding?.category === "pgx").length,
+    };
+  }
+
+  function renderGeneticsSummary() {
+    const section = byId("overview-genetics");
+    const host = byId("overview-genetics-summary");
+    if (!section || !host) return;
+    clear(host);
+    section.hidden = !state.person || !state.geneticsSummary || state.geneticsSummary.status === "idle";
+    if (section.hidden) return;
+
+    const summary = state.geneticsSummary;
+    if (summary.status === "loading") {
+      host.append(make("p", t("workspace.genetics_loading"), "workspace-note"));
+      return;
+    }
+
+    const { row, main } = rowShell("");
+    const actions = make("div", "", "ui-row__actions");
+    actions.append(makeLink("/genetics", t("workspace.open_genetics")));
+    row.append(actions);
+    if (summary.status === "no_access") {
+      main.append(make("h4", t("workspace.genetics_access_separate"), "ui-row__title"));
+    } else if (summary.status === "no_dataset") {
+      main.append(make("h4", t("workspace.genetics_no_dataset"), "ui-row__title"));
+      main.append(make("p", t("workspace.genetics_summary"), "ui-row__detail"));
+    } else if (summary.status === "dataset") {
+      main.append(make("h4", t("workspace.genetics_dataset_available"), "ui-row__title"));
+      const statusLine = make("p", "", "ui-row__status");
+      statusLine.append(makeStatusBadge(t("workspace.genetics_dataset_available"), "success"));
+      main.append(statusLine);
+      main.append(make("p", `${t("workspace.genetics_reviewed_findings")}: ${summary.reviewedCount}`, "ui-row__meta"));
+      if (summary.pgxCount) main.append(make("p", `${t("workspace.genetics_pgx_associations")}: ${summary.pgxCount}`, "ui-row__meta"));
+    } else {
+      main.append(make("h4", t("status.request_failed", "The request could not be completed. Try again."), "ui-row__title"));
+    }
+    host.append(row);
   }
 
   function factCandidateCard(candidate, actions) {
@@ -904,6 +962,7 @@
   function renderOverview() {
     const attentionList = byId("overview-attention-list"), counts = byId("overview-counts"), latest = byId("overview-latest"), empty = byId("overview-empty"), actionLinks = byId("overview-action-links"), activity = byId("overview-activity-list");
     [attentionList, counts, latest, actionLinks, activity].forEach(clear);
+    renderGeneticsSummary();
     const readableTypes = FACT_ORDER.filter((type) => state.capabilities[`${type}_read`]);
     const records = [...state.medications, ...state.conditions, ...state.labs, ...state.procedures, ...state.recommendations, ...state.followUps].filter((item) => item.is_active);
     const pending = visibleCandidates().filter((item) => item.status === "pending").length;
@@ -1209,7 +1268,7 @@
     state.loadVersion += 1;
     setWorkspaceLoading(false);
     try { await setActivePerson(null); } catch (error) { status(error.message, "error"); return; }
-    Object.assign(state, { person: null, capabilities: {}, candidates: [], medications: [], conditions: [], labs: [], procedures: [], recommendations: [], followUps: [], conditionCandidates: [], labCandidates: [], procedureCandidates: [], recommendationCandidates: [], followUpCandidates: [], conditionEnabled: false, labEnabled: false, procedureEnabled: false, recommendationEnabled: false, followUpEnabled: false, timeline: [], visits: [], visit: null, questions: [], editingQuestion: null, persistedBrief: null, briefRevision: null, briefEvidence: [], briefDirty: false, sources: new Map(), documents: [], selectedDocument: null, selectedPage: null, selectedSpan: null, documentDraft: null, vaultExportTrigger: null, controller: null });
+    Object.assign(state, { person: null, capabilities: {}, geneticsSummary: { status: "idle" }, candidates: [], medications: [], conditions: [], labs: [], procedures: [], recommendations: [], followUps: [], conditionCandidates: [], labCandidates: [], procedureCandidates: [], recommendationCandidates: [], followUpCandidates: [], conditionEnabled: false, labEnabled: false, procedureEnabled: false, recommendationEnabled: false, followUpEnabled: false, timeline: [], visits: [], visit: null, questions: [], editingQuestion: null, persistedBrief: null, briefRevision: null, briefEvidence: [], briefDirty: false, sources: new Map(), documents: [], selectedDocument: null, selectedPage: null, selectedSpan: null, documentDraft: null, vaultExportTrigger: null, controller: null });
     byId("person-selector").value = ""; byId("edit-profile-form").hidden = true; byId("edit-visit-form").hidden = true; byId("visit-question-form").hidden = true; byId("edit-visit-question-form").hidden = true; byId("vault-export-warning").hidden = true; renderPersonContext(); renderSelectionEmptyState([{}]); updateShellPerson(null); render(); enableWorkspace(false); byId("load-workspace").disabled = true; status(t("workspace.selection_cleared"));
   }
 

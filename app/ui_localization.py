@@ -50,6 +50,14 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "workspace.add_document": "Add a document",
         "workspace.open_records": "Open records",
         "workspace.open_genetics": "Open Genetics",
+        "workspace.genetics_title": "Genetics",
+        "workspace.genetics_summary": "An optional deeper evidence layer for this Person.",
+        "workspace.genetics_access_separate": "Genetics access is separate for this Person.",
+        "workspace.genetics_loading": "Loading genetics summary…",
+        "workspace.genetics_no_dataset": "No consumer genotype has been imported yet.",
+        "workspace.genetics_dataset_available": "A local genotype dataset is available.",
+        "workspace.genetics_reviewed_findings": "Reviewed findings",
+        "workspace.genetics_pgx_associations": "Reviewed PGx associations",
         "workspace.ask_opencare": "Ask OpenCare",
         "workspace.family_access": "Manage family access",
         "workspace.recent_activity": "Recent activity",
@@ -996,6 +1004,18 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "workspace.add_document": "Добавить документ",
         "workspace.open_records": "Открыть записи",
         "workspace.open_genetics": "Открыть генетику",
+        "workspace.genetics_title": "Генетика",
+        "workspace.genetics_summary": (
+            "Необязательный более глубокий слой доказательств для этого пользователя."
+        ),
+        "workspace.genetics_access_separate": (
+            "Доступ к генетике для этого пользователя предоставляется отдельно."
+        ),
+        "workspace.genetics_loading": "Загружаем сводку генетики…",
+        "workspace.genetics_no_dataset": "Потребительский генотип ещё не импортирован.",
+        "workspace.genetics_dataset_available": "Доступен локальный генетический набор данных.",
+        "workspace.genetics_reviewed_findings": "Рассмотренные находки",
+        "workspace.genetics_pgx_associations": "Рассмотренные PGx-ассоциации",
         "workspace.ask_opencare": "Спросить OpenCare",
         "workspace.family_access": "Управление семейным доступом",
         "workspace.recent_activity": "Недавняя активность",

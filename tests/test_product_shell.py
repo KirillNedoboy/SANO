@@ -148,6 +148,23 @@ def test_primary_navigation_exposes_stable_keys_and_existing_destinations() -> N
         assert f'href="{href}"' in shell
 
 
+def test_genetics_belongs_to_workspace_group_while_chat_stays_in_tools() -> None:
+    shell = (Path("app") / "templates" / "product_shell.html").read_text(encoding="utf-8")
+    workspace_group = shell[
+        shell.index('id="product-nav-group-workspace"')
+        : shell.index('id="product-nav-group-tools"')
+    ]
+    tools_group = shell[
+        shell.index('id="product-nav-group-tools"') : shell.index('id="product-nav-group-family"')
+    ]
+
+    assert 'data-nav-key="genetics"' in workspace_group
+    assert 'href="/genetics"' in workspace_group
+    assert 'data-nav-key="genetics"' not in tools_group
+    assert 'data-nav-key="chat"' in tools_group
+    assert 'href="/chat"' in tools_group
+
+
 def test_product_shell_hash_navigation_is_exclusive_and_non_persistent() -> None:
     script = (Path("app") / "static" / "product_shell.js").read_text(encoding="utf-8")
     for fragment in (
