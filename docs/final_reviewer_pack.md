@@ -1,11 +1,8 @@
 # Final Reviewer Pack (Supporting Evidence)
 
-> This pack helps reviewers inspect verified runtime surfaces. It is not the
-> canonical product roadmap or current status. Use [the Direction ADR](adr/0001-opencare-product-direction.md),
-> [project status](project-status.md), and [the capability matrix](capability-matrix.md)
-> for those questions.
+> This pack preserves engineering evidence for verified runtime surfaces. It is not the current judge walkthrough or canonical product status. Start with the [SANO Judge Guide](judge-guide.md); use [project status](project-status.md) and [the capability matrix](capability-matrix.md) for current published claims.
 
-This is the fastest path for a reviewer who wants to inspect the current repo state without guessing where to start.
+The sections below remain a supporting engineering review pack.
 
 ## What To Inspect First
 
@@ -66,9 +63,10 @@ node --check app/static/genetics.js
 
 - Actor-scoped `/workspace`, `/family-access`, `/genetics`, `/vault`, and
   `/chat` surfaces.
-- Product Core schema v9 with medications, conditions, labs, Visits, Visit
-  Briefs, document evidence, genetics datasets/findings, export, backup, and
-  recovery.
+- Product Core schema v9 at the historical P3 phase baseline, with
+  medications, conditions, labs, Visits, Visit Briefs, document evidence,
+  genetics datasets/findings, export, backup, and recovery. For current v12
+  published and v13 candidate status, see [project status](project-status.md).
 - D1 authenticated PDF/TXT evidence ingest with immutable bytes, bounded
   extraction, provenance, review, and Family Access v3 document grants.
 - P3 selective consumer-genotype indexing, reviewed evidence, PGx associations,

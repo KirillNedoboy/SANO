@@ -1,13 +1,18 @@
 # Changelog
 
+> Entries under `[Unreleased]` preserve implementation and phase history. For current published SANO capabilities and status, see [project status](docs/project-status.md) and the [capability matrix](docs/capability-matrix.md).
+
 ## [Unreleased]
 
 ### Added
 - D1 evidence document ingest is implemented in the current baseline:
   authenticated Person-scoped PDF/TXT upload, immutable source bytes, bounded
   embedded-text extraction, and human-reviewed medication/condition/lab
-  provenance. OCR and automated clinical/model extraction remain out of scope.
-  Family Access v1/v2/v3 behavior and portable export v4 are integrated.
+  provenance. OCR was outside the D1 phase boundary; the SANO-X2 candidate
+  described in [current project status](docs/project-status.md) adds bounded
+  local OCR and consent-gated document actions. Automated clinical/model
+  extraction remains out of scope. Family Access v1/v2/v3 behavior and
+  portable export v4 are integrated.
 
 - P3 Genetics Research Studio is implemented and published on public `main`:
   schema v9 immutable local consumer-genotype sources, bounded selective
@@ -23,8 +28,9 @@
   `v0.2.0` boundary; no separate P1 release tag): historical migration v7
   generalized the candidate/canonical lifecycle for medication/condition/lab
   facts, added provenance locators and unsupported review, and established the
-  condition/lab review boundaries. Current Product Core is schema v9 and
-  ordinary portable vault export is v4. P1 adds no OCR, FHIR/EHR sync, or
+  condition/lab review boundaries. At the P1 phase baseline, Product Core was
+  schema v9 and ordinary portable vault export was v4. P1 added no OCR,
+  FHIR/EHR sync, or
   diagnosis/treatment/interpretation.
 
 

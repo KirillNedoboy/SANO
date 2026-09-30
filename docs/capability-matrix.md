@@ -1,11 +1,11 @@
-# Capability Matrix
+# SANO Capability Matrix
 
-This matrix describes the implemented P1/P2/D1 Product Core boundary and the
-P3 Genetics Research Studio on public `main`. Its historical P3-final baseline
-was `0937d352cc74a3050609e826baa6bad82f6ac9ee`. D1 is published on public `main`
-at `c6ae91e40f02582c0e07c1bca8c95765970c93ff`; P3 is part of the published
-main implementation. The published `v0.1.0` and `v0.2.0` tags remain the only
-release tags.
+This matrix distinguishes the published X1 baseline from the X2-enabled
+candidate represented by this checkout. Published `main` includes R7,
+UI-R4.1, SANO-A1, SANO-X1, and Product Core schema v12. The candidate includes
+SANO-X2 and schema v13; X2 is complete locally and its merge blocker is closed,
+but it is not yet published on remote `main`. The published `v0.1.0` and
+`v0.2.0` tags remain the only release tags.
 
 | Capability | Status | Repository evidence or boundary |
 |---|---|---|
@@ -14,12 +14,12 @@ release tags.
 | Health vault entities | `DEMO_ONLY` | `app/health_vault/models.py`, `app/health_vault/loader.py`, `app/health_vault/read_model.py` |
 | Local JSON vault | `PARTIAL` | `app/health_vault/loader.py`, `app/health_vault/runtime_loader.py`, `app/config.py`, `app/main.py`, `docs/examples/local-family-vault.template.json` |
 | Persistent editable vault | `PARTIAL` | Product Core medication/condition/lab and Visit lifecycle, active People, Family permissions, and actor-scoped JSON API are implemented; other fact families remain out of scope. |
-| Document upload | `IMPLEMENTED` | Authenticated Person-scoped PDF/TXT upload; exact raw bytes are immutable. |
-| SANO-A1 document archive | `LOCALLY VERIFIED / NOT PUBLISHED` | `/documents` saves originals immediately, groups by document date, supports title/date metadata and original PDF/TXT view/download; upload has no OCR, D2, AI, or provider path. `app/product_core/document_dates.py`, `app/templates/documents.html`, `app/static/sano_documents.js`. |
-| SANO-X2 Document Understanding | `LOCALLY IMPLEMENTED / NOT PUBLISHED` | Migration v13 persists text-processing and document-summary state. PDF/TXT/JPG/PNG originals remain immutable; local OCR is bounded and optional AI descriptions/document questions require explicit G2 consent. OCR/summary failures do not remove originals. |
-| Product Core schema | `IMPLEMENTED` | Public-main historical baseline is v11; SANO-A1 adds v12 metadata and the local SANO-X2 branch adds v13 processing/summary state, preserving the earlier chain. |
+| Document upload | `IMPLEMENTED` | Authenticated Person-scoped PDF/TXT/JPG/PNG upload in the candidate; original bytes are immutable. Upload alone does not create a reviewed health record. |
+| SANO-A1 / X1 document archive | `PUBLISHED` | `/documents` saves originals immediately, groups by document date, supports title/date metadata and original PDF/TXT view/download. OCR and X2 document actions are outside the published X1 boundary. `app/product_core/document_dates.py`, `app/templates/documents.html`, `app/static/sano_documents.js`. |
+| SANO-X2 Document Understanding | `COMPLETE LOCALLY / MERGE BLOCKER CLOSED` | Candidate migration v13 persists text-processing and document-summary state. PDF/TXT/JPG/PNG originals remain immutable; bounded local OCR uses Tesseract `rus+eng`; optional descriptions and “Ask about this document” require explicit G2 consent and use selected document text/page references. OCR and summary failures do not remove originals. Live OpenAI X2 summary is unverified. |
+| Product Core schema | `v12 PUBLISHED / v13 CANDIDATE` | Published `main` is v12. Candidate migration v13 adds local document text-processing and consented summary/question state, preserving the earlier migration chain. |
 | Immutable source storage | `IMPLEMENTED` | `app/product_core/services.py`, `app/product_core/migrations.py`, source integrity tests, and P3 genetics source hashes. |
-| Extraction | `IMPLEMENTED` | D1 retains bounded embedded-text extraction; SANO-X2 adds optional bounded local PDF/image OCR. Document summaries and questions are separate consent-gated provider actions. |
+| Extraction and OCR | `IMPLEMENTED IN CANDIDATE` | D1 published extraction remains bounded embedded-text PDF processing. Candidate X2 adds bounded local OCR for image and scanned-PDF inputs with Russian and English language data (`rus+eng`); Docker includes Tesseract and both packs. Document descriptions and questions are separate consent-gated provider actions. |
 | Review inbox | `IMPLEMENTED` | P2 workspace: unified medication + condition + lab candidate review at `/workspace`; broader fact families remain unsupported. |
 | Canonical confirmed records | `IMPLEMENTED` | P1/P2: all three fact families (medication/condition/lab) confirm transactionally into `canonical_records` with typed detail; no other fact families. |
 | Timeline | `IMPLEMENTED` | P2 workspace: medication/condition/lab confirmation and correction events with readable current/history presentation; demo read model remains separate. |
@@ -30,7 +30,7 @@ release tags.
 | Questions | `PARTIAL` | Persistent user-authored Visit Questions in `app/product_core/`; no generated answers or broad question workspace |
 | Visit preparation | `IMPLEMENTED` | P2 workspace supports persistent Visits, Questions, Visit Brief revisions, all-three-type confirmed-evidence selection, preparation notes, restore history, and audited Markdown export; content schema v2 and readable v1 revisions. |
 | Guarded chat | `IMPLEMENTED` | Normal lifespan wiring for `/api/chat/prepare` → exact consent → execute → scoped receipt; source-backed Product Core projection, CSRF/session boundary, replay/revocation checks, and refusal policy. No clinical correctness claim. |
-| External LLM provider | `IMPLEMENTED` | No-redirect Responses contract/configuration adapter with endpoint/model binding and bounded structured output; external live smoke remains explicitly unverified. |
+| External LLM provider | `IMPLEMENTED` | No-redirect Responses contract/configuration adapter with endpoint/model binding and bounded structured output. General OpenRouter consent/receipt flow is verified; a live OpenAI X2 document-summary call is explicitly unverified. |
 | Model provider portability | `IMPLEMENTED` | Provider-independent G2 execution contract and shared `build_provider_execution_request` in `app/agent/providers/contract.py`; loopback/non-loopback disclosure classification in `app/agent/providers/endpoints.py`; same G1/G2 validation and Receipts for every provider; conformance and trust suites in `tests/provider_*` |
 | Self-hosted model runtime (Ollama) | `PARTIAL` | One self-hosted Ollama adapter in `app/agent/providers/ollama.py` (stdlib `urllib`, zero new deps, JSON-schema `format`, model-identity check, no-redirect, fail-closed); operator-only `OPENCARE_OLLAMA_*` config in `app/config.py`; live smoke `tests/provider_live_smoke.py` skips without a real Ollama, so status is `READY_FOR_LIVE_SMOKE` |
 | Portable trust package (Sentient G4) | `IMPLEMENTED` | Generic trust layer with a stable public API in `app/agent_trust/api.py` and zero OpenCare coupling; generic `AuthorizationAdapter` Protocol with the OpenCare adapter in `app/agent/trust_adapter.py`; deterministic JSON Schemas in `schemas/agent-trust/` with export script and drift test; synthetic offline fixture corpus in `fixtures/agent-trust/` with deterministic regeneration; `opencare-trust` CLI (also `python -m app.agent_trust.cli`) with deterministic exit codes and no live-authorization minting path |

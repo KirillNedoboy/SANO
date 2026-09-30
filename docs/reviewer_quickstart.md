@@ -1,10 +1,8 @@
-# Reviewer Quickstart (Supporting Evidence)
+# SANO Reviewer Quickstart (Supporting Evidence)
 
-> This is a reviewer procedure for the current demo/reference surfaces. It is
-> not the product roadmap. The authoritative direction is [ADR 0001](adr/0001-opencare-product-direction.md)
-> and the authoritative status is [project-status.md](project-status.md).
+> For the judge-facing product walkthrough, start with the [SANO Judge Guide](judge-guide.md). This document preserves the older synthetic demo/reference review procedure; it is not the current product quickstart. Current status is in [project-status.md](project-status.md).
 
-Goal: run OpenCare Proof Kit locally in under 3 minutes and inspect the generated report, audit JSON, Health/Family Vault reviewer UI, API endpoints, and evals.
+Goal: run the synthetic reviewer surfaces and inspect their report, audit JSON, Health/Family Vault UI, API endpoints, and evaluations.
 
 ## Prerequisites
 

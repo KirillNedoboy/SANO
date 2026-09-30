@@ -1,36 +1,35 @@
-# OpenCare current project status
+# SANO current project status
 
-This is the canonical status for public `main` at repository update date
-2026-08-20. Public `main` is a mutable Git ref. The P3-final implementation
-baseline was `0937d352cc74a3050609e826baa6bad82f6ac9ee`; the R1 repository-truth
-baseline is `46141e70d980fc611513e98afe251b1c611089c7`. The only published tags/releases
-are `v0.1.0` and `v0.2.0`; neither is a production-readiness or clinical-
-readiness claim.
-- Package/runtime development identity: `0.3.0.dev0`; this is not a published
-  `v0.3.0` release.
+This status distinguishes the published X1 baseline from the X2-enabled
+reconciliation candidate represented by this checkout. The candidate includes
+SANO-X2 locally; the published remote `main` has not yet been updated with X2.
+The published `v0.1.0` and `v0.2.0` tags remain the only releases, and neither
+tag implies production or clinical readiness. Package/runtime development
+identity `0.3.0.dev0` is not a published `v0.3.0` release.
 
-## Current local delivery status
+## Delivery status
 
+- **Published baseline:** R7, UI-R4.1, SANO-A1, and SANO-X1 are present on
+  published `main`. The document archive supports PDF/TXT originals, metadata,
+  and Person-scoped viewing. Published Product Core schema is v12. OCR and X2
+  document understanding are not part of that published baseline.
+- **SANO-X2 Document Understanding:** `COMPLETE LOCALLY / MERGE BLOCKER CLOSED`
+  in this candidate checkout. The v13 migration adds persisted document
+  text-processing and summary state. It accepts PDF/TXT/JPG/PNG, keeps original
+  bytes, and supports bounded local text recognition with Tesseract
+  `rus+eng`. Optional document descriptions and “Ask about this document” use
+  selected document text and page references after explicit, provider-bound G2
+  consent. Upload does not create a reviewed health record. A live X2 document
+  summary through OpenAI is **UNVERIFIED**. This candidate is not described as
+  already published on remote `main`.
 - **SANO Brand Direction v1:** `FIXED`.
-- **SANO-A1 consumer document archive:** implemented and locally verified on `codex/sano-a1`. The existing
-  installation was migrated through verified backup/recovery into the persistent
-  Sano workspace; the local runtime uses the retained account database. The archive
-  saves PDF/TXT originals immediately, groups by document date, supports title
-  and date metadata, original view/download, and Person-scoped authorization.
-  Upload does not run OCR, AI extraction, D2, or provider calls. The branch's
-  Product Core metadata migration is v12; the public-main v11 baseline remains
-  historical. Verification and migration evidence: `docs/sano-a1-validation.md`.
-- **SANO-X2 Document Understanding:** implemented locally on
-  `codex/sano-x2-document-understanding`; not merged, pushed, or published.
-  Product Core migration v13 adds persistent local text-processing and
-  document-summary state. PDF/TXT/JPG/PNG originals are saved before bounded
-  local OCR/extraction; an optional AI description and document-scoped Helper
-  require a separate, provider-bound G2 consent. D1 review lifecycle and
-  canonical-record mutation rules remain unchanged.
 ```text
 R7 = DONE / published
-UI-R4.1 = COMPLETE locally at 1a8f21788768ae6a67d9e62ba71858eae7dcf95a
-merge/push пока не подтверждены
+UI-R4.1 = PUBLISHED
+SANO-A1 = PUBLISHED
+SANO-X1 = PUBLISHED
+SANO-X2 = COMPLETE LOCALLY / MERGE BLOCKER CLOSED
+Product Core schema = v12 published / v13 candidate
 SANO Brand Direction v1 = FIXED
 G5 = READY_FOR_SECOND_CLIENT_SMOKE
 AlphaGenome = PAUSED after C.1
@@ -49,13 +48,13 @@ ecosystem evidence pending.
 
 ## Implemented boundary
 
-- Product Core schema v12 on the SANO-A1 branch owns Person-scoped Sources, medications,
+- Product Core schema v12 on published `main` owns Person-scoped Sources, medications,
   recorded conditions, labs, procedures, recommendations, follow-ups, Visits,
   Visit Questions, Visit Briefs, document extractions, genetics datasets,
   findings, grants, research sessions, export, backup, and recovery. v10 rows
-  are preserved by the migration. Local SANO-X2 migration v13 adds document
-  text-processing state and consented summary/question state; public-main and
-  SANO-A1 historical baselines remain unchanged.
+  are preserved by the migration. Candidate migration v13 adds document
+  text-processing state and consented summary/question state; the published
+  v12 baseline remains unchanged until this candidate is published.
 - Visit Brief content schema remains v2; v1 revisions remain readable. The D2.2
   categories are explicitly not part of Brief v2.
 - Family Access v1 and v2 are frozen. v3 adds `document.read` and
@@ -81,8 +80,8 @@ ecosystem evidence pending.
   use extraction contract `opencare-document-facts/2`; historical
   `opencare-document-facts/1` runs remain valid, readable, and exportable and
   are never retroactively enlarged. Visit Brief content schema remains
-  v2 (unchanged). UI redesign is complete; R7 Docker Distribution is the
-  active deployment productization stage.
+  v2 (unchanged). UI redesign and R7 Docker Distribution are complete and
+  published; live Docker Engine acceptance remains environment-dependent.
 - P3 Genetics Research Studio is implemented and published on public `main`:
   bounded local consumer-genotype import, selective indexing, evidence-backed
   reviewed findings, PGx associations, family comparison, Genetics Workspace,
@@ -237,9 +236,10 @@ trust-flow = VERIFIED. Free-model compatibility remains NOT VERIFIED; the two
 bounded candidate failures are recorded above. Ollama live smoke remains
 DEFERRED / UNVERIFIED, and OpenAI Responses live smoke remains UNVERIFIED.
 
-R7 Docker Distribution is the active deployment productization stage after the
-completed UI redesign. The supported path remains controlled self-hosting on a
-single node; it is not a production-readiness claim.
+R7 Docker Distribution is complete and published after the UI redesign. The
+supported path remains controlled self-hosting on a single node; live Engine
+acceptance is blocked when Docker Engine is unavailable, and publication is
+not a production-readiness claim.
 
 ## HTTP privacy contract
 
@@ -436,7 +436,7 @@ deterministic reviewer: `python -m evals.p1_review` (guide:
   (canonical_without_review, canonical_without_source,
   cross_person_record_exposure, cross_person_source_exposure,
   unauthorized_confirmation, provenance_mismatch_accepted).
-- P1 adds no OCR/upload/model extraction, no FHIR/EHR sync, no
+- At the P1 phase boundary, no OCR/upload/model extraction, no FHIR/EHR sync, no
   diagnosis/treatment/dosage interpretation, and no reference-range or
   abnormality inference.
 ## P2 usable family workspace (integrated on public `main` after v0.2.0)
@@ -459,12 +459,14 @@ D1 is implemented and published on public `main` at
 `c6ae91e40f02582c0e07c1bca8c95765970c93ff`. It accepts only authenticated
 Person-scoped PDF/TXT uploads, preserves immutable source bytes, performs
 bounded embedded-text extraction, and keeps review human-controlled for
-medication, condition, and lab records. OCR and automated clinical/model
-extraction remain out of scope. Family Access v1/v2 remain frozen; v3 adds
+medication, condition, and lab records. D1's published boundary uses embedded
+PDF text and does not include OCR; the SANO-X2 candidate adds bounded local OCR
+and separate consent-gated document actions. Automated clinical/model
+extraction remains out of scope. Family Access v1/v2 remain frozen; v3 adds
 explicit document scopes. Portable export v4 includes authorized document
-payloads and immutable extraction metadata. The local SANO-A1 archive extends
-this boundary with sidecar title/date metadata and original PDF/TXT viewing;
-uploads remain source-only and do not start D2 or provider work.
+payloads and immutable extraction metadata. SANO-A1 extends the published
+archive with title/date metadata and original PDF/TXT viewing. Document upload
+does not automatically create a reviewed health record.
 
 ## P3 Genetics Research Studio (implemented and published on public `main`)
 
@@ -483,8 +485,8 @@ Evidence/Explore Research Mode. VCF remains demo-only. See
 - deterministic tools remain before bounded AI;
 - synthetic repository fixtures remain separate from local user-owned runtime
   data;
-- no OCR, FHIR/EHR sync, public SaaS identity, cloud raw-genome upload, or
-  clinical-authority claim;
+- no clinical-authority claim, FHIR/EHR sync, public SaaS identity, or cloud
+  raw-genome upload. OCR is local and available in the SANO-X2 candidate;
 - no diagnosis, treatment, dosage, medication selection, or start/stop advice;
 - no populated-installation import/merge guarantee.
 
