@@ -395,7 +395,8 @@ async def enforce_private_access(
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request) -> Response:
-    """Render the public SANO landing for unauthenticated visitors; redirect authenticated users to Documents."""
+    """Render the public SANO landing for unauthenticated visitors; redirect
+    authenticated users to Documents."""
     session_token = request.cookies.get("opencare_session")
     if session_token:
         try:

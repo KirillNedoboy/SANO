@@ -2145,54 +2145,107 @@ TRANSLATIONS["en"].update({
     "landing.nav.create_account": "Create account",
     "landing.hero.eyebrow": "Private health workspace",
     "landing.hero.title": "Your records, under control.",
-    "landing.hero.body": "Keep source-backed records, prepare for visits, and choose when a bounded AI summary can help.",
+    "landing.hero.body": (
+        "Keep source-backed records, prepare for visits, and choose when a bounded AI "
+        "summary can help."
+    ),
     "landing.hero.primary_cta": "Create account",
     "landing.hero.secondary_cta": "See how it works",
     "landing.hero.alt": "Hands writing in a notebook beside a sunlit window",
     "landing.why.title": "Make the next health conversation easier.",
-    "landing.why.intro": "SANO turns scattered information into a reviewed, useful record without pretending to be a doctor.",
+    "landing.why.intro": (
+        "SANO turns scattered information into a reviewed, useful record without "
+        "pretending to be a doctor."
+    ),
     "landing.why.records_title": "Keep the source in view",
     "landing.why.records_formats": "PDF / TXT",
-    "landing.why.records_body": "Add a text-layer PDF or TXT, review extracted facts as candidates, and keep confirmed records linked to their source.",
+    "landing.why.records_body": (
+        "Add a text-layer PDF or TXT, review extracted facts as candidates, and keep "
+        "confirmed records linked to their source."
+    ),
     "landing.why.visit_title": "Prepare for a visit",
-    "landing.why.visit_body": "Gather questions and create a source-backed Visit Brief you can review before meeting a clinician.",
+    "landing.why.visit_body": (
+        "Gather questions and create a source-backed Visit Brief you can review before "
+        "meeting a clinician."
+    ),
     "landing.why.family_title": "Share with care",
-    "landing.why.family_body": "Invite trusted family members with Person-scoped access, and manage genetics permissions separately.",
+    "landing.why.family_body": (
+        "Invite trusted family members with Person-scoped access, and manage genetics "
+        "permissions separately."
+    ),
     "landing.why.ai_title": "Choose when AI helps",
-    "landing.why.ai_body": "Use selected authorized context only when you grant external consent. Ask for a bounded summary with a clear receipt. AI does not change canonical records.",
+    "landing.why.ai_body": (
+        "Use selected authorized context only when you grant external consent. Ask for a "
+        "bounded summary with a clear receipt. AI does not change canonical records."
+    ),
     "landing.why.genetics_title": "Keep genetics separate",
-    "landing.why.genetics_body": "Use optional consumer-genotype research with separate grants. Raw genome data never enters provider context.",
+    "landing.why.genetics_body": (
+        "Use optional consumer-genotype research with separate grants. Raw genome data "
+        "never enters provider context."
+    ),
     "landing.how.title": "A clear path from source to answer.",
-    "landing.how.intro": "The useful part is the chain of custody: what you add, what is suggested, what you review, and what an answer can safely use.",
+    "landing.how.intro": (
+        "The useful part is the chain of custody: what you add, what is suggested, what "
+        "you review, and what an answer can safely use."
+    ),
     "landing.how.step_one_title": "Add your source",
     "landing.how.step_one_body": "Register a PDF or TXT before deriving a claim.",
     "landing.how.step_two_title": "Review what was found",
-    "landing.how.step_two_body": "Candidate facts stay separate until a person reviews and confirms them.",
+    "landing.how.step_two_body": (
+        "Candidate facts stay separate until a person reviews and confirms them."
+    ),
     "landing.how.step_three_title": "Review into a record",
-    "landing.how.step_three_body": "Only information a person confirms becomes part of the canonical record.",
+    "landing.how.step_three_body": (
+        "Only information a person confirms becomes part of the canonical record."
+    ),
     "landing.how.step_four_title": "Prepare for a visit",
-    "landing.how.step_four_body": "Use reviewed information to draft questions and a sourced Visit Brief.",
+    "landing.how.step_four_body": (
+        "Use reviewed information to draft questions and a sourced Visit Brief."
+    ),
     "landing.boundaries.title": "AI and genetics have clear boundaries.",
-    "landing.boundaries.intro": "SANO makes the useful edges visible before information is shared or used for a research question.",
+    "landing.boundaries.intro": (
+        "SANO makes the useful edges visible before information is shared or used for a "
+        "research question."
+    ),
     "landing.boundaries.ai_title": "AI sees a selected context",
-    "landing.boundaries.ai_body": "Only selected, authorized context can be used for a bounded answer. An external provider call requires your consent, and the answer cannot change canonical records.",
+    "landing.boundaries.ai_body": (
+        "Only selected, authorized context can be used for a bounded answer. An external "
+        "provider call requires your consent, and the answer cannot change canonical "
+        "records."
+    ),
     "landing.boundaries.ai_note": "SANO does not diagnose or prescribe treatment.",
     "landing.boundaries.genetics_title": "Genetics keeps its own permission",
-    "landing.boundaries.genetics_body": "Genetics access uses separate grants from ordinary health access. Research stays limited to the selected evidence and authorized context.",
+    "landing.boundaries.genetics_body": (
+        "Genetics access uses separate grants from ordinary health access. Research stays "
+        "limited to the selected evidence and authorized context."
+    ),
     "landing.boundaries.genetics_note": "Raw genome data never enters provider context.",
     "landing.privacy.title": "Trust is part of the product.",
-    "landing.privacy.intro": "SANO is designed for private, self-hosted use. It keeps access explicit and makes the edges visible.",
+    "landing.privacy.intro": (
+        "SANO is designed for private, self-hosted use. It keeps access explicit and "
+        "makes the edges visible."
+    ),
     "landing.privacy.local_title": "Local-first by default",
     "landing.privacy.local_body": "Your installation keeps the workspace under your control.",
     "landing.privacy.person_title": "Person-scoped access",
-    "landing.privacy.person_body": "Sharing one Person never silently shares another. Relationships are not grants.",
+    "landing.privacy.person_body": (
+        "Sharing one Person never silently shares another. Relationships are not grants."
+    ),
     "landing.privacy.limits_title": "Clear limits",
-    "landing.privacy.limits_body": "SANO is not a diagnostic or treatment tool. It does not choose medicines or doses.",
+    "landing.privacy.limits_body": (
+        "SANO is not a diagnostic or treatment tool. It does not choose medicines or "
+        "doses."
+    ),
     "landing.privacy.genetics_title": "Separate genetics grants",
-    "landing.privacy.genetics_body": "Optional genetics research needs its own permission. Raw genome data never enters provider context.",
+    "landing.privacy.genetics_body": (
+        "Optional genetics research needs its own permission. Raw genome data never "
+        "enters provider context."
+    ),
     "landing.privacy.alt": "Paper records and a closed notebook in calm afternoon light",
     "landing.closing.title": "Keep the next step in your hands.",
-    "landing.closing.body": "Start your private workspace, or use an invitation from someone you trust.",
+    "landing.closing.body": (
+        "Start your private workspace, or use an invitation from someone you trust."
+    ),
     "landing.closing.register": "Create your account",
     "landing.closing.invite": "Open an invitation",
     "landing.footer.note": "Private, self-hosted health workspace.",
@@ -2210,54 +2263,113 @@ TRANSLATIONS["ru"].update({
     "landing.nav.create_account": "Создать аккаунт",
     "landing.hero.eyebrow": "Личное рабочее пространство здоровья",
     "landing.hero.title": "Ваши записи под контролем.",
-    "landing.hero.body": "Храните записи с источниками, готовьтесь к визитам и решайте, когда нужен ограниченный ответ ИИ.",
+    "landing.hero.body": (
+        "Храните записи с источниками, готовьтесь к визитам и решайте, когда нужен "
+        "ограниченный ответ ИИ."
+    ),
     "landing.hero.primary_cta": "Создать аккаунт",
     "landing.hero.secondary_cta": "Как это работает",
     "landing.hero.alt": "Руки записывают в блокнот у залитого солнцем окна",
     "landing.why.title": "Сделайте следующий разговор о здоровье проще.",
-    "landing.why.intro": "SANO превращает разрозненную информацию в проверенную полезную запись, не выдавая себя за врача.",
+    "landing.why.intro": (
+        "SANO превращает разрозненную информацию в проверенную полезную запись, не "
+        "выдавая себя за врача."
+    ),
     "landing.why.records_title": "Источник всегда рядом",
     "landing.why.records_formats": "PDF / TXT",
-    "landing.why.records_body": "Добавляйте PDF с текстовым слоем или TXT, проверяйте извлечённые факты как кандидатов и связывайте подтверждённые записи с источником.",
+    "landing.why.records_body": (
+        "Добавляйте PDF с текстовым слоем или TXT, проверяйте извлечённые факты как "
+        "кандидатов и связывайте подтверждённые записи с источником."
+    ),
     "landing.why.visit_title": "Подготовьтесь к визиту",
-    "landing.why.visit_body": "Соберите вопросы и создайте краткую информацию о визите с указанием источников, которую можно проверить перед разговором с врачом.",
+    "landing.why.visit_body": (
+        "Соберите вопросы и создайте краткую информацию о визите с указанием источников, "
+        "которую можно проверить перед разговором с врачом."
+    ),
     "landing.why.family_title": "Делитесь бережно",
-    "landing.why.family_body": "Приглашайте близких с доступом к конкретному человеку и управляйте разрешениями для генетики отдельно.",
+    "landing.why.family_body": (
+        "Приглашайте близких с доступом к конкретному человеку и управляйте разрешениями "
+        "для генетики отдельно."
+    ),
     "landing.why.ai_title": "Решайте, когда нужен ИИ",
-    "landing.why.ai_body": "Используйте выбранный авторизованный контекст только с вашим внешним согласием. Запрашивайте ограниченное резюме с понятной квитанцией. ИИ не меняет канонические записи.",
+    "landing.why.ai_body": (
+        "Используйте выбранный авторизованный контекст только с вашим внешним согласием. "
+        "Запрашивайте ограниченное резюме с понятной квитанцией. ИИ не меняет "
+        "канонические записи."
+    ),
     "landing.why.genetics_title": "Генетика отдельно",
-    "landing.why.genetics_body": "Используйте необязательное исследование потребительского генотипа с отдельными разрешениями. Сырые геномные данные никогда не передаются провайдеру.",
+    "landing.why.genetics_body": (
+        "Используйте необязательное исследование потребительского генотипа с отдельными "
+        "разрешениями. Сырые геномные данные никогда не передаются провайдеру."
+    ),
     "landing.how.title": "Понятный путь от источника к ответу.",
-    "landing.how.intro": "Важна цепочка: что вы добавили, что было предложено, что проверено и что ответ может безопасно использовать.",
+    "landing.how.intro": (
+        "Важна цепочка: что вы добавили, что было предложено, что проверено и что ответ "
+        "может безопасно использовать."
+    ),
     "landing.how.step_one_title": "Добавьте источник",
     "landing.how.step_one_body": "Зарегистрируйте PDF или TXT до вывода нового утверждения.",
     "landing.how.step_two_title": "Проверьте найденное",
-    "landing.how.step_two_body": "Кандидаты остаются отдельными, пока человек не проверит и не подтвердит их.",
+    "landing.how.step_two_body": (
+        "Кандидаты остаются отдельными, пока человек не проверит и не подтвердит их."
+    ),
     "landing.how.step_three_title": "Проверьте и сохраните",
-    "landing.how.step_three_body": "Только подтверждённая человеком информация становится частью канонической записи.",
+    "landing.how.step_three_body": (
+        "Только подтверждённая человеком информация становится частью канонической "
+        "записи."
+    ),
     "landing.how.step_four_title": "Подготовьтесь к визиту",
-    "landing.how.step_four_body": "Используйте проверенную информацию для вопросов и краткой информации о визите с указанием источников.",
+    "landing.how.step_four_body": (
+        "Используйте проверенную информацию для вопросов и краткой информации о визите с "
+        "указанием источников."
+    ),
     "landing.boundaries.title": "У ИИ и генетики есть чёткие границы.",
-    "landing.boundaries.intro": "SANO показывает важные границы до того, как информация будет передана или использована для исследовательского вопроса.",
+    "landing.boundaries.intro": (
+        "SANO показывает важные границы до того, как информация будет передана или "
+        "использована для исследовательского вопроса."
+    ),
     "landing.boundaries.ai_title": "ИИ видит только выбранный контекст",
-    "landing.boundaries.ai_body": "Для ограниченного ответа используется только выбранный авторизованный контекст. Внешний вызов требует вашего согласия, а ответ не меняет канонические записи.",
+    "landing.boundaries.ai_body": (
+        "Для ограниченного ответа используется только выбранный авторизованный контекст. "
+        "Внешний вызов требует вашего согласия, а ответ не меняет канонические записи."
+    ),
     "landing.boundaries.ai_note": "SANO не ставит диагнозы и не назначает лечение.",
     "landing.boundaries.genetics_title": "Для генетики нужно отдельное разрешение",
-    "landing.boundaries.genetics_body": "Доступ к генетике отделён от обычного доступа к здоровью. Исследование использует только выбранные данные и авторизованный контекст.",
-    "landing.boundaries.genetics_note": "Сырые геномные данные никогда не попадают в контекст провайдера.",
+    "landing.boundaries.genetics_body": (
+        "Доступ к генетике отделён от обычного доступа к здоровью. Исследование "
+        "использует только выбранные данные и авторизованный контекст."
+    ),
+    "landing.boundaries.genetics_note": (
+        "Сырые геномные данные никогда не попадают в контекст провайдера."
+    ),
     "landing.privacy.title": "Доверие встроено в продукт.",
-    "landing.privacy.intro": "SANO создан для частного самостоятельного размещения. Доступ остаётся явным, а границы видимыми.",
+    "landing.privacy.intro": (
+        "SANO создан для частного самостоятельного размещения. Доступ остаётся явным, а "
+        "границы видимыми."
+    ),
     "landing.privacy.local_title": "Сначала локально",
     "landing.privacy.local_body": "Установка хранит рабочую область под вашим контролем.",
     "landing.privacy.person_title": "Доступ к конкретному человеку",
-    "landing.privacy.person_body": "Доступ к одному человеку не открывает записи другого. Родственная связь сама по себе не даёт доступа.",
+    "landing.privacy.person_body": (
+        "Доступ к одному человеку не открывает записи другого. Родственная связь сама по "
+        "себе не даёт доступа."
+    ),
     "landing.privacy.limits_title": "Понятные ограничения",
-    "landing.privacy.limits_body": "SANO не ставит диагнозы и не назначает лечение. Система не выбирает лекарства и дозы.",
+    "landing.privacy.limits_body": (
+        "SANO не ставит диагнозы и не назначает лечение. Система не выбирает лекарства и "
+        "дозы."
+    ),
     "landing.privacy.genetics_title": "Отдельные разрешения для генетики",
-    "landing.privacy.genetics_body": "Исследование генетики требует отдельного разрешения. Сырые геномные данные никогда не передаются провайдеру.",
+    "landing.privacy.genetics_body": (
+        "Исследование генетики требует отдельного разрешения. Сырые геномные данные "
+        "никогда не передаются провайдеру."
+    ),
     "landing.privacy.alt": "Бумажные записи и закрытый блокнот в спокойном дневном свете",
     "landing.closing.title": "Следующий шаг остаётся за вами.",
-    "landing.closing.body": "Создайте личную рабочую область или воспользуйтесь приглашением от человека, которому вы доверяете.",
+    "landing.closing.body": (
+        "Создайте личную рабочую область или воспользуйтесь приглашением от человека, "
+        "которому вы доверяете."
+    ),
     "landing.closing.register": "Создать аккаунт",
     "landing.closing.invite": "Открыть приглашение",
     "landing.footer.note": "Личное рабочее пространство здоровья на собственном сервере.",
