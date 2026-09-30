@@ -17,6 +17,7 @@ from app.product_core.models import (
     DocumentExtractionSnapshot,
     DocumentFactExtractionItem,
     DocumentFactExtractionRun,
+    DocumentTextProcessing,
     FollowUpCandidateDetail,
     LabCandidateDetail,
     MedicationCandidateDetail,
@@ -89,6 +90,14 @@ class DocumentExtractionRepository(Protocol):
         snapshot: DocumentExtractionSnapshot,
         pages: list[DocumentExtractionPage],
     ) -> None: ...
+
+
+class DocumentTextProcessingRepository(Protocol):
+    def get_for_source(self, source_id: str) -> DocumentTextProcessing | None: ...
+
+    def insert_pending(self, source_id: str, person_id: str, updated_at: datetime) -> None: ...
+
+    def update(self, state: DocumentTextProcessing) -> None: ...
 
 
 class DocumentMetadataRepository(Protocol):
@@ -379,7 +388,7 @@ class SQLiteSourceRepository:
                 source.created_at.isoformat(),
                 json.dumps(source.provenance, ensure_ascii=False, sort_keys=True),
                 source.original_filename,
-                source.document_kind,
+                "text" if source.document_kind == "image" else source.document_kind,
             ),
         )
 
@@ -543,6 +552,63 @@ class SQLiteDocumentExtractionRepository:
                 for page in pages
             ],
         )
+
+
+class SQLiteDocumentTextProcessingRepository:
+    def __init__(self, connection: sqlite3.Connection) -> None:
+        self.connection = connection
+
+    def get_for_source(self, source_id: str) -> DocumentTextProcessing | None:
+        row = self.connection.execute(
+            "SELECT * FROM document_text_processing WHERE source_id = ?", (source_id,)
+        ).fetchone()
+        if row is None:
+            return None
+        return DocumentTextProcessing(
+            source_id=row["source_id"],
+            person_id=row["person_id"],
+            status=row["status"],
+            extraction_id=row["extraction_id"],
+            attempt_count=row["attempt_count"],
+            started_at=(
+                None if row["started_at"] is None else parse_utc_datetime(row["started_at"])
+            ),
+            updated_at=parse_utc_datetime(row["updated_at"]),
+            reason_code=row["reason_code"],
+        )
+
+    def insert_pending(self, source_id: str, person_id: str, updated_at: datetime) -> None:
+        self.connection.execute(
+            """
+            INSERT INTO document_text_processing(
+                source_id, person_id, status, extraction_id, attempt_count,
+                started_at, updated_at, reason_code
+            ) VALUES (?, ?, 'pending', NULL, 0, NULL, ?, NULL)
+            """,
+            (source_id, person_id, updated_at.isoformat()),
+        )
+
+    def update(self, state: DocumentTextProcessing) -> None:
+        cursor = self.connection.execute(
+            """
+            UPDATE document_text_processing
+            SET status = ?, extraction_id = ?, attempt_count = ?, started_at = ?,
+                updated_at = ?, reason_code = ?
+            WHERE source_id = ? AND person_id = ?
+            """,
+            (
+                state.status,
+                state.extraction_id,
+                state.attempt_count,
+                None if state.started_at is None else state.started_at.isoformat(),
+                state.updated_at.isoformat(),
+                state.reason_code,
+                state.source_id,
+                state.person_id,
+            ),
+        )
+        if cursor.rowcount != 1:
+            raise IntegrityStorageError("document text processing state is missing")
 
 
 class SQLiteDocumentFactExtractionRepository:
@@ -1697,7 +1763,11 @@ def _source_from_row(row: sqlite3.Row) -> Source:
         created_at=parse_utc_datetime(row["created_at"]),
         provenance=json.loads(row["provenance_json"]),
         original_filename=row["original_filename"],
-        document_kind=row["document_kind"],
+            document_kind=(
+                "image"
+                if row["media_type"] in {"image/png", "image/jpeg"}
+                else row["document_kind"]
+            ),
         document_title=(row["document_title"] if "document_title" in keys else None),
         document_date=(
             None if raw_document_date is None else date.fromisoformat(raw_document_date)

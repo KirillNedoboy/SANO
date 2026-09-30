@@ -285,13 +285,13 @@ def test_schema12_blank_pdf_metadata_recovers_and_repeated_recovery_refuses_targ
     )
     backup = tmp_path / "backup"
     backup_service = InstallationBackupService(database.path, tmp_path / "sources")
-    assert backup_service.backup(backup).product_core_schema_version == 12
+    assert backup_service.backup(backup).product_core_schema_version == 13
 
     target = tmp_path / "recovered"
     recovery = InstallationRecoveryService()
     report = recovery.recover(backup, target, confirm_maintenance=True)
     assert report.valid is True
-    assert report.product_core_schema_version == 12
+    assert report.product_core_schema_version == 13
     with sqlite3.connect(target / "database.sqlite3") as connection:
         assert connection.execute(
             "SELECT title, document_date, document_date_source FROM document_metadata"

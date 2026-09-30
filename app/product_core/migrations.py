@@ -2703,6 +2703,211 @@ PRODUCT_MIGRATIONS = (
         ),
         post_apply=_backfill_document_metadata_dates,
     ),
+    Migration(
+        version=13,
+        statements=(
+            """
+            CREATE TABLE document_text_processing (
+                source_id TEXT PRIMARY KEY,
+                person_id TEXT NOT NULL,
+                status TEXT NOT NULL CHECK (
+                    status IN ('pending', 'processing', 'ready', 'unavailable', 'failed')
+                ),
+                extraction_id TEXT,
+                attempt_count INTEGER NOT NULL DEFAULT 0 CHECK (attempt_count >= 0),
+                started_at TEXT,
+                updated_at TEXT NOT NULL,
+                reason_code TEXT,
+                UNIQUE (source_id, person_id),
+                FOREIGN KEY (source_id, person_id)
+                    REFERENCES sources(id, person_id),
+                FOREIGN KEY (extraction_id, source_id, person_id)
+                    REFERENCES document_extractions(extraction_id, source_id, person_id),
+                CHECK (status <> 'processing' OR started_at IS NOT NULL)
+            )
+            """,
+            """
+            INSERT INTO document_text_processing (
+                source_id, person_id, status, extraction_id, attempt_count,
+                started_at, updated_at, reason_code
+            )
+            SELECT source.id, source.person_id,
+                   CASE WHEN EXISTS (
+                       SELECT 1 FROM document_extraction_pages AS page
+                       WHERE page.extraction_id = extraction.extraction_id
+                         AND trim(page.normalized_text) = ''
+                   ) THEN 'pending' ELSE 'ready' END,
+                   extraction.extraction_id, 0, NULL, source.created_at, NULL
+            FROM sources AS source
+            LEFT JOIN document_extractions AS extraction
+              ON extraction.extraction_id = (
+                  SELECT candidate.extraction_id
+                  FROM document_extractions AS candidate
+                  WHERE candidate.source_id = source.id
+                    AND candidate.person_id = source.person_id
+                  ORDER BY candidate.extracted_at DESC, candidate.extraction_id DESC
+                  LIMIT 1
+              )
+            WHERE source.source_type = 'document'
+            """,
+            """
+            CREATE INDEX document_text_processing_status_idx
+            ON document_text_processing(status, updated_at)
+            """,
+            """
+            CREATE TABLE document_summary_runs (
+                run_id TEXT PRIMARY KEY CHECK (length(trim(run_id)) > 0),
+                actor_id TEXT NOT NULL,
+                person_id TEXT NOT NULL,
+                source_id TEXT NOT NULL,
+                extraction_id TEXT NOT NULL,
+                input_text_hash TEXT NOT NULL CHECK (
+                    length(input_text_hash) = 64
+                    AND input_text_hash = lower(input_text_hash)
+                    AND input_text_hash NOT GLOB '*[^0-9a-f]*'
+                ),
+                request_fingerprint TEXT NOT NULL CHECK (
+                    length(request_fingerprint) = 64
+                    AND request_fingerprint = lower(request_fingerprint)
+                    AND request_fingerprint NOT GLOB '*[^0-9a-f]*'
+                ),
+                prompt_version TEXT NOT NULL,
+                status TEXT NOT NULL CHECK (
+                    status IN (
+                        'prepared', 'consent_required', 'consented', 'executing',
+                        'completed', 'partial', 'failed', 'declined', 'unavailable'
+                    )
+                ),
+                attempt_number INTEGER NOT NULL CHECK (attempt_number >= 1),
+                provider_id TEXT,
+                provider_kind TEXT,
+                provider_descriptor_hash TEXT,
+                model_id TEXT,
+                external INTEGER NOT NULL DEFAULT 0 CHECK (external IN (0, 1)),
+                execution_id TEXT NOT NULL UNIQUE,
+                consent_id TEXT,
+                receipt_id TEXT,
+                result_json TEXT,
+                reason_code TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                completed_at TEXT,
+                UNIQUE (source_id, request_fingerprint, attempt_number),
+                UNIQUE (run_id, source_id, person_id),
+                FOREIGN KEY (source_id, person_id)
+                    REFERENCES sources(id, person_id),
+                FOREIGN KEY (extraction_id, source_id, person_id)
+                    REFERENCES document_extractions(extraction_id, source_id, person_id)
+            )
+            """,
+            """
+            CREATE UNIQUE INDEX document_summary_one_active_fingerprint_idx
+            ON document_summary_runs(source_id, request_fingerprint)
+            WHERE status IN ('prepared', 'consent_required', 'consented', 'executing')
+            """,
+            """
+            CREATE INDEX document_summary_person_source_idx
+            ON document_summary_runs(person_id, source_id, created_at DESC)
+            """,
+            """
+            CREATE TABLE document_question_bindings (
+                execution_id TEXT PRIMARY KEY,
+                actor_id TEXT NOT NULL,
+                person_id TEXT NOT NULL,
+                source_id TEXT NOT NULL,
+                extraction_id TEXT NOT NULL,
+                input_text_hash TEXT NOT NULL CHECK (
+                    length(input_text_hash) = 64 AND input_text_hash = lower(input_text_hash)
+                    AND input_text_hash NOT GLOB '*[^0-9a-f]*'
+                ),
+                request_hash TEXT NOT NULL CHECK (
+                    length(request_hash) = 64 AND request_hash = lower(request_hash)
+                    AND request_hash NOT GLOB '*[^0-9a-f]*'
+                ),
+                provider_id TEXT NOT NULL,
+                provider_descriptor_hash TEXT NOT NULL,
+                model_id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (source_id, person_id)
+                    REFERENCES sources(id, person_id),
+                FOREIGN KEY (extraction_id, source_id, person_id)
+                    REFERENCES document_extractions(extraction_id, source_id, person_id)
+            )
+            """,
+            """
+            CREATE TRIGGER document_question_binding_identity_immutable
+            BEFORE UPDATE ON document_question_bindings
+            BEGIN
+                SELECT RAISE(ABORT, 'document_question_binding_immutable');
+            END
+            """,
+            """
+            CREATE TRIGGER document_text_processing_source_type_insert
+            BEFORE INSERT ON document_text_processing
+            WHEN NOT EXISTS (
+                SELECT 1 FROM sources
+                WHERE id = NEW.source_id
+                  AND person_id = NEW.person_id
+                  AND source_type = 'document'
+            )
+            BEGIN
+                SELECT RAISE(ABORT, 'document_text_source_mismatch');
+            END
+            """,
+            """
+            CREATE TRIGGER document_text_processing_identity_immutable
+            BEFORE UPDATE OF source_id, person_id ON document_text_processing
+            WHEN NEW.source_id <> OLD.source_id OR NEW.person_id <> OLD.person_id
+            BEGIN
+                SELECT RAISE(ABORT, 'document_text_identity_immutable');
+            END
+            """,
+            """
+            CREATE TRIGGER document_summary_run_source_type_insert
+            BEFORE INSERT ON document_summary_runs
+            WHEN NOT EXISTS (
+                SELECT 1 FROM sources
+                WHERE id = NEW.source_id
+                  AND person_id = NEW.person_id
+                  AND source_type = 'document'
+            )
+            BEGIN
+                SELECT RAISE(ABORT, 'document_summary_source_mismatch');
+            END
+            """,
+            """
+            CREATE TRIGGER document_summary_run_identity_immutable
+            BEFORE UPDATE OF run_id, actor_id, person_id, source_id, extraction_id,
+                input_text_hash, request_fingerprint, prompt_version, attempt_number,
+                provider_id, provider_kind, provider_descriptor_hash, model_id,
+                external, execution_id ON document_summary_runs
+            WHEN NEW.run_id <> OLD.run_id OR NEW.actor_id <> OLD.actor_id
+              OR NEW.person_id <> OLD.person_id OR NEW.source_id <> OLD.source_id
+              OR NEW.extraction_id <> OLD.extraction_id
+              OR NEW.input_text_hash <> OLD.input_text_hash
+              OR NEW.request_fingerprint <> OLD.request_fingerprint
+              OR NEW.prompt_version <> OLD.prompt_version
+              OR NEW.attempt_number <> OLD.attempt_number
+              OR COALESCE(NEW.provider_id, '') <> COALESCE(OLD.provider_id, '')
+              OR COALESCE(NEW.provider_kind, '') <> COALESCE(OLD.provider_kind, '')
+              OR COALESCE(NEW.provider_descriptor_hash, '') <> COALESCE(OLD.provider_descriptor_hash, '')
+              OR COALESCE(NEW.model_id, '') <> COALESCE(OLD.model_id, '')
+              OR NEW.external <> OLD.external OR NEW.execution_id <> OLD.execution_id
+            BEGIN
+                SELECT RAISE(ABORT, 'document_summary_identity_immutable');
+            END
+            """,
+            """
+            CREATE TRIGGER document_summary_binding_immutable
+            BEFORE UPDATE OF consent_id, receipt_id ON document_summary_runs
+            WHEN (OLD.consent_id IS NOT NULL AND COALESCE(NEW.consent_id, '') <> OLD.consent_id)
+              OR (OLD.receipt_id IS NOT NULL AND COALESCE(NEW.receipt_id, '') <> OLD.receipt_id)
+            BEGIN
+                SELECT RAISE(ABORT, 'document_summary_binding_immutable');
+            END
+            """,
+        ),
+    ),
 )
 
 

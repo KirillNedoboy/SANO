@@ -16,9 +16,10 @@ release tags.
 | Persistent editable vault | `PARTIAL` | Product Core medication/condition/lab and Visit lifecycle, active People, Family permissions, and actor-scoped JSON API are implemented; other fact families remain out of scope. |
 | Document upload | `IMPLEMENTED` | Authenticated Person-scoped PDF/TXT upload; exact raw bytes are immutable. |
 | SANO-A1 document archive | `LOCALLY VERIFIED / NOT PUBLISHED` | `/documents` saves originals immediately, groups by document date, supports title/date metadata and original PDF/TXT view/download; upload has no OCR, D2, AI, or provider path. `app/product_core/document_dates.py`, `app/templates/documents.html`, `app/static/sano_documents.js`. |
-| Product Core schema | `IMPLEMENTED` | Public-main historical baseline is v11; the SANO-A1 branch adds migration v12 for document metadata and preserves the earlier chain. |
+| SANO-X2 Document Understanding | `LOCALLY IMPLEMENTED / NOT PUBLISHED` | Migration v13 persists text-processing and document-summary state. PDF/TXT/JPG/PNG originals remain immutable; local OCR is bounded and optional AI descriptions/document questions require explicit G2 consent. OCR/summary failures do not remove originals. |
+| Product Core schema | `IMPLEMENTED` | Public-main historical baseline is v11; SANO-A1 adds v12 metadata and the local SANO-X2 branch adds v13 processing/summary state, preserving the earlier chain. |
 | Immutable source storage | `IMPLEMENTED` | `app/product_core/services.py`, `app/product_core/migrations.py`, source integrity tests, and P3 genetics source hashes. |
-| Extraction | `IMPLEMENTED` | Bounded deterministic embedded-text extraction; OCR and model extraction remain out of scope. |
+| Extraction | `IMPLEMENTED` | D1 retains bounded embedded-text extraction; SANO-X2 adds optional bounded local PDF/image OCR. Document summaries and questions are separate consent-gated provider actions. |
 | Review inbox | `IMPLEMENTED` | P2 workspace: unified medication + condition + lab candidate review at `/workspace`; broader fact families remain unsupported. |
 | Canonical confirmed records | `IMPLEMENTED` | P1/P2: all three fact families (medication/condition/lab) confirm transactionally into `canonical_records` with typed detail; no other fact families. |
 | Timeline | `IMPLEMENTED` | P2 workspace: medication/condition/lab confirmation and correction events with readable current/history presentation; demo read model remains separate. |

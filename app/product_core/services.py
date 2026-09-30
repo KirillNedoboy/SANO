@@ -43,6 +43,7 @@ from app.product_core.models import (
     ConditionCandidateInput,
     DocumentExtractionPage,
     DocumentExtractionSnapshot,
+    DocumentTextProcessing,
     FactType,
     FollowUpCandidateDetail,
     FollowUpCandidateInput,
@@ -78,7 +79,7 @@ class SourceRegistrationResult:
 @dataclass(frozen=True)
 class DocumentRegistrationResult:
     source: Source
-    extraction: DocumentExtractionSnapshot
+    extraction: DocumentExtractionSnapshot | None
     created: bool
 
 
@@ -644,24 +645,17 @@ class DocumentService:
         *,
         original_filename: str | None = None,
         authorize: MutationAuthorizer | None = None,
+        process_immediately: bool = True,
     ) -> DocumentRegistrationResult:
         if len(payload) > MAX_DOCUMENT_UPLOAD_BYTES:
             raise DocumentValidationError("upload_bytes_limit_exceeded")
         normalized_media_type = media_type.split(";", 1)[0].strip().lower()
-        if normalized_media_type not in {"application/pdf", "text/plain"}:
-            raise DocumentValidationError("unsupported_media_type")
-        extracted_pages, extractor, extractor_version, document_kind = self._extract(
-            payload, normalized_media_type
-        )
+        document_kind = self._validate_document_payload(payload, normalized_media_type)
         content_hash = hashlib.sha256(payload).hexdigest()
-        text_hash = self._canonical_text_hash([item[0] for item in extracted_pages])
-        total_chars = sum(len(item[0]) for item in extracted_pages)
         safe_filename = self.sanitize_original_filename(original_filename)
         document_title = safe_filename or "Untitled document"
-        document_date = extract_document_date("\n".join(item[0] for item in extracted_pages))
-        document_date_source: Literal["extracted", "user", "unknown"] = (
-            "extracted" if document_date is not None else "unknown"
-        )
+        document_date = None
+        document_date_source: Literal["extracted", "user", "unknown"] = "unknown"
         relative_path: str | None = None
         try:
             with self.database.uow(begin_mode="IMMEDIATE") as uow:
@@ -672,14 +666,17 @@ class DocumentService:
                     raise PersonNotFoundError(f"person not found: {person_id}")
                 existing = uow.sources.find_by_deduplication(person_id, "document", content_hash)
                 if existing is not None:
-                    extraction = self._verify_document_in_uow(uow, existing)
+                    extraction = self._verify_document_in_uow(uow, existing, allow_pending=True)
                     if existing.media_type != normalized_media_type:
                         raise IntegrityStorageError("document media type changed")
                     return DocumentRegistrationResult(existing, extraction, False)
 
                 source_id = SourceService._safe_generated_id(self.id_factory())
-                extraction_id = SourceService._safe_generated_id(self.id_factory())
-                suffix = "pdf" if document_kind == "pdf" else "txt"
+                suffix = {
+                    "pdf": "pdf",
+                    "text": "txt",
+                    "image": "png" if normalized_media_type == "image/png" else "jpg",
+                }[document_kind]
                 relative_path = f"{source_id}.{suffix}"
                 self.store.publish(relative_path, payload)
                 now = ensure_utc_datetime(self.clock())
@@ -699,30 +696,6 @@ class DocumentService:
                     document_date=document_date,
                     document_date_source=document_date_source,
                 )
-                snapshot = DocumentExtractionSnapshot(
-                    extraction_id=extraction_id,
-                    source_id=source_id,
-                    person_id=person_id,
-                    extractor=extractor,
-                    extractor_version=extractor_version,
-                    text_hash=text_hash,
-                    total_chars=total_chars,
-                    page_count=len(extracted_pages),
-                    extracted_at=now,
-                )
-                pages = [
-                    DocumentExtractionPage(
-                        extraction_id=extraction_id,
-                        source_id=source_id,
-                        person_id=person_id,
-                        page_number=index,
-                        normalized_text=text,
-                        decoded_content_bytes=decoded_bytes,
-                        extracted_chars=len(text),
-                        page_hash=hashlib.sha256(text.encode("utf-8")).hexdigest(),
-                    )
-                    for index, (text, decoded_bytes) in enumerate(extracted_pages, start=1)
-                ]
                 uow.sources.insert(source)
                 uow.document_metadata.insert(
                     source_id=source.id,
@@ -732,15 +705,18 @@ class DocumentService:
                     document_date_source=document_date_source,
                     updated_at=now,
                 )
-                uow.document_extractions.insert(snapshot, pages)
-                return DocumentRegistrationResult(source, snapshot, True)
+                uow.document_text_processing.insert_pending(source_id, person_id, now)
+            extraction = self.process_text(source.id) if process_immediately else None
+            if extraction is not None:
+                source = self.get(source.id)[0]
+            return DocumentRegistrationResult(source, extraction, True)
         except sqlite3.IntegrityError:
             if relative_path is not None:
                 self._remove_unreferenced(relative_path)
             with self.database.uow() as uow:
                 existing = uow.sources.find_by_deduplication(person_id, "document", content_hash)
                 if existing is not None:
-                    extraction = self._verify_document_in_uow(uow, existing)
+                    extraction = self._verify_document_in_uow(uow, existing, allow_pending=True)
                     return DocumentRegistrationResult(existing, extraction, False)
             raise
         except BaseException:
@@ -748,7 +724,208 @@ class DocumentService:
                 self._remove_unreferenced(relative_path)
             raise
 
-    def list_for_person(self, person_id: str) -> list[tuple[Source, DocumentExtractionSnapshot]]:
+    def process_text(self, source_id: str) -> DocumentExtractionSnapshot | None:
+        """Extract local text after the immutable original has been committed."""
+        with self.database.uow(begin_mode="IMMEDIATE") as uow:
+            source = uow.sources.get(source_id)
+            if source is None or source.source_type != "document":
+                raise SourceNotFoundError(f"document source not found: {source_id}")
+            state = uow.document_text_processing.get_for_source(source_id)
+            if state is None:
+                raise IntegrityStorageError("document text processing state is missing")
+            if state.status == "ready" and state.extraction_id:
+                return uow.document_extractions.get(state.extraction_id)
+            if state.status == "processing":
+                return None
+            now = ensure_utc_datetime(self.clock())
+            uow.document_text_processing.update(
+                DocumentTextProcessing(
+                    source_id=state.source_id,
+                    person_id=state.person_id,
+                    status="processing",
+                    extraction_id=state.extraction_id,
+                    attempt_count=state.attempt_count + 1,
+                    started_at=now,
+                    updated_at=now,
+                    reason_code=None,
+                )
+            )
+            payload = self.store.read(source)
+        try:
+            pages, extractor, extractor_version = self._extract_for_processing(
+                payload, source.media_type
+            )
+            return self._persist_extraction(source_id, pages, extractor, extractor_version)
+        except DocumentValidationError as exc:
+            status = "unavailable" if exc.reason_code in {
+                "tesseract_not_found", "tesseract_unavailable", "tesseract_languages_missing"
+            } else "failed"
+            self._mark_text_processing(source_id, status, exc.reason_code)
+            return None
+        except Exception:
+            self._mark_text_processing(source_id, "failed", "text_processing_failed")
+            return None
+
+    def _persist_extraction(
+        self,
+        source_id: str,
+        extracted_pages: list[tuple[str, int]],
+        extractor: str,
+        extractor_version: str,
+    ) -> DocumentExtractionSnapshot:
+        with self.database.uow(begin_mode="IMMEDIATE") as uow:
+            source = uow.sources.get(source_id)
+            if source is None or source.source_type != "document":
+                raise SourceNotFoundError(f"document source not found: {source_id}")
+            state = uow.document_text_processing.get_for_source(source_id)
+            if state is None:
+                raise IntegrityStorageError("document text processing state is missing")
+            if state.status == "ready" and state.extraction_id:
+                existing = uow.document_extractions.get(state.extraction_id)
+                if existing is not None:
+                    return existing
+            total_chars = sum(len(text) for text, _ in extracted_pages)
+            snapshot = DocumentExtractionSnapshot(
+                extraction_id=SourceService._safe_generated_id(self.id_factory()),
+                source_id=source_id,
+                person_id=source.person_id,
+                extractor=extractor,
+                extractor_version=extractor_version,
+                text_hash=self._canonical_text_hash([text for text, _ in extracted_pages]),
+                total_chars=total_chars,
+                page_count=len(extracted_pages),
+                extracted_at=ensure_utc_datetime(self.clock()),
+            )
+            pages = [
+                DocumentExtractionPage(
+                    extraction_id=snapshot.extraction_id,
+                    source_id=source_id,
+                    person_id=source.person_id,
+                    page_number=index,
+                    normalized_text=text,
+                    decoded_content_bytes=decoded_bytes,
+                    extracted_chars=len(text),
+                    page_hash=hashlib.sha256(text.encode("utf-8")).hexdigest(),
+                )
+                for index, (text, decoded_bytes) in enumerate(extracted_pages, start=1)
+            ]
+            uow.document_extractions.insert(snapshot, pages)
+            now = ensure_utc_datetime(self.clock())
+            uow.document_text_processing.update(
+                DocumentTextProcessing(
+                    source_id=source_id,
+                    person_id=source.person_id,
+                    status="ready",
+                    extraction_id=snapshot.extraction_id,
+                    attempt_count=state.attempt_count,
+                    started_at=None,
+                    updated_at=now,
+                    reason_code=None,
+                )
+            )
+            if source.document_date_source == "unknown":
+                detected_date = extract_document_date(
+                    "\n".join(text for text, _ in extracted_pages)
+                )
+                if detected_date is not None:
+                    uow.document_metadata.update(
+                        source_id=source_id,
+                        person_id=source.person_id,
+                        title=(
+                            source.document_title
+                            or source.original_filename
+                            or "Untitled document"
+                        ),
+                        document_date=detected_date,
+                        document_date_source="extracted",
+                        updated_at=now,
+                    )
+            return snapshot
+
+    def _mark_text_processing(self, source_id: str, status: str, reason_code: str) -> None:
+        with self.database.uow(begin_mode="IMMEDIATE") as uow:
+            state = uow.document_text_processing.get_for_source(source_id)
+            if state is None or state.status == "ready":
+                return
+            uow.document_text_processing.update(
+                DocumentTextProcessing(
+                    source_id=state.source_id,
+                    person_id=state.person_id,
+                    status=status,  # type: ignore[arg-type]
+                    extraction_id=state.extraction_id,
+                    attempt_count=state.attempt_count,
+                    started_at=None,
+                    updated_at=ensure_utc_datetime(self.clock()),
+                    reason_code=reason_code,
+                )
+            )
+
+    @staticmethod
+    def _validate_document_payload(
+        payload: bytes, media_type: str
+    ) -> Literal["pdf", "text", "image"]:
+        if media_type == "application/pdf":
+            if not payload.startswith(b"%PDF-"):
+                raise DocumentValidationError("pdf_signature_invalid")
+            try:
+                reader = pypdf.PdfReader(io.BytesIO(payload), strict=True)
+                if reader.is_encrypted:
+                    raise DocumentValidationError("encrypted_pdf")
+                if not reader.pages:
+                    raise DocumentValidationError("pdf_no_pages")
+                if len(reader.pages) > MAX_DOCUMENT_PAGES:
+                    raise DocumentValidationError("page_limit_exceeded")
+            except DocumentValidationError:
+                raise
+            except Exception:
+                raise DocumentValidationError("malformed_pdf") from None
+            return "pdf"
+        if media_type == "text/plain":
+            try:
+                payload.decode("utf-8-sig")
+            except UnicodeDecodeError:
+                raise DocumentValidationError("invalid_utf8") from None
+            return "text"
+        if media_type in {"image/png", "image/jpeg"}:
+            if media_type == "image/png" and not payload.startswith(b"\x89PNG\r\n\x1a\n"):
+                raise DocumentValidationError("image_format_mismatch")
+            if media_type == "image/jpeg" and not payload.startswith(b"\xff\xd8\xff"):
+                raise DocumentValidationError("image_format_mismatch")
+            from PIL import Image, UnidentifiedImageError
+
+            try:
+                with Image.open(io.BytesIO(payload)) as image:
+                    expected = "PNG" if media_type == "image/png" else "JPEG"
+                    if image.format != expected:
+                        raise DocumentValidationError("image_format_mismatch")
+                    image.verify()
+            except DocumentValidationError:
+                raise
+            except (OSError, UnidentifiedImageError, Image.DecompressionBombError):
+                raise DocumentValidationError("malformed_image") from None
+            return "image"
+        raise DocumentValidationError("unsupported_media_type")
+
+    @staticmethod
+    def _extract_for_processing(
+        payload: bytes, media_type: str
+    ) -> tuple[list[tuple[str, int]], str, str]:
+        if media_type == "text/plain":
+            pages, extractor, version, _ = DocumentService._extract(payload, media_type)
+            return pages, extractor, version
+        from app.product_core.document_ocr import LocalOcrAdapter
+
+        result = LocalOcrAdapter().extract(payload, media_type=media_type)
+        pages = [(page.text, 0) for page in result.pages]
+        extractor = "tesseract-local" if any(page.used_ocr for page in result.pages) else "pypdf"
+        return pages, extractor, pypdf.__version__
+
+    def retry_text_processing(self, source_id: str) -> DocumentExtractionSnapshot | None:
+        return self.process_text(source_id)
+
+    def list_for_person(
+        self, person_id: str
+    ) -> list[tuple[Source, DocumentExtractionSnapshot | None]]:
         with self.database.uow() as uow:
             documents = [
                 source
@@ -767,14 +944,26 @@ class DocumentService:
                     source.id,
                 )
             )
-            return [(source, self._verify_document_in_uow(uow, source)) for source in documents]
+            return [
+                (source, self._verify_document_in_uow(uow, source))
+                for source in documents
+            ]
 
-    def get(self, source_id: str) -> tuple[Source, DocumentExtractionSnapshot]:
+    def get(
+        self, source_id: str
+    ) -> tuple[Source, DocumentExtractionSnapshot | None]:
         with self.database.uow() as uow:
             source = uow.sources.get(source_id)
             if source is None or source.source_type != "document":
                 raise SourceNotFoundError(f"document source not found: {source_id}")
             return source, self._verify_document_in_uow(uow, source)
+
+    def get_text_processing(self, source_id: str) -> DocumentTextProcessing:
+        with self.database.uow() as uow:
+            source = uow.sources.get(source_id)
+            if source is None or source.source_type != "document":
+                raise SourceNotFoundError(f"document source not found: {source_id}")
+            return self._text_processing_state(uow, source)
 
     def read_original(self, source_id: str) -> tuple[Source, bytes]:
         with self.database.uow() as uow:
@@ -833,21 +1022,34 @@ class DocumentService:
             if source is None or source.source_type != "document":
                 raise SourceNotFoundError(f"document source not found: {source_id}")
             snapshot = self._verify_document_in_uow(uow, source)
-            if snapshot.extraction_id != extraction_id:
+            if snapshot is None or snapshot.extraction_id != extraction_id:
                 raise SourceNotFoundError("document extraction was not found")
             page = uow.document_extractions.get_page(extraction_id, page_number)
             if page is None:
                 raise SourceNotFoundError("document page was not found")
             return snapshot, page
 
+    def list_pages(self, source_id: str, extraction_id: str) -> list[DocumentExtractionPage]:
+        with self.database.uow() as uow:
+            source = uow.sources.get(source_id)
+            if source is None or source.source_type != "document":
+                raise SourceNotFoundError(f"document source not found: {source_id}")
+            snapshot = self._verify_document_in_uow(uow, source)
+            if snapshot is None or snapshot.extraction_id != extraction_id:
+                raise SourceNotFoundError("document extraction was not found")
+            return uow.document_extractions.list_pages(extraction_id)
+
     def _verify_document_in_uow(
-        self, uow: UnitOfWork, source: Source
-    ) -> DocumentExtractionSnapshot:
+        self, uow: UnitOfWork, source: Source, *, allow_pending: bool = False
+    ) -> DocumentExtractionSnapshot | None:
         if source.source_type != "document":
             raise IntegrityStorageError("document source type mismatch")
         self.store.read(source)
         snapshot = uow.document_extractions.get_complete_for_source(source.id)
         if snapshot is None:
+            state = self._text_processing_state(uow, source)
+            if allow_pending or state.status in {"pending", "processing", "unavailable", "failed"}:
+                return None
             raise IntegrityStorageError("document extraction is missing")
         if snapshot.source_id != source.id or snapshot.person_id != source.person_id:
             raise IntegrityStorageError("document extraction ownership mismatch")
@@ -877,6 +1079,17 @@ class DocumentService:
         ):
             raise IntegrityStorageError("document extraction integrity mismatch")
         return snapshot
+
+    @staticmethod
+    def _text_processing_state(
+        uow: UnitOfWork, source: Source
+    ) -> DocumentTextProcessing:
+        state = uow.document_text_processing.get_for_source(source.id)
+        if state is None:
+            raise IntegrityStorageError("document text processing state is missing")
+        if state.person_id != source.person_id:
+            raise IntegrityStorageError("document text processing ownership mismatch")
+        return state
 
     def _remove_unreferenced(self, relative_path: str) -> None:
         with self.database.uow() as uow:

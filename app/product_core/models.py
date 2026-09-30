@@ -8,6 +8,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 SourceType = Literal["manual_entry", "plain_text", "document", "genetics"]
 DocumentDateSource = Literal["extracted", "user", "unknown"]
+DocumentKind = Literal["pdf", "text", "image"]
+DocumentTextStatus = Literal["pending", "processing", "ready", "unavailable", "failed"]
 FactType = Literal["medication", "condition", "lab", "procedure", "recommendation", "follow_up"]
 CandidateStatus = Literal["pending", "confirmed", "corrected", "rejected", "unsupported"]
 DocumentFactRunStatus = Literal[
@@ -66,7 +68,7 @@ class Source(BaseModel):
     created_at: datetime
     provenance: dict[str, str] = Field(default_factory=dict)
     original_filename: str | None = None
-    document_kind: Literal["pdf", "text"] | None = None
+    document_kind: DocumentKind | None = None
     # Document archive metadata is stored in a sidecar table. These optional
     # fields are joined onto Source reads so existing source consumers keep
     # their tuple/API contracts.
@@ -98,6 +100,60 @@ class DocumentExtractionSnapshot(BaseModel):
     @classmethod
     def validate_extracted_at(cls, value: datetime) -> datetime:
         return ensure_utc_datetime(value)
+
+
+class DocumentTextProcessing(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    source_id: str = Field(min_length=1)
+    person_id: str = Field(min_length=1)
+    status: DocumentTextStatus
+    extraction_id: str | None = None
+    attempt_count: int = Field(ge=0)
+    started_at: datetime | None = None
+    updated_at: datetime
+    reason_code: str | None = None
+
+    @field_validator("started_at", "updated_at")
+    @classmethod
+    def validate_processing_datetimes(cls, value: datetime | None) -> datetime | None:
+        return None if value is None else ensure_utc_datetime(value)
+
+
+class DocumentSummaryRun(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    run_id: str = Field(min_length=1)
+    actor_id: str = Field(min_length=1)
+    person_id: str = Field(min_length=1)
+    source_id: str = Field(min_length=1)
+    extraction_id: str = Field(min_length=1)
+    input_text_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+    request_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+    prompt_version: str = Field(min_length=1)
+    status: Literal[
+        "prepared", "consent_required", "consented", "executing", "completed",
+        "partial", "failed", "declined", "unavailable",
+    ]
+    attempt_number: int = Field(ge=1)
+    provider_id: str | None = None
+    provider_kind: str | None = None
+    provider_descriptor_hash: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    model_id: str | None = None
+    external: bool = False
+    execution_id: str = Field(min_length=1)
+    consent_id: str | None = None
+    receipt_id: str | None = None
+    result_json: str | None = None
+    reason_code: str | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+
+    @field_validator("created_at", "updated_at", "completed_at")
+    @classmethod
+    def validate_summary_datetimes(cls, value: datetime | None) -> datetime | None:
+        return None if value is None else ensure_utc_datetime(value)
 
 
 class DocumentExtractionPage(BaseModel):

@@ -20,6 +20,13 @@ readiness claim.
   Upload does not run OCR, AI extraction, D2, or provider calls. The branch's
   Product Core metadata migration is v12; the public-main v11 baseline remains
   historical. Verification and migration evidence: `docs/sano-a1-validation.md`.
+- **SANO-X2 Document Understanding:** implemented locally on
+  `codex/sano-x2-document-understanding`; not merged, pushed, or published.
+  Product Core migration v13 adds persistent local text-processing and
+  document-summary state. PDF/TXT/JPG/PNG originals are saved before bounded
+  local OCR/extraction; an optional AI description and document-scoped Helper
+  require a separate, provider-bound G2 consent. D1 review lifecycle and
+  canonical-record mutation rules remain unchanged.
 ```text
 R7 = DONE / published
 UI-R4.1 = COMPLETE locally at 1a8f21788768ae6a67d9e62ba71858eae7dcf95a
@@ -46,7 +53,9 @@ ecosystem evidence pending.
   recorded conditions, labs, procedures, recommendations, follow-ups, Visits,
   Visit Questions, Visit Briefs, document extractions, genetics datasets,
   findings, grants, research sessions, export, backup, and recovery. v10 rows
-  are preserved by the migration.
+  are preserved by the migration. Local SANO-X2 migration v13 adds document
+  text-processing state and consented summary/question state; public-main and
+  SANO-A1 historical baselines remain unchanged.
 - Visit Brief content schema remains v2; v1 revisions remain readable. The D2.2
   categories are explicitly not part of Brief v2.
 - Family Access v1 and v2 are frozen. v3 adds `document.read` and

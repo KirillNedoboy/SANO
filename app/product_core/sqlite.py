@@ -13,6 +13,7 @@ from app.product_core.repositories import (
     SQLiteDocumentExtractionRepository,
     SQLiteDocumentFactExtractionRepository,
     SQLiteDocumentMetadataRepository,
+    SQLiteDocumentTextProcessingRepository,
     SQLiteExecutionReceiptRepository,
     SQLitePersonRepository,
     SQLiteSourceRepository,
@@ -59,6 +60,7 @@ class UnitOfWork:
         self.execution_receipts: SQLiteExecutionReceiptRepository
         self.sources: SQLiteSourceRepository
         self.document_extractions: SQLiteDocumentExtractionRepository
+        self.document_text_processing: SQLiteDocumentTextProcessingRepository
         self.document_metadata: SQLiteDocumentMetadataRepository
         self.document_fact_extractions: SQLiteDocumentFactExtractionRepository
         self.people: SQLitePersonRepository
@@ -82,6 +84,7 @@ class UnitOfWork:
             raise
         self.sources = SQLiteSourceRepository(self.connection)
         self.document_extractions = SQLiteDocumentExtractionRepository(self.connection)
+        self.document_text_processing = SQLiteDocumentTextProcessingRepository(self.connection)
         self.document_metadata = SQLiteDocumentMetadataRepository(self.connection)
         self.document_fact_extractions = SQLiteDocumentFactExtractionRepository(self.connection)
         self.people = SQLitePersonRepository(self.connection)

@@ -184,10 +184,14 @@ def test_controlled_identifier_constants_are_stable() -> None:
             "record_explanation",
             "clinician_briefing",
             "document_fact_extraction",
+            "document_summary",
+            "document_question",
         }
     ) == PURPOSE_IDS
     assert frozenset({"context.read", "source.read", "brief.draft"}) == TOOL_IDS
     assert "answer_question" in ACTION_REQUIREMENTS
+    assert "document.summarize" in ACTION_REQUIREMENTS
+    assert "document.answer_question" in ACTION_REQUIREMENTS
     assert "diagnosis" in PROHIBITED_OPERATIONS
     assert "disclose_only_selected_fields" in DEFAULT_DISCLOSURE_CONSTRAINTS
 

@@ -101,7 +101,7 @@ def test_product_core_openapi_is_stable_and_public_only(product_core_client: Tes
         if isinstance(operation, dict) and "operationId" in operation
     ]
 
-    assert len(paths) == 79
+    assert len(paths) == 87
     assert len(operation_ids) == len(set(operation_ids))
     assert "product_core_unsupported_candidate" in operation_ids
     assert "product_core_create_condition_candidate" in operation_ids
@@ -112,6 +112,14 @@ def test_product_core_openapi_is_stable_and_public_only(product_core_client: Tes
     assert "product_core_list_documents" in operation_ids
     assert "product_core_get_document" in operation_ids
     assert "product_core_get_document_page" in operation_ids
+    assert "product_core_retry_document_text_processing" in operation_ids
+    assert "product_core_get_document_summary" in operation_ids
+    assert "product_core_prepare_document_summary" in operation_ids
+    assert "product_core_consent_document_summary" in operation_ids
+    assert "product_core_prepare_document_question" in operation_ids
+    assert "product_core_consent_document_question" in operation_ids
+    assert "product_core_execute_document_question" in operation_ids
+    assert "product_core_get_document_question_receipt" in operation_ids
     assert "product_core_prepare_document_fact_extraction" in operation_ids
     assert "product_core_execute_document_fact_extraction" in operation_ids
     assert "product_core_get_latest_document_fact_extraction" in operation_ids

@@ -590,20 +590,28 @@ class DocumentExtractionResponse(APIModel):
     extracted_at: datetime
 
 
+class DocumentTextProcessingResponse(APIModel):
+    status: Literal["pending", "processing", "ready", "unavailable", "failed"]
+    attempt_count: int
+    updated_at: datetime
+    reason_code: str | None
+
+
 class DocumentResponse(APIModel):
     source_id: str
     person_id: str
     source_type: Literal["document"]
-    media_type: Literal["application/pdf", "text/plain"]
+    media_type: Literal["application/pdf", "text/plain", "image/png", "image/jpeg"]
     content_hash: str
     size_bytes: int
     original_filename: str | None
-    document_kind: Literal["pdf", "text"]
+    document_kind: Literal["pdf", "text", "image"]
     title: str
     document_date: date | None
     document_date_source: Literal["extracted", "user", "unknown"]
     created_at: datetime
-    extraction: DocumentExtractionResponse
+    extraction: DocumentExtractionResponse | None
+    text_processing: DocumentTextProcessingResponse
 
 
 class DocumentRegistrationResponse(APIModel):
@@ -625,6 +633,23 @@ class DocumentMetadataUpdateRequest(APIModel):
         if value is None:
             return None
         return _validate_display_name(value)
+
+
+class DocumentQuestionPrepareRequest(APIModel):
+    question: str = Field(min_length=1, max_length=2_000)
+
+    @field_validator("question")
+    @classmethod
+    def validate_question(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("question must not be blank")
+        _reject_control_characters(cleaned, "question")
+        return cleaned
+
+
+class DocumentQuestionConsentRequest(DocumentQuestionPrepareRequest):
+    fields: list[str] = Field(min_length=1, max_length=200)
 
 
 class DocumentPageResponse(APIModel):
@@ -658,7 +683,6 @@ class CandidateResponse(APIModel):
     action_text: str | None = None
     timing_text: str | None = None
     destination_text: str | None = None
-
 
 
 class CandidateListResponse(APIModel):

@@ -345,6 +345,7 @@ def run_review() -> tuple[int, dict[str, str], dict[str, int]]:
                 "alice-person", "source.write", "document.write", action="document.create"
             ),
         )
+        assert pdf_document.extraction is not None
         text_bytes = b"\xef\xbb\xbfUnused export marker\r\nSecond line\rThird line"
         text_document = documents.register(
             "alice-person",
@@ -355,6 +356,7 @@ def run_review() -> tuple[int, dict[str, str], dict[str, int]]:
                 "alice-person", "source.write", "document.write", action="document.create"
             ),
         )
+        assert text_document.extraction is not None
         carol_document = documents.register(
             "carol-person",
             b"Carol private document",
@@ -363,6 +365,7 @@ def run_review() -> tuple[int, dict[str, str], dict[str, int]]:
                 "carol-person", "source.write", "document.write", action="document.create"
             ),
         )
+        assert carol_document.extraction is not None
 
         checks.check(
             sources.store.read(pdf_document.source) == pdf_bytes
@@ -408,10 +411,26 @@ def run_review() -> tuple[int, dict[str, str], dict[str, int]]:
             "application/pdf",
             original_filename="synthetic-blank.pdf",
         )
-        checks.check(
+        blank_original_is_intact = (
             blank_document.created
-            and blank_document.extraction.total_chars == 0
-            and blank_document.extraction.page_count == 1,
+            and sources.store.read(blank_document.source) == blank_output.getvalue()
+            and blank_document.source.content_hash
+            == hashlib.sha256(blank_output.getvalue()).hexdigest()
+        )
+        if blank_document.extraction is None:
+            blank_processing = documents.get_text_processing(blank_document.source.id)
+            blank_archived = blank_original_is_intact and blank_processing.status in {
+                "failed",
+                "unavailable",
+            }
+        else:
+            blank_archived = (
+                blank_original_is_intact
+                and blank_document.extraction.total_chars == 0
+                and blank_document.extraction.page_count == 1
+            )
+        checks.check(
+            blank_archived,
             "valid blank PDF original was not durably archived",
         )
         source_count = len(documents.list_for_person("alice-person")) + len(
@@ -421,7 +440,6 @@ def run_review() -> tuple[int, dict[str, str], dict[str, int]]:
             (b"%PDF-broken", "application/pdf"),
             (_encrypted_pdf(), "application/pdf"),
             (b"\xff", "text/plain"),
-            (("x" * 100_001).encode("utf-8"), "text/plain"),
         )
         checks.check(
             all(_document_rejected(documents, body, media) for body, media in invalid_documents)
@@ -429,6 +447,23 @@ def run_review() -> tuple[int, dict[str, str], dict[str, int]]:
             == len(documents.list_for_person("alice-person"))
             + len(documents.list_for_person("carol-person")),
             "invalid or bounded document was durably accepted",
+        )
+        bounded_payload = b"x" * 100_001
+        bounded_document = documents.register(
+            "alice-person",
+            bounded_payload,
+            "text/plain",
+            original_filename="synthetic-oversized-text.txt",
+        )
+        bounded_processing = documents.get_text_processing(bounded_document.source.id)
+        checks.check(
+            bounded_document.created
+            and bounded_document.extraction is None
+            and bounded_processing.status == "failed"
+            and sources.store.read(bounded_document.source) == bounded_payload
+            and bounded_document.source.content_hash
+            == hashlib.sha256(bounded_payload).hexdigest(),
+            "extraction size limit prevented original document retention",
         )
 
         checks.check(

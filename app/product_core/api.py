@@ -7,7 +7,17 @@ from contextlib import suppress
 from typing import Annotated, Any
 from urllib.parse import quote, unquote
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, Request, Response
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Body,
+    Depends,
+    HTTPException,
+    Path,
+    Query,
+    Request,
+    Response,
+)
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
@@ -34,8 +44,11 @@ from app.product_core.api_models import (
     DocumentListResponse,
     DocumentMetadataUpdateRequest,
     DocumentPageResponse,
+    DocumentQuestionConsentRequest,
+    DocumentQuestionPrepareRequest,
     DocumentRegistrationResponse,
     DocumentResponse,
+    DocumentTextProcessingResponse,
     EmptyActionRequest,
     ErrorResponse,
     FollowUpCandidateListResponse,
@@ -106,6 +119,8 @@ from app.product_core.api_models import (
     _validate_identifier,
 )
 from app.product_core.document_fact_extraction import DocumentFactExtractionService
+from app.product_core.document_question import DocumentQuestionService
+from app.product_core.document_summary import DocumentSummaryService
 from app.product_core.errors import (
     AccessAuditUnavailableError,
     CandidateNotFoundError,
@@ -357,6 +372,14 @@ _PERSON_PATH_SCOPES: dict[str, tuple[str, ...]] = {
     "product_core_download_document_original": ("document.read",),
     "product_core_update_document_metadata": ("document.write",),
     "product_core_register_document": ("source.write", "document.write"),
+    "product_core_get_document_summary": ("document.read",),
+    "product_core_prepare_document_summary": ("document.read",),
+    "product_core_consent_document_summary": ("document.read",),
+    "product_core_prepare_document_question": ("document.read",),
+    "product_core_consent_document_question": ("document.read",),
+    "product_core_execute_document_question": ("document.read",),
+    "product_core_get_document_question_receipt": ("document.read",),
+    "product_core_retry_document_text_processing": ("document.write",),
 }
 _VISIT_PATH_SCOPES: dict[str, tuple[str, ...]] = {
     "product_core_get_visit": ("visit.read",),
@@ -778,7 +801,7 @@ async def _read_bounded_genetics_body(request: Request) -> bytes:
     return bytes(payload)
 
 
-def _document_response(source: Any, extraction: Any) -> DocumentResponse:
+def _document_response(source: Any, extraction: Any, text_processing: Any) -> DocumentResponse:
     return DocumentResponse(
         source_id=source.id,
         person_id=source.person_id,
@@ -790,11 +813,12 @@ def _document_response(source: Any, extraction: Any) -> DocumentResponse:
         document_kind=source.document_kind,
         title=source.document_title or source.original_filename or "Untitled document",
         document_date=source.document_date,
-        document_date_source=source.document_date_source or (
-            "extracted" if source.document_date is not None else "unknown"
-        ),
+        document_date_source=source.document_date_source
+        or ("extracted" if source.document_date is not None else "unknown"),
         created_at=source.created_at,
-        extraction=DocumentExtractionResponse(
+        extraction=None
+        if extraction is None
+        else DocumentExtractionResponse(
             extraction_id=extraction.extraction_id,
             extractor=extraction.extractor,
             extractor_version=extraction.extractor_version,
@@ -803,6 +827,12 @@ def _document_response(source: Any, extraction: Any) -> DocumentResponse:
             total_chars=extraction.total_chars,
             page_count=extraction.page_count,
             extracted_at=extraction.extracted_at,
+        ),
+        text_processing=DocumentTextProcessingResponse(
+            status=text_processing.status,
+            attempt_count=text_processing.attempt_count,
+            updated_at=text_processing.updated_at,
+            reason_code=text_processing.reason_code,
         ),
     )
 
@@ -1595,6 +1625,7 @@ async def register_document(
     person_id: ProductCoreIdentifier,
     request: Request,
     response: Response,
+    background_tasks: BackgroundTasks,
     runtime: RuntimeDependency,
     access: AccessDependency,
 ) -> DocumentRegistrationResponse:
@@ -1605,6 +1636,7 @@ async def register_document(
         payload,
         media_type,
         original_filename=_document_filename_header(request),
+        process_immediately=False,
         authorize=access.authorize_person_mutation(
             person_id,
             "source.write",
@@ -1613,9 +1645,12 @@ async def register_document(
         ),
     )
     response.status_code = 201 if result.created else 409
+    _, extraction = runtime.documents.get(result.source.id)
+    text_processing = runtime.documents.get_text_processing(result.source.id)
+    background_tasks.add_task(runtime.documents.process_text, result.source.id)
     return DocumentRegistrationResponse(
         created=result.created,
-        document=_document_response(result.source, result.extraction),
+        document=_document_response(result.source, extraction, text_processing),
     )
 
 
@@ -1633,7 +1668,7 @@ def list_documents(
     access.require_person(person_id, "document.read")
     return DocumentListResponse(
         documents=[
-            _document_response(source, extraction)
+            _document_response(source, extraction, runtime.documents.get_text_processing(source.id))
             for source, extraction in runtime.documents.list_for_person(person_id)
         ]
     )
@@ -1653,7 +1688,24 @@ def get_document(
 ) -> DocumentResponse:
     access.require_source_for_person(source_id, person_id, "document.read")
     source, extraction = runtime.documents.get(source_id)
-    return _document_response(source, extraction)
+    text_processing = runtime.documents.get_text_processing(source_id)
+    return _document_response(source, extraction, text_processing)
+
+
+@router.post(
+    "/people/{person_id}/documents/{source_id}/text-processing/retry",
+    operation_id="product_core_retry_document_text_processing",
+)
+def retry_document_text_processing(
+    person_id: ProductCoreIdentifier,
+    source_id: ProductCoreIdentifier,
+    background_tasks: BackgroundTasks,
+    runtime: RuntimeDependency,
+    access: AccessDependency,
+) -> dict[str, str]:
+    access.require_source_for_person(source_id, person_id, "document.write")
+    background_tasks.add_task(runtime.documents.retry_text_processing, source_id)
+    return {"source_id": source_id, "status": "pending"}
 
 
 @router.get(
@@ -1699,7 +1751,7 @@ def _document_content_disposition(source: Any, disposition: str) -> str:
     ascii_name = filename.encode("ascii", "ignore").decode("ascii") or "document"
     if "." not in ascii_name:
         ascii_name += ".pdf" if source.document_kind == "pdf" else ".txt"
-    return f'{disposition}; filename="{ascii_name}"; filename*=UTF-8\'\'{quote(filename)}'
+    return f"{disposition}; filename=\"{ascii_name}\"; filename*=UTF-8''{quote(filename)}"
 
 
 def _document_original_response(source: Any, payload: bytes, disposition: str) -> Response:
@@ -1777,7 +1829,8 @@ def update_document_metadata(
         ),
     )
     _source, extraction = runtime.documents.get(source_id)
-    return _document_response(source, extraction)
+    text_processing = runtime.documents.get_text_processing(source_id)
+    return _document_response(source, extraction, text_processing)
 
 
 def _d2_service(request: Request, runtime: ProductCoreRuntime) -> DocumentFactExtractionService:
@@ -1824,6 +1877,161 @@ def _d2_session_token(access: ProductCoreAccess, person_id: str) -> str:
     return token
 
 
+def _document_summary_service(request: Request, runtime: Any) -> DocumentSummaryService:
+    provider = getattr(request.app.state, "agent_provider", None)
+    g2_runtime = getattr(request.app.state, "document_summary_g2_runtime", None)
+    trust_adapter = getattr(request.app.state, "document_summary_trust", None)
+    if provider is None or g2_runtime is None or trust_adapter is None:
+        raise HTTPException(status_code=503, detail="document_summary_unavailable")
+    g2_runtime.provider = provider
+    trust_adapter.set_provider(provider)
+    return DocumentSummaryService(runtime, provider, g2_runtime, trust_adapter)
+
+
+def _document_question_service(request: Request, runtime: Any) -> DocumentQuestionService:
+    provider = getattr(request.app.state, "agent_provider", None)
+    g2_runtime = getattr(request.app.state, "document_summary_g2_runtime", None)
+    trust_adapter = getattr(request.app.state, "document_summary_trust", None)
+    if provider is None or g2_runtime is None or trust_adapter is None:
+        raise HTTPException(status_code=503, detail="document_question_unavailable")
+    g2_runtime.provider = provider
+    trust_adapter.set_provider(provider)
+    return DocumentQuestionService(runtime, g2_runtime, trust_adapter)
+
+
+@router.get(
+    "/people/{person_id}/documents/{source_id}/summary",
+    operation_id="product_core_get_document_summary",
+)
+def get_document_summary(
+    person_id: ProductCoreIdentifier,
+    source_id: ProductCoreIdentifier,
+    request: Request,
+    runtime: RuntimeDependency,
+    access: AccessDependency,
+) -> dict[str, Any] | None:
+    access.require_source_for_person(source_id, person_id, "document.read")
+    return _document_summary_service(request, runtime).latest(person_id, source_id)
+
+
+@router.post(
+    "/people/{person_id}/documents/{source_id}/summary/prepare",
+    operation_id="product_core_prepare_document_summary",
+)
+def prepare_document_summary(
+    person_id: ProductCoreIdentifier,
+    source_id: ProductCoreIdentifier,
+    request: Request,
+    runtime: RuntimeDependency,
+    access: AccessDependency,
+) -> dict[str, Any]:
+    access.require_source_for_person(source_id, person_id, "document.read")
+    return _document_summary_service(request, runtime).prepare(
+        person_id, source_id, _d2_session_token(access, person_id)
+    )
+
+
+@router.post(
+    "/people/{person_id}/documents/{source_id}/summary/runs/{run_id}/consent",
+    operation_id="product_core_consent_document_summary",
+)
+def consent_document_summary(
+    person_id: ProductCoreIdentifier,
+    source_id: ProductCoreIdentifier,
+    run_id: ProductCoreIdentifier,
+    request: Request,
+    runtime: RuntimeDependency,
+    access: AccessDependency,
+) -> dict[str, Any]:
+    access.require_source_for_person(source_id, person_id, "document.read")
+    return _document_summary_service(request, runtime).consent_and_execute(
+        person_id, source_id, run_id, _d2_session_token(access, person_id)
+    )
+
+
+@router.post(
+    "/people/{person_id}/documents/{source_id}/questions/prepare",
+    operation_id="product_core_prepare_document_question",
+)
+def prepare_document_question(
+    person_id: ProductCoreIdentifier,
+    source_id: ProductCoreIdentifier,
+    payload: DocumentQuestionPrepareRequest,
+    request: Request,
+    runtime: RuntimeDependency,
+    access: AccessDependency,
+) -> dict[str, Any]:
+    access.require_source_for_person(source_id, person_id, "document.read")
+    return _document_question_service(request, runtime).prepare(
+        person_id, source_id, payload.question, _d2_session_token(access, person_id)
+    )
+
+
+@router.post(
+    "/people/{person_id}/documents/{source_id}/questions/{execution_id}/consent",
+    operation_id="product_core_consent_document_question",
+)
+def consent_document_question(
+    person_id: ProductCoreIdentifier,
+    source_id: ProductCoreIdentifier,
+    execution_id: ProductCoreIdentifier,
+    payload: DocumentQuestionConsentRequest,
+    request: Request,
+    runtime: RuntimeDependency,
+    access: AccessDependency,
+) -> dict[str, Any]:
+    access.require_source_for_person(source_id, person_id, "document.read")
+    return _document_question_service(request, runtime).consent(
+        person_id,
+        source_id,
+        execution_id,
+        payload.question,
+        payload.fields,
+        _d2_session_token(access, person_id),
+    )
+
+
+@router.post(
+    "/people/{person_id}/documents/{source_id}/questions/{execution_id}/execute",
+    operation_id="product_core_execute_document_question",
+)
+def execute_document_question(
+    person_id: ProductCoreIdentifier,
+    source_id: ProductCoreIdentifier,
+    execution_id: ProductCoreIdentifier,
+    payload: DocumentQuestionPrepareRequest,
+    request: Request,
+    runtime: RuntimeDependency,
+    access: AccessDependency,
+) -> dict[str, Any]:
+    access.require_source_for_person(source_id, person_id, "document.read")
+    return _document_question_service(request, runtime).execute(
+        person_id,
+        source_id,
+        execution_id,
+        payload.question,
+        _d2_session_token(access, person_id),
+    )
+
+
+@router.get(
+    "/people/{person_id}/documents/{source_id}/questions/{execution_id}/receipt",
+    operation_id="product_core_get_document_question_receipt",
+)
+def get_document_question_receipt(
+    person_id: ProductCoreIdentifier,
+    source_id: ProductCoreIdentifier,
+    execution_id: ProductCoreIdentifier,
+    request: Request,
+    runtime: RuntimeDependency,
+    access: AccessDependency,
+) -> dict[str, Any] | None:
+    access.require_source_for_person(source_id, person_id, "document.read")
+    return _document_question_service(request, runtime).receipt(
+        person_id, source_id, execution_id, _d2_session_token(access, person_id)
+    )
+
+
 @router.post(
     "/people/{person_id}/documents/{source_id}/fact-extractions/prepare",
     operation_id="product_core_prepare_document_fact_extraction",
@@ -1855,9 +2063,7 @@ def prepare_document_fact_extraction(
         raise HTTPException(status_code=403, detail=str(exc)) from exc
     except ValueError as exc:
         status_code = (
-            404
-            if str(exc) in {"document_not_found", "document_extraction_missing"}
-            else 403
+            404 if str(exc) in {"document_not_found", "document_extraction_missing"} else 403
         )
         raise HTTPException(status_code=status_code, detail=str(exc)) from exc
 
@@ -2625,9 +2831,7 @@ def list_procedure_candidates(
     status: Annotated[CandidateStatus | None, Query()] = None,
 ) -> ProcedureCandidateListResponse:
     access.require_person(person_id, "procedure.read")
-    candidates = runtime.lifecycle.list_fact_candidates(
-        person_id, status, fact_type="procedure"
-    )
+    candidates = runtime.lifecycle.list_fact_candidates(person_id, status, fact_type="procedure")
     return ProcedureCandidateListResponse(
         candidates=[_procedure_candidate_response(item) for item in candidates]
     )
@@ -2709,9 +2913,7 @@ def list_follow_up_candidates(
     status: Annotated[CandidateStatus | None, Query()] = None,
 ) -> FollowUpCandidateListResponse:
     access.require_person(person_id, "follow_up.read")
-    candidates = runtime.lifecycle.list_fact_candidates(
-        person_id, status, fact_type="follow_up"
-    )
+    candidates = runtime.lifecycle.list_fact_candidates(person_id, status, fact_type="follow_up")
     return FollowUpCandidateListResponse(
         candidates=[_follow_up_candidate_response(item) for item in candidates]
     )

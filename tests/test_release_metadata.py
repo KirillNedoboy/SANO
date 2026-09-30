@@ -44,6 +44,8 @@ def test_project_metadata_is_complete_without_dependency_or_version_changes() ->
         "uvicorn[standard]>=0.30.0",
         "pydantic>=2.7.0",
         "pypdf>=6.13,<7",
+        "Pillow>=12.3,<13",
+        "pypdfium2>=5.13,<6",
     ]
     assert project["optional-dependencies"]["dev"] == [
         "pytest>=8.2.0",

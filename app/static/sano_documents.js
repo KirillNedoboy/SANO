@@ -34,7 +34,10 @@
     const method = (options.method || "GET").toUpperCase();
     const headers = { ...(options.headers || {}) };
     if (method !== "GET" && method !== "HEAD") headers["X-OpenCare-CSRF"] = csrfToken();
-    if (options.body && !(options.body instanceof ArrayBuffer) && !headers["Content-Type"]) headers["Content-Type"] = "application/json";
+    if (["POST", "PUT", "PATCH"].includes(method) &&
+        !(options.body instanceof ArrayBuffer) &&
+        !(options.body instanceof FormData) &&
+        !headers["Content-Type"]) headers["Content-Type"] = "application/json";
     const url = path.startsWith("/api/") ? path : `${api}${path.startsWith("/") ? path : `/${path}`}`;
     const response = await fetch(url, { credentials: "same-origin", ...options, headers });
     let body = null;
@@ -48,7 +51,27 @@
     if (target) target.textContent = state.person ? `${t("documents.viewing", "Viewing")} ${state.person.display_name}` : t("person.no_selection", "No person selected");
   };
   const safeText = (value, fallback = "") => typeof value === "string" && value ? value : fallback;
-  const typeLabel = (documentItem) => documentItem.document_kind === "pdf" ? t("documents.pdf", "PDF") : t("documents.text", "Text");
+  const summaryProviderLabel = (providerId) => ({
+    "opencare.openai_responses": t("documents.provider_openai", "OpenAI"),
+    "opencare.openrouter": t("documents.provider_openrouter", "OpenRouter"),
+    "opencare.ollama": t("documents.provider_ollama", "Ollama (local)"),
+    "opencare.deterministic.local": t("documents.provider_local_test", "local demo provider"),
+  }[providerId] || t("documents.selected_provider", "the selected provider"));
+  const typeLabel = (documentItem) => {
+    if (documentItem.document_kind === "pdf") return t("documents.pdf", "PDF");
+    if (documentItem.document_kind === "image") return t("documents.image", "Image");
+    return t("documents.text", "Text");
+  };
+  const processingLabel = (documentItem) => {
+    const key = {
+      pending: "documents.text_pending",
+      processing: "documents.text_processing",
+      ready: "documents.text_ready",
+      unavailable: "documents.text_unavailable",
+      failed: "documents.text_failed",
+    }[documentItem.text_processing?.status];
+    return key ? t(key) : "";
+  };
   const dateLabel = (documentItem) => documentItem.document_date || t("documents.date_unknown", "Date unknown");
   const yearLabel = (year) => year === "unknown" ? t("documents.year_unknown", "Year unknown") : year;
 
@@ -102,6 +125,13 @@
     });
     const actions = document.createElement("div");
     actions.className = "sano-documents__actions";
+    const processing = processingLabel(documentItem);
+    if (processing && documentItem.text_processing?.status !== "ready") {
+      const status = document.createElement("p");
+      status.className = `sano-documents__processing sano-documents__processing--${documentItem.text_processing.status}`;
+      status.textContent = processing;
+      card.append(status);
+    }
     const open = document.createElement("button");
     open.type = "button";
     open.className = "ui-button ui-button--primary";
@@ -119,6 +149,14 @@
     edit.hidden = !state.capabilities.document_write;
     edit.addEventListener("click", () => { void openViewer(documentItem, edit, true); });
     actions.append(open, download, edit);
+    if (["unavailable", "failed"].includes(documentItem.text_processing?.status) && state.capabilities.document_write) {
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.className = "ui-button ui-button--secondary";
+      retry.textContent = t("documents.retry_text", "Try recognition again");
+      retry.addEventListener("click", () => { void retryTextProcessing(documentItem, retry); });
+      actions.append(retry);
+    }
     card.append(top, meta, actions);
     return card;
   }
@@ -253,12 +291,16 @@
     byId("documents-viewer-meta").textContent = `${dateLabel(documentItem)} · ${typeLabel(documentItem)}`;
     const textViewer = byId("documents-text-viewer");
     const pdfViewer = byId("documents-pdf-viewer");
+    const imageViewer = byId("documents-image-viewer");
     const isText = documentItem.media_type === "text/plain" || documentItem.document_kind === "text";
+    const isImage = documentItem.document_kind === "image" || documentItem.media_type?.startsWith("image/");
     state.pdfPageNumber = 1;
     state.pdfZoom = 1;
     textViewer.hidden = !isText;
-    pdfViewer.hidden = isText;
+    imageViewer.hidden = !isImage;
+    pdfViewer.hidden = isText || isImage;
     textViewer.textContent = "";
+    imageViewer.removeAttribute("src");
     byId("documents-download").href = `${api}/people/${personId}/documents/${sourceId}/download`;
     const technical = byId("documents-technical-list");
     technical.replaceChildren();
@@ -274,6 +316,11 @@
     byId("documents-edit-title").value = safeText(documentItem.title, safeText(documentItem.original_filename, ""));
     byId("documents-edit-date").value = documentItem.document_date || "";
     byId("documents-metadata-form").hidden = !edit || !state.capabilities.document_write;
+    const summary = byId("documents-summary");
+    summary.hidden = documentItem.text_processing?.status !== "ready" || !documentItem.extraction;
+    resetSummaryPanel();
+    byId("documents-ask-about").href = `/chat?source_id=${encodeURIComponent(documentItem.source_id)}`;
+    byId("documents-ask-about").hidden = summary.hidden;
     byId("documents-viewer").hidden = false;
     byId("documents-viewer").scrollIntoView({ behavior: "smooth", block: "start" });
     if (isText) {
@@ -286,11 +333,152 @@
       } catch (error) {
         if (viewerIsCurrent(rawPersonId, documentItem.source_id, generation)) textViewer.textContent = error instanceof Error ? error.message : t("documents.original_unavailable", "The original could not be opened.");
       }
+    } else if (isImage) {
+      imageViewer.src = original;
     } else {
       void renderPdf(original, rawPersonId, documentItem.source_id, generation);
     }
+    if (!summary.hidden) void loadSummary(documentItem, generation);
     if (edit) byId("documents-edit-title").focus();
     else trigger?.focus();
+  }
+
+  function resetSummaryPanel() {
+    byId("documents-summary-consent").hidden = true;
+    byId("documents-summary-result").hidden = true;
+    byId("documents-summary-start").hidden = false;
+    byId("documents-summary-start").disabled = false;
+    byId("documents-summary-status").textContent = "";
+    byId("documents-summary-disclosure").textContent = "";
+    byId("documents-summary-consent-check").checked = false;
+    byId("documents-summary-confirm").disabled = true;
+    byId("documents-ask-about").hidden = true;
+  }
+
+  const documentApiPath = (personId, sourceId) => `/people/${encodeURIComponent(personId)}/documents/${encodeURIComponent(sourceId)}`;
+  function showSummaryConsent(prepared) {
+    if (!prepared?.run_id || !prepared.disclosure) return false;
+    const key = prepared.disclosure.external ? "documents.summary_disclosure_external" : "documents.summary_disclosure_local";
+    byId("documents-summary-disclosure").textContent = t(key).replace("{provider}", summaryProviderLabel(prepared.disclosure.provider_id));
+    const consentKey = prepared.disclosure.external
+      ? "documents.summary_consent_check"
+      : "documents.summary_consent_check_local";
+    byId("documents-summary-consent-label").textContent = t(consentKey);
+    byId("documents-summary-consent").hidden = false;
+    byId("documents-summary-status").textContent = t("documents.summary_consent_required", "Choose whether to allow Sano to process this document.");
+    byId("documents-summary-confirm").dataset.runId = prepared.run_id;
+    byId("documents-summary-consent-check").checked = false;
+    byId("documents-summary-confirm").disabled = true;
+    return true;
+  }
+  function renderSummary(summary) {
+    const result = summary?.result;
+    const status = summary?.status;
+    const statusLabel = {
+      consent_required: t("documents.summary_consent_required", "Choose whether to allow Sano to process this document."),
+      consented: t("documents.summary_consent_required", "Choose whether to allow Sano to process this document."),
+      executing: t("documents.summary_processing", "Sano is preparing the description…"),
+      failed: t("documents.summary_failed", "The description could not be created. The document remains saved. You can try again and give consent again."),
+      completed: t("documents.summary_complete", "Description is ready."),
+      partial: t("documents.summary_partial_status", "The description covers selected pages only."),
+    }[status] || "";
+    byId("documents-summary-status").textContent = statusLabel;
+    if (!result) {
+      if (status === "consent_required") showSummaryConsent(summary);
+      return;
+    }
+    byId("documents-summary-start").hidden = true;
+    byId("documents-summary-result").hidden = false;
+    byId("documents-summary-text").textContent = result.summary || "";
+    const fillList = (id, values) => {
+      const list = byId(id);
+      list.replaceChildren();
+      (Array.isArray(values) ? values : []).forEach((value) => {
+        const item = document.createElement("li");
+        item.textContent = value;
+        list.append(item);
+      });
+    };
+    fillList("documents-summary-points", result.key_points);
+    fillList("documents-summary-questions", result.discussion_questions);
+    const pages = Array.isArray(result.page_numbers) ? result.page_numbers.join(", ") : "";
+    byId("documents-summary-coverage").textContent = result.coverage_complete
+      ? t("documents.summary_all_pages", "All document pages are represented.")
+      : t("documents.summary_partial", "The description covers selected pages only.").replace("{pages}", pages);
+  }
+
+  async function loadSummary(documentItem, generation = state.viewerGeneration) {
+    try {
+      const data = await request(`${documentApiPath(state.person.person_id, documentItem.source_id)}/summary`);
+      if (!viewerIsCurrent(state.person.person_id, documentItem.source_id, generation)) return;
+      if (data) renderSummary(data);
+      else byId("documents-summary-status").textContent = t("documents.summary_available", "You can ask Sano for an optional description.");
+    } catch (error) {
+      if (viewerIsCurrent(state.person.person_id, documentItem.source_id, generation)) {
+        byId("documents-summary-status").textContent = error.message;
+      }
+    }
+  }
+
+  async function prepareSummary() {
+    if (!state.person || !state.selected) return;
+    const button = byId("documents-summary-start");
+    setBusy(button, true);
+    byId("documents-summary-status").textContent = t("documents.summary_preparing", "Preparing a secure preview…");
+    try {
+      const path = documentApiPath(state.person.person_id, state.selected.source_id);
+      const prepared = await request(`${path}/summary/prepare`, { method: "POST" });
+      if (prepared.result) { renderSummary(prepared); return; }
+      if (!showSummaryConsent(prepared)) {
+        renderSummary(prepared);
+      }
+    } catch (error) {
+      byId("documents-summary-status").textContent = error.message;
+    } finally { setBusy(button, false); }
+  }
+
+  async function confirmSummary() {
+    if (!state.person || !state.selected) return;
+    const button = byId("documents-summary-confirm");
+    const runId = button.dataset.runId;
+    if (!runId || !byId("documents-summary-consent-check").checked) return;
+    setBusy(button, true);
+    byId("documents-summary-status").textContent = t("documents.summary_processing", "Sano is preparing the description…");
+    try {
+      const path = documentApiPath(state.person.person_id, state.selected.source_id);
+      const result = await request(`${path}/summary/runs/${encodeURIComponent(runId)}/consent`, { method: "POST" });
+      byId("documents-summary-consent").hidden = true;
+      renderSummary(result);
+    } catch (error) {
+      byId("documents-summary-consent").hidden = true;
+      byId("documents-summary-status").textContent = `${error.message} ${t("documents.summary_new_consent", "Prepare another attempt to give consent again.")}`;
+    } finally { setBusy(button, false); }
+  }
+
+  async function retryTextProcessing(documentItem, button) {
+    if (!state.person) return;
+    setBusy(button, true);
+    try {
+      await request(`${documentApiPath(state.person.person_id, documentItem.source_id)}/text-processing/retry`, { method: "POST" });
+      setStatus(t("documents.text_pending", "Text recognition is waiting to start."), "info");
+      await loadPerson(state.person.person_id);
+      pollTextProcessing(documentItem.source_id, 5);
+    } catch (error) {
+      setStatus(error.message, "danger");
+    } finally { setBusy(button, false); }
+  }
+
+  async function pollTextProcessing(sourceId, remaining) {
+    if (remaining <= 0 || !state.person) return;
+    try {
+      await new Promise((resolve) => window.setTimeout(resolve, 1200));
+      const personId = state.person.person_id;
+      const response = await request(`/people/${encodeURIComponent(personId)}/documents`);
+      state.documents = Array.isArray(response?.documents) ? response.documents.filter((item) => item.person_id === personId) : [];
+      renderDocuments();
+      const current = state.documents.find((item) => item.source_id === sourceId);
+      if (current && ["pending", "processing"].includes(current.text_processing?.status)) pollTextProcessing(sourceId, remaining - 1);
+    } catch (_) {}
   }
 
   function closeViewer() {
@@ -301,6 +489,7 @@
     byId("documents-viewer").hidden = true;
     byId("documents-pdf-pages").replaceChildren();
     byId("documents-text-viewer").textContent = "";
+    byId("documents-image-viewer").removeAttribute("src");
   }
 
   async function loadPerson(personId) {
@@ -372,7 +561,9 @@
     const lowerName = file.name.toLocaleLowerCase();
     const isPdf = file.type === "application/pdf" || lowerName.endsWith(".pdf");
     const isText = file.type === "text/plain" || lowerName.endsWith(".txt");
-    if (!isPdf && !isText) { setStatus(t("documents.file_type_error", "Choose a PDF or plain text file."), "danger"); return; }
+    const isJpeg = file.type === "image/jpeg" || /\.jpe?g$/i.test(file.name);
+    const isPng = file.type === "image/png" || lowerName.endsWith(".png");
+    if (!isPdf && !isText && !isJpeg && !isPng) { setStatus(t("documents.file_type_error", "Choose a PDF, text, JPG, or PNG file."), "danger"); return; }
     const button = event.submitter;
     setBusy(button, true);
     try {
@@ -380,7 +571,7 @@
         method: "POST",
         body: await file.arrayBuffer(),
         headers: {
-          "Content-Type": isPdf ? "application/pdf" : "text/plain",
+          "Content-Type": isPdf ? "application/pdf" : isText ? "text/plain" : isJpeg ? "image/jpeg" : "image/png",
           "X-OpenCare-Filename": encodeURIComponent(file.name),
         },
       });
@@ -389,6 +580,8 @@
       byId("documents-search").value = "";
       await loadPerson(personId);
       setStatus(response?.created === false ? t("documents.duplicate_saved", "This document was already saved; its metadata was kept.") : t("documents.saved", "Document saved."), "success");
+      const saved = state.documents.find((item) => item.source_id === response?.document?.source_id) || state.documents[0];
+      if (saved && ["pending", "processing"].includes(saved.text_processing?.status)) pollTextProcessing(saved.source_id, 8);
     } catch (error) {
       if (generation !== state.personGeneration) return;
       setStatus(error instanceof Error ? error.message : t("status.request_failed", "The request could not be completed. Try again."), "danger");
@@ -449,5 +642,15 @@
     });
   });
   byId("documents-cancel-edit").addEventListener("click", () => { if (state.selected) void openViewer(state.selected, null, false); });
+  byId("documents-summary-start").addEventListener("click", () => { void prepareSummary(); });
+  byId("documents-summary-consent-check").addEventListener("change", (event) => {
+    byId("documents-summary-confirm").disabled = !event.target.checked;
+  });
+  byId("documents-summary-confirm").addEventListener("click", () => { void confirmSummary(); });
+  byId("documents-summary-cancel").addEventListener("click", () => {
+    byId("documents-summary-consent").hidden = true;
+    byId("documents-summary-consent-check").checked = false;
+    byId("documents-summary-status").textContent = t("documents.summary_cancelled", "No description was created.");
+  });
   void loadPeople();
 })();

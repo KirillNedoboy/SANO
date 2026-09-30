@@ -301,8 +301,8 @@ def test_export_preserves_run_contract_identity_without_widening(tmp_path: Path)
 
 def test_format_and_schema_version_pins() -> None:
     assert PORTABLE_VAULT_FORMAT_VERSION == 6
-    assert PRODUCT_CORE_SCHEMA_VERSION == 12
-    assert PRODUCT_MIGRATIONS[-1].version == 12
+    assert PRODUCT_CORE_SCHEMA_VERSION == 13
+    assert PRODUCT_MIGRATIONS[-1].version == 13
 
 
 def _seed_family_access(database: SQLiteDatabase) -> None:
@@ -401,7 +401,7 @@ def test_backup_verify_recover_roundtrip_for_d2_2_state(
                 "SELECT version FROM schema_migrations ORDER BY version"
             )
         ]
-    assert versions == list(range(1, 13))
+    assert versions == list(range(1, 14))
 
     pre = _dump_tables(database.path)
     service = InstallationBackupService(database.path, tmp_path / "sources", clock=lambda: NOW)
@@ -409,7 +409,7 @@ def test_backup_verify_recover_roundtrip_for_d2_2_state(
     _no_network(monkeypatch)
     backup_report = service.backup(destination)
     assert backup_report.valid is True
-    assert backup_report.product_core_schema_version == 12
+    assert backup_report.product_core_schema_version == 13
     verify_report = service.verify(destination)
     assert verify_report.valid is True
 
@@ -418,7 +418,7 @@ def test_backup_verify_recover_roundtrip_for_d2_2_state(
         destination, target, confirm_maintenance=True
     )
     assert recovered.valid is True
-    assert recovered.product_core_schema_version == 12
+    assert recovered.product_core_schema_version == 13
     checked = verify_recovered_installation(target)
     assert checked.valid is True
 

@@ -6,6 +6,14 @@ from datetime import date
 _DOCUMENT_DATE_TOKEN = r"(?P<date>\d{1,2}[./]\d{1,2}[./]\d{4}|\d{4}-\d{2}-\d{2})"
 _DOCUMENT_DATE_CONTEXT_PATTERNS = (
     re.compile(
+        rf"(?:^|[\s|])(?:document\s+)?date\s*[:=]\s*{_DOCUMENT_DATE_TOKEN}",
+        re.IGNORECASE | re.MULTILINE,
+    ),
+    re.compile(
+        rf"(?:^|[\s|])дата\s*[:=]\s*{_DOCUMENT_DATE_TOKEN}",
+        re.IGNORECASE | re.MULTILINE,
+    ),
+    re.compile(
         rf"(?:date\s+of\s+(?:the\s+)?(?:document|report|study|exam|visit)|"
         rf"(?:document|report|study|test|exam|visit)\s+date|"
         rf"(?:issued|performed|conducted|dated|result(?:s)?\s+date))"

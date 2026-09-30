@@ -29,7 +29,7 @@ from app.product_core.persisted_visit_briefs import verify_persisted_visit_brief
 BACKUP_FORMAT_VERSION = 1
 PRODUCT_CORE_SCHEMA_VERSION = PRODUCT_MIGRATIONS[-1].version
 SUPPORTED_BACKUP_SCHEMA_VERSIONS = frozenset(
-    {PRODUCT_CORE_SCHEMA_VERSION - 1, PRODUCT_CORE_SCHEMA_VERSION}
+    range(PRODUCT_CORE_SCHEMA_VERSION - 2, PRODUCT_CORE_SCHEMA_VERSION + 1)
 )
 SOURCE_ID_PATTERN = re.compile(r"[A-Za-z0-9_-]+")
 MANIFEST_SHA256_PATTERN = re.compile(rb"[0-9a-f]{64}\n")
@@ -615,23 +615,40 @@ def _validate_documents(connection: sqlite3.Connection, *, schema_version: int) 
         LIMIT 1
         """
     ).fetchone()
-    missing_extraction = connection.execute(
-        """
-        SELECT 1 FROM sources AS source
-        WHERE source.source_type = 'document'
-          AND NOT EXISTS (
-              SELECT 1 FROM document_extractions AS extraction
-              WHERE extraction.source_id = source.id
-                AND extraction.person_id = source.person_id
-                AND extraction.status = 'complete'
-          )
-        LIMIT 1
-        """
-    ).fetchone()
+    if schema_version < 13:
+        missing_extraction = connection.execute(
+            """
+            SELECT 1 FROM sources AS source
+            WHERE source.source_type = 'document'
+              AND NOT EXISTS (
+                  SELECT 1 FROM document_extractions AS extraction
+                  WHERE extraction.source_id = source.id
+                    AND extraction.person_id = source.person_id
+                    AND extraction.status = 'complete'
+              )
+            LIMIT 1
+            """
+        ).fetchone()
+    else:
+        missing_extraction = connection.execute(
+            """
+            SELECT 1 FROM sources AS source
+            LEFT JOIN document_text_processing AS state
+              ON state.source_id = source.id AND state.person_id = source.person_id
+            LEFT JOIN document_extractions AS extraction
+              ON extraction.extraction_id = state.extraction_id
+             AND extraction.source_id = source.id AND extraction.person_id = source.person_id
+            WHERE source.source_type = 'document'
+              AND (state.source_id IS NULL OR
+                   (state.status = 'ready' AND extraction.extraction_id IS NULL) OR
+                   (state.extraction_id IS NOT NULL AND extraction.extraction_id IS NULL))
+            LIMIT 1
+            """
+        ).fetchone()
     if invalid_identity is not None or missing_extraction is not None:
         raise InstallationBackupError("document_extraction_consistency_failed")
 
-    if schema_version == PRODUCT_CORE_SCHEMA_VERSION:
+    if schema_version >= 12:
         _validate_document_metadata(connection)
 
     extractions = connection.execute(
@@ -646,9 +663,8 @@ def _validate_documents(connection: sqlite3.Connection, *, schema_version: int) 
             """,
             (extraction["extraction_id"],),
         ).fetchall()
-        if (
-            len(pages) != extraction["page_count"]
-            or [row["page_number"] for row in pages] != list(range(1, len(pages) + 1))
+        if len(pages) != extraction["page_count"] or [row["page_number"] for row in pages] != list(
+            range(1, len(pages) + 1)
         ):
             raise InstallationBackupError("document_extraction_page_count_failed")
         text_digest = hashlib.sha256()
@@ -670,6 +686,70 @@ def _validate_documents(connection: sqlite3.Connection, *, schema_version: int) 
             or text_digest.hexdigest() != extraction["text_hash"]
         ):
             raise InstallationBackupError("document_extraction_integrity_failed")
+
+    if schema_version >= 13:
+        summary_runs = connection.execute(
+            "SELECT * FROM document_summary_runs ORDER BY run_id"
+        ).fetchall()
+        for run in summary_runs:
+            extraction_row = connection.execute(
+                """SELECT page_count, source_id, person_id FROM document_extractions
+                   WHERE extraction_id = ?""",
+                (run["extraction_id"],),
+            ).fetchone()
+            if (
+                extraction_row is None
+                or extraction_row["source_id"] != run["source_id"]
+                or extraction_row["person_id"] != run["person_id"]
+            ):
+                raise InstallationBackupError("document_summary_binding_failed")
+            if run["result_json"] is not None:
+                try:
+                    result = json.loads(run["result_json"])
+                    if not isinstance(result, dict):
+                        raise ValueError
+                    result_pages = result.get("page_numbers")
+                    if (
+                        not isinstance(result_pages, list)
+                        or not result_pages
+                        or any(
+                            type(page) is not int
+                            or page < 1
+                            or page > extraction_row["page_count"]
+                            for page in result_pages
+                        )
+                    ):
+                        raise ValueError
+                except (TypeError, ValueError, json.JSONDecodeError):
+                    raise InstallationBackupError("document_summary_result_invalid") from None
+            if run["status"] in {"completed", "partial"} and (
+                run["result_json"] is None or run["receipt_id"] is None or run["consent_id"] is None
+            ):
+                raise InstallationBackupError("document_summary_completion_incomplete")
+        question_bindings = connection.execute(
+            "SELECT * FROM document_question_bindings ORDER BY execution_id"
+        ).fetchall()
+        for binding in question_bindings:
+            extraction = connection.execute(
+                """SELECT source_id, person_id FROM document_extractions
+                   WHERE extraction_id = ?""",
+                (binding["extraction_id"],),
+            ).fetchone()
+            if (
+                extraction is None
+                or extraction["source_id"] != binding["source_id"]
+                or extraction["person_id"] != binding["person_id"]
+                or any(
+                    len(binding[key]) != 64
+                    or any(char not in "0123456789abcdef" for char in binding[key])
+                    for key in ("input_text_hash", "request_hash")
+                )
+                or not binding["actor_id"]
+                or not binding["provider_id"]
+                or not binding["provider_descriptor_hash"]
+                or not binding["model_id"]
+            ):
+                raise InstallationBackupError("document_question_binding_failed")
 
     candidates = connection.execute(
         """
@@ -716,9 +796,7 @@ def _validate_documents(connection: sqlite3.Connection, *, schema_version: int) 
             ):
                 raise ValueError
         except (json.JSONDecodeError, TypeError, ValueError) as exc:
-            raise InstallationBackupError(
-                "document_provenance_integrity_failed"
-            ) from exc
+            raise InstallationBackupError("document_provenance_integrity_failed") from exc
 
 
 def _validate_document_metadata(connection: sqlite3.Connection) -> None:
@@ -971,16 +1049,12 @@ def _validate_security_evidence(connection: sqlite3.Connection) -> None:
                     row["output_sha256"] is not None
                     and re.fullmatch(r"[0-9a-f]{64}", row["output_sha256"]) is None
                 )
-                or (
-                    row["status"] == "completed"
-                    and (row["output_sha256"] is None or reasons)
-                )
+                or (row["status"] == "completed" and (row["output_sha256"] is None or reasons))
                 or (
                     row["status"] != "completed"
                     and (row["output_sha256"] is not None or not reasons)
                 )
-                or parse_utc_datetime(row["completed_at"])
-                < parse_utc_datetime(row["started_at"])
+                or parse_utc_datetime(row["completed_at"]) < parse_utc_datetime(row["started_at"])
             ):
                 raise ValueError
         except (json.JSONDecodeError, TypeError, ValueError) as exc:
@@ -1024,9 +1098,8 @@ def _payload_path(item: object) -> str:
         relative.is_absolute()
         or relative.anchor
         or ".." in relative.parts
-        or path not in {"database.sqlite3"} and not re.fullmatch(
-            r"sources/[A-Za-z0-9_-]+/payload\.bin", path
-        )
+        or path not in {"database.sqlite3"}
+        and not re.fullmatch(r"sources/[A-Za-z0-9_-]+/payload\.bin", path)
     ):
         raise InstallationBackupError("payload_path_unsafe")
     return path

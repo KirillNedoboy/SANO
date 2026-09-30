@@ -23,6 +23,7 @@ from starlette.middleware.base import RequestResponseEndpoint
 
 from app import __version__
 from app.agent.document_fact_trust import DocumentFactTrustAdapter
+from app.agent.document_summary_trust import DocumentSummaryTrustAdapter
 from app.agent.g2_product_repository import ProductCoreG2Repository
 from app.agent.g2_runtime import G2Runtime
 from app.agent.live_chat import (
@@ -238,6 +239,25 @@ async def product_core_lifespan(application: FastAPI) -> AsyncIterator[None]:
             authorize_receipt=document_fact_trust.authorize_receipt,
             clock=runtime.clock,
         )
+        document_summary_trust = DocumentSummaryTrustAdapter(
+            runtime,
+            family_runtime.service,
+            provider,
+            clock=runtime.clock,
+        )
+        document_summary_g2_runtime = G2Runtime(
+            family_runtime.sessions,
+            prepare_envelope=document_summary_trust.build_envelope,
+            revalidate=document_summary_trust.revalidate,
+            provider=provider,
+            repository=ProductCoreG2Repository(runtime.database),
+            project=document_summary_trust.project,
+            resolve_evidence=document_summary_trust.resolve_evidence,
+            provider_request_builder=document_summary_trust.provider_request_builder,
+            answer_validator=document_summary_trust.answer_validator,
+            authorize_receipt=document_summary_trust.authorize_receipt,
+            clock=runtime.clock,
+        )
     except Exception:
         logger.error("Product Core startup failed", exc_info=False)
         raise
@@ -247,6 +267,8 @@ async def product_core_lifespan(application: FastAPI) -> AsyncIterator[None]:
     application.state.g2_runtime = g2_runtime
     application.state.document_fact_trust = document_fact_trust
     application.state.document_fact_g2_runtime = document_fact_g2_runtime
+    application.state.document_summary_trust = document_summary_trust
+    application.state.document_summary_g2_runtime = document_summary_g2_runtime
     try:
         yield
     finally:
@@ -262,6 +284,10 @@ async def product_core_lifespan(application: FastAPI) -> AsyncIterator[None]:
             del application.state.document_fact_g2_runtime
         if hasattr(application.state, "document_fact_trust"):
             del application.state.document_fact_trust
+        if hasattr(application.state, "document_summary_g2_runtime"):
+            del application.state.document_summary_g2_runtime
+        if hasattr(application.state, "document_summary_trust"):
+            del application.state.document_summary_trust
 
 
 app = FastAPI(title="OpenCare Proof Kit", version=__version__, lifespan=product_core_lifespan)
@@ -553,6 +579,11 @@ def chat_page(request: Request) -> Response:
     try:
         person_id = access.require_active_person("chat.use", "person.read")
         person = access.runtime.people.get(person_id)
+        source_id = request.query_params.get("source_id")
+        selected_document = None
+        if source_id:
+            access.require_source_for_person(source_id, person_id, "document.read")
+            selected_document, _ = access.runtime.documents.get(source_id)
     except (ProductCoreNotFoundError, ScopeForbiddenError) as exc:
         return _live_access_error(exc)
     return _actor_page(
@@ -568,6 +599,7 @@ def chat_page(request: Request) -> Response:
             "provider_status": _request_provider_status(request),
             "chat_endpoint": "/api/chat",
             "live_workspace": True,
+            "selected_document": selected_document,
         },
     )
 

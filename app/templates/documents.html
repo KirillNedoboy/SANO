@@ -14,7 +14,7 @@
     <div>
       <label class="sano-documents__field" for="documents-file">
         <span>{{ t("documents.upload_label") }}</span>
-        <input id="documents-file" class="ui-control" type="file" accept=".pdf,.txt,application/pdf,text/plain" required>
+        <input id="documents-file" class="ui-control" type="file" accept=".pdf,.txt,.jpg,.jpeg,.png,application/pdf,text/plain,image/jpeg,image/png" required>
       </label>
       <p class="sano-documents__meta">{{ t("documents.upload_help") }}</p>
     </div>
@@ -84,7 +84,35 @@
         <div id="documents-pdf-pages" class="sano-documents__pdf-pages"></div>
       </div>
       <pre id="documents-text-viewer" class="sano-documents__text-viewer" hidden tabindex="0"></pre>
+      <img id="documents-image-viewer" class="sano-documents__image-viewer" alt="{{ t('documents.original_viewer') }}" hidden>
     </div>
+    <section id="documents-summary" class="sano-documents__summary" aria-labelledby="documents-summary-title" hidden>
+      <div class="sano-documents__summary-heading">
+        <div>
+          <p class="sano-documents__eyebrow">{{ t("documents.summary_eyebrow") }}</p>
+          <h3 id="documents-summary-title">{{ t("documents.summary_title") }}</h3>
+          <p id="documents-summary-status" class="sano-documents__meta" role="status" aria-live="polite"></p>
+        </div>
+        <button id="documents-summary-start" class="ui-button ui-button--primary" type="button">{{ t("documents.summary_start") }}</button>
+      </div>
+      <div id="documents-summary-result" hidden>
+        <p id="documents-summary-text"></p>
+        <div class="sano-documents__summary-columns">
+          <section><h4>{{ t("documents.summary_points") }}</h4><ul id="documents-summary-points"></ul></section>
+          <section><h4>{{ t("documents.summary_questions") }}</h4><ul id="documents-summary-questions"></ul></section>
+        </div>
+        <p id="documents-summary-coverage" class="sano-documents__meta"></p>
+      </div>
+      <div id="documents-summary-consent" class="sano-documents__summary-consent" hidden>
+        <p id="documents-summary-disclosure" class="sano-documents__meta"></p>
+        <label class="sano-documents__consent-check"><input id="documents-summary-consent-check" type="checkbox"><span id="documents-summary-consent-label">{{ t("documents.summary_consent_check") }}</span></label>
+        <div class="sano-documents__actions">
+          <button id="documents-summary-confirm" class="ui-button ui-button--primary" type="button" disabled>{{ t("documents.summary_consent_confirm") }}</button>
+          <button id="documents-summary-cancel" class="ui-button ui-button--secondary" type="button">{{ t("documents.cancel") }}</button>
+        </div>
+      </div>
+      <a id="documents-ask-about" class="ui-button ui-button--secondary" href="/chat" hidden>{{ t("documents.ask_about") }}</a>
+    </section>
     <details class="ui-disclosure sano-documents__technical">
       <summary>{{ t("documents.technical_details") }}</summary>
       <dl id="documents-technical-list"></dl>

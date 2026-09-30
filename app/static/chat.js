@@ -9,6 +9,8 @@
   const status = document.querySelector("#chat-status");
   const endpoint = document.body.dataset.chatEndpoint;
   const live = endpoint === "/api/chat";
+  const documentSource = document.body.dataset.chatDocumentSource || "";
+  const documentPerson = document.body.dataset.chatDocumentPerson || "";
   let translations = {};
   try { translations = JSON.parse(document.querySelector("#product-shell-translations")?.textContent || "{}"); } catch (_) { translations = {}; }
   const t = (key, fallback) => typeof translations[key] === "string" ? translations[key] : (fallback || key);
@@ -75,7 +77,36 @@
     heading.focus();
   });
   const addReceipt = (metadata) => { const message = document.createElement("article"); message.className = "message"; const section = document.createElement("section"); section.className = "chat-receipt"; addText(section, "h3", t("chat.receipt", "Receipt")); const grid = document.createElement("dl"); grid.className = "chat-detail-grid"; const receiptId = addDefRow(grid, t("chat.receipt_id", "Receipt id")); receiptId.textContent = metadata.receipt_id || t("chat.recorded", "recorded"); receiptId.className = "ui-row__meta chat-receipt__id"; const statusValue = addDefRow(grid, t("chat.status", "status")); const badge = document.createElement("span"); badge.className = "ui-status"; badge.textContent = metadata.status || "unknown"; statusValue.append(badge); section.append(grid); message.append(section); stream.append(message); revealLatest(); };
-  const sendLive = async (question) => { const prepared = await request("/api/chat/prepare", { question }); if (prepared.status === "refused") { addAnswer(prepared); return; } const preview = prepared.preview || {}; status.textContent = t("chat.status_await_consent", "Waiting for your explicit approval…"); const approved = await showDisclosureConsent(preview); if (!approved) { status.textContent = ""; addAnswer({ status: "declined", answer: t("chat.consent_declined", "No provider call was made because disclosure was not approved."), boundary_notices: [t("chat.consent_not_granted", "Consent was not granted.")], citations: [], unknowns: [], doctor_questions: [] }); return; } textarea.focus(); status.textContent = t("chat.status_execute", "Executing the approved request…"); const previewMessage = document.createElement("article"); previewMessage.className = "message"; previewMessage.append(addPreview(preview)); stream.append(previewMessage); await request(`/api/chat/executions/${prepared.execution_id}/consent`, { fields: preview.fields || [] }); const executed = await request(`/api/chat/executions/${prepared.execution_id}/execute`, { question }); addAnswer(executed); if (executed.receipt_id) { status.textContent = t("chat.status_receipt", "Finalizing the execution receipt…"); const receipt = await fetch(`/api/chat/executions/${prepared.execution_id}/receipt`, { credentials: "same-origin", headers: { "X-OpenCare-CSRF": csrfToken() } }); if (receipt.ok) { addReceipt(await receipt.json()); } } };
+  const finishWithReceipt = async (executionId, executed, receiptPath = null) => { addAnswer(executed); if (executed.receipt_id) { status.textContent = t("chat.status_receipt", "Finalizing the execution receipt…"); const receipt = await fetch(receiptPath || `/api/chat/executions/${encodeURIComponent(executionId)}/receipt`, { credentials: "same-origin", headers: { "X-OpenCare-CSRF": csrfToken() } }); if (receipt.ok) addReceipt(await receipt.json()); } };
+  const sendLive = async (question) => {
+    if (documentSource && documentPerson) {
+      const base = `/api/product-core/v1/people/${encodeURIComponent(documentPerson)}/documents/${encodeURIComponent(documentSource)}/questions`;
+      const prepared = await request(`${base}/prepare`, { question });
+      if (prepared.status === "refused") { addAnswer({ status: "refused", answer: prepared.answer, reason_code: prepared.reason_code, citations: [], unknowns: [], doctor_questions: [], boundary_notices: [] }); return; }
+      const preview = prepared.preview || {};
+      status.textContent = t("chat.status_await_consent", "Waiting for your explicit approval…");
+      if (!await showDisclosureConsent(preview)) {
+        addAnswer({ status: "declined", answer: t("chat.consent_declined", "No provider call was made because disclosure was not approved."), boundary_notices: [t("chat.consent_not_granted", "Consent was not granted.")], citations: [], unknowns: [], doctor_questions: [] });
+        return;
+      }
+      status.textContent = t("chat.status_execute", "Executing the approved request…");
+      const consented = await request(`${base}/${encodeURIComponent(prepared.execution_id)}/consent`, { question, fields: preview.fields || [] });
+      const executed = await request(`${base}/${encodeURIComponent(consented.execution_id)}/execute`, { question });
+      await finishWithReceipt(consented.execution_id, executed, `${base}/${encodeURIComponent(consented.execution_id)}/receipt`);
+      return;
+    }
+    const prepared = await request("/api/chat/prepare", { question });
+    if (prepared.status === "refused") { addAnswer(prepared); return; }
+    const preview = prepared.preview || {};
+    status.textContent = t("chat.status_await_consent", "Waiting for your explicit approval…");
+    const approved = await showDisclosureConsent(preview);
+    if (!approved) { status.textContent = ""; addAnswer({ status: "declined", answer: t("chat.consent_declined", "No provider call was made because disclosure was not approved."), boundary_notices: [t("chat.consent_not_granted", "Consent was not granted.")], citations: [], unknowns: [], doctor_questions: [] }); return; }
+    textarea.focus(); status.textContent = t("chat.status_execute", "Executing the approved request…");
+    const previewMessage = document.createElement("article"); previewMessage.className = "message"; previewMessage.append(addPreview(preview)); stream.append(previewMessage);
+    await request(`/api/chat/executions/${prepared.execution_id}/consent`, { fields: preview.fields || [] });
+    const executed = await request(`/api/chat/executions/${prepared.execution_id}/execute`, { question });
+    await finishWithReceipt(prepared.execution_id, executed);
+  };
   const sendDemo = async (question) => request(endpoint, { question }).then(addAnswer);
   const send = async (question) => { emptyState?.remove(); const message = document.createElement("article"); message.className = "message message-user"; const bubble = document.createElement("div"); bubble.className = "user-bubble"; addText(message, "h2", t("chat.ask_label", "Your question")).className = "sr-only"; bubble.textContent = question; message.append(bubble); stream.append(message); revealLatest(); textarea.value = ""; sendButton.disabled = true; if (newChat) newChat.disabled = true; status.textContent = live ? t("chat.status_prepare", "Preparing an exact disclosure…") : t("chat.status_check", "Checking vault context and sources…"); try { if (live) await sendLive(question); else await sendDemo(question); } catch (error) { addAnswer({ status: "error", answer: error instanceof Error ? error.message : t("chat.error", "OpenCare could not process this request."), citations: [], unknowns: [], doctor_questions: [], boundary_notices: [t("chat.no_provider_output", "No provider output was displayed.")] }); } finally { sendButton.disabled = false; if (newChat) newChat.disabled = false; consentPending = false; status.textContent = ""; textarea.focus(); revealLatest(); } };
   form?.addEventListener("submit", (event) => { event.preventDefault(); const question = textarea.value.trim(); if (question && !sendButton.disabled && !consentPending) send(question); });

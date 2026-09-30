@@ -45,7 +45,7 @@ def test_d2_migration_creates_durable_runs_items_and_fingerprint_registry(
             ).fetchall()
         }
 
-    assert versions == list(range(1, 13))
+    assert versions == list(range(1, 14))
     assert {
         "document_fact_extraction_runs",
         "document_fact_extraction_items",
@@ -96,6 +96,21 @@ def _select_person(client: TestClient, person_id: str = "person-1") -> None:
         "/api/family-access/v1/active-person", json={"person_id": person_id}
     )
     assert response.status_code == 204, response.text
+
+
+def _processed_extraction_id(client: TestClient, person_id: str, source_id: str) -> str:
+    path = f"/api/product-core/v1/people/{person_id}/documents/{source_id}"
+    document_response = client.get(path)
+    assert document_response.status_code == 200, document_response.text
+    document = document_response.json()
+    if document["extraction"] is None:
+        retry = client.post(path + "/text-processing/retry", json={})
+        assert retry.status_code == 200, retry.text
+        document_response = client.get(path)
+        assert document_response.status_code == 200, document_response.text
+        document = document_response.json()
+    assert document["extraction"] is not None, document
+    return document["extraction"]["extraction_id"]
 
 
 def _login_caregiver(
@@ -339,7 +354,7 @@ def test_d21_document_envelope_and_provider_projection_use_exact_document_contra
         headers={"content-type": "text/plain", "x-opencare-filename": "meds.txt"},
     )
     source_id = uploaded.json()["document"]["source_id"]
-    extraction_id = uploaded.json()["document"]["extraction"]["extraction_id"]
+    extraction_id = _processed_extraction_id(product_core_client, "person-1", source_id)
     prepared = product_core_client.post(
         f"/api/product-core/v1/people/person-1/documents/{source_id}/fact-extractions/prepare",
         json={},
@@ -790,7 +805,7 @@ def test_d22_historical_v1_run_remains_loadable_without_retroactive_categories(
         headers={"content-type": "text/plain", "x-opencare-filename": "meds.txt"},
     )
     source_id = uploaded.json()["document"]["source_id"]
-    extraction_id = uploaded.json()["document"]["extraction"]["extraction_id"]
+    extraction_id = _processed_extraction_id(product_core_client, "person-1", source_id)
     owner_id = product_core_client.get("/api/family-access/v1/me").json()["actor"][
         "actor_id"
     ]

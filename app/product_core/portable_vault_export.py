@@ -119,6 +119,7 @@ class PortableVaultExportService:
             source_payloads: dict[str, bytes] = {}
             document_extractions: list[DocumentExtractionSnapshot] = []
             document_pages: list[DocumentExtractionPage] = []
+            document_text_processing: list[dict[str, object]] = []
             document_fact_runs: list[dict[str, object]] = []
             document_fact_items: list[dict[str, object]] = []
             for source in sources:
@@ -126,9 +127,24 @@ class PortableVaultExportService:
                 source_payloads[source.id] = self.source_store.read_for_portable_export(source)
                 if source.source_type != "document":
                     continue
+                processing = uow.document_text_processing.get_for_source(source.id)
+                if processing is None or processing.person_id != person_id:
+                    raise IntegrityStorageError("document processing state is missing")
+                document_text_processing.append(
+                    {
+                        "source_id": processing.source_id,
+                        "status": processing.status,
+                        "attempt_count": processing.attempt_count,
+                        "updated_at": isoformat_utc(processing.updated_at),
+                        "reason_code": processing.reason_code,
+                        "extraction_id": processing.extraction_id,
+                    }
+                )
                 extraction = uow.document_extractions.get_complete_for_source(source.id)
                 if extraction is None:
-                    raise IntegrityStorageError(f"document extraction is missing: {source.id}")
+                    if processing.status == "ready":
+                        raise IntegrityStorageError(f"document extraction is missing: {source.id}")
+                    continue
                 pages = uow.document_extractions.list_pages(extraction.extraction_id)
                 _verify_document_extraction(source, extraction, pages)
                 document_extractions.append(extraction)
@@ -231,6 +247,7 @@ class PortableVaultExportService:
                 "document_extraction_pages": [
                     _document_extraction_page_dto(item) for item in document_pages
                 ],
+                "document_text_processing": document_text_processing,
                 "document_fact_extraction_runs": document_fact_runs,
                 "document_fact_extraction_items": document_fact_items,
                 "candidate_facts": [_candidate_dto(item) for item in candidates],

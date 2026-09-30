@@ -7,12 +7,16 @@ PurposeId = Literal[
     "record_explanation",
     "clinician_briefing",
     "document_fact_extraction",
+    "document_summary",
+    "document_question",
 ]
 ActionId = Literal[
     "answer_question",
     "draft_visit_brief",
     "summarize_records",
     "document.extract_facts",
+    "document.summarize",
+    "document.answer_question",
 ]
 ToolId = Literal["context.read", "source.read", "brief.draft"]
 
@@ -22,6 +26,8 @@ PURPOSE_IDS: Final[frozenset[str]] = frozenset(
         "record_explanation",
         "clinician_briefing",
         "document_fact_extraction",
+        "document_summary",
+        "document_question",
     }
 )
 ACTION_REQUIREMENTS: Final[dict[str, tuple[frozenset[str], frozenset[str]]]] = {
@@ -39,6 +45,14 @@ ACTION_REQUIREMENTS: Final[dict[str, tuple[frozenset[str], frozenset[str]]]] = {
     ),
     "document.extract_facts": (
         frozenset({"document.read"}),
+        frozenset({"source.read"}),
+    ),
+    "document.summarize": (
+        frozenset({"person.read", "document.read"}),
+        frozenset({"source.read"}),
+    ),
+    "document.answer_question": (
+        frozenset({"person.read", "document.read"}),
         frozenset({"source.read"}),
     ),
 }

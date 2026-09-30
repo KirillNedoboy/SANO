@@ -51,21 +51,26 @@ def _blank_pdf() -> bytes:
     return output.getvalue()
 
 
-def test_blank_pdf_is_archived_with_empty_text_extraction(tmp_path: Path) -> None:
+def test_blank_pdf_is_archived_even_when_local_ocr_is_unavailable(tmp_path: Path) -> None:
     _, documents = _service(tmp_path)
+    payload = _blank_pdf()
 
     result = documents.register(
         "person-1",
-        _blank_pdf(),
+        payload,
         "application/pdf",
         original_filename="blank.pdf",
     )
 
     assert result.created is True
-    assert result.extraction.total_chars == 0
     assert result.source.document_title == "blank.pdf"
-    _, page = documents.get_page(result.source.id, result.extraction.extraction_id, 1)
-    assert page.normalized_text == ""
+    assert documents.read_original(result.source.id)[1] == payload
+    if result.extraction is None:
+        assert documents.get_text_processing(result.source.id).status == "unavailable"
+    else:
+        assert result.extraction.total_chars == 0
+        _, page = documents.get_page(result.source.id, result.extraction.extraction_id, 1)
+        assert page.normalized_text == ""
 
 
 def test_document_date_uses_one_explicit_document_context_date(tmp_path: Path) -> None:
@@ -79,6 +84,20 @@ def test_document_date_uses_one_explicit_document_context_date(tmp_path: Path) -
     )
 
     assert result.source.document_date.isoformat() == "2024-03-12"
+    assert result.source.document_date_source == "extracted"
+
+
+def test_document_date_accepts_an_explicit_date_label(tmp_path: Path) -> None:
+    _, documents = _service(tmp_path)
+
+    result = documents.register(
+        "person-1",
+        b"Synthetic report Hemoglobin: 140 g/L Date: 2026-08-24",
+        "text/plain",
+        original_filename="report.txt",
+    )
+
+    assert result.source.document_date.isoformat() == "2026-08-24"
     assert result.source.document_date_source == "extracted"
 
 

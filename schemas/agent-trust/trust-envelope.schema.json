@@ -466,7 +466,9 @@
         "answer_question",
         "draft_visit_brief",
         "summarize_records",
-        "document.extract_facts"
+        "document.extract_facts",
+        "document.summarize",
+        "document.answer_question"
       ],
       "title": "Action Id",
       "type": "string"
@@ -569,7 +571,9 @@
         "visit_preparation",
         "record_explanation",
         "clinician_briefing",
-        "document_fact_extraction"
+        "document_fact_extraction",
+        "document_summary",
+        "document_question"
       ],
       "title": "Purpose Id",
       "type": "string"

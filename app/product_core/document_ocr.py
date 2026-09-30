@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import io
 import math
+import os
 import shutil
 import subprocess
 from dataclasses import dataclass
@@ -116,7 +117,9 @@ class LocalOcrAdapter:
     ) -> None:
         self.limits = limits or OcrLimits()
         self._configured_tesseract = (
-            str(tesseract_executable) if tesseract_executable is not None else None
+            str(tesseract_executable)
+            if tesseract_executable is not None
+            else os.environ.get("SANO_TESSERACT_PATH")
         )
 
     @property
@@ -290,12 +293,7 @@ class LocalOcrAdapter:
         height_reason: str,
         pixels_reason: str,
     ) -> tuple[int, int]:
-        if (
-            not math.isfinite(width)
-            or not math.isfinite(height)
-            or width <= 0
-            or height <= 0
-        ):
+        if not math.isfinite(width) or not math.isfinite(height) or width <= 0 or height <= 0:
             raise DocumentOcrError("image_dimensions_invalid")
         width_pixels = max(1, math.ceil(width))
         height_pixels = max(1, math.ceil(height))
@@ -351,9 +349,10 @@ class LocalOcrAdapter:
             raise DocumentOcrError("tesseract_timeout") from None
         except OSError:
             raise DocumentOcrError("tesseract_unavailable") from None
-        if len(completed.stdout) > self.limits.max_tesseract_output_bytes or len(
-            completed.stderr
-        ) > self.limits.max_tesseract_output_bytes:
+        if (
+            len(completed.stdout) > self.limits.max_tesseract_output_bytes
+            or len(completed.stderr) > self.limits.max_tesseract_output_bytes
+        ):
             raise DocumentOcrError("tesseract_output_limit_exceeded")
         if completed.returncode != 0:
             stderr_text = completed.stderr.decode("utf-8", errors="replace").lower()

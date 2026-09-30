@@ -189,7 +189,9 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "documents.search_label": "Search documents",
         "documents.search_placeholder": "Title or filename",
         "documents.upload_label": "Upload document",
-        "documents.upload_help": "PDF and plain-text files are saved immediately.",
+        "documents.upload_help": (
+            "PDF, text, JPG and PNG files are saved before local text recognition starts."
+        ),
         "documents.upload": "Upload document",
         "documents.saved": "Document saved.",
         "documents.duplicate_saved": "This document was already saved; its metadata was kept.",
@@ -218,6 +220,62 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "documents.media_type": "Media type",
         "documents.registered": "Registered",
         "documents.extraction": "Text layer status",
+        "documents.text_saved": "Document saved. Local text recognition has started.",
+        "documents.text_pending": "Text recognition is waiting to start.",
+        "documents.text_processing": "Text is being recognized on this device.",
+        "documents.text_ready": "Text is ready.",
+        "documents.text_unavailable": (
+            "Text recognition is unavailable. The original is saved and can still be opened."
+        ),
+        "documents.text_failed": (
+            "Text recognition could not finish. The original is saved and can still be opened."
+        ),
+        "documents.retry_text": "Try recognition again",
+        "documents.image": "Image",
+        "documents.summary_eyebrow": "Optional AI description",
+        "documents.summary_title": "A short description of this document",
+        "documents.summary_start": "Create description",
+        "documents.summary_points": "Key points",
+        "documents.summary_questions": "Questions to discuss",
+        "documents.summary_consent_check": (
+            "I agree to send this document's recognized text to the "
+            "selected AI provider for a description."
+        ),
+        "documents.summary_consent_check_local": (
+            "I allow Sano to process this document's recognized text locally "
+            "to prepare a description."
+        ),
+        "documents.summary_consent_confirm": "Allow and create description",
+        "documents.summary_disclosure_external": (
+            "Only this document's recognized text and page numbers will be sent to "
+            "{provider}. No original file or other health records are included."
+        ),
+        "documents.summary_disclosure_local": (
+            "Only this document's recognized text and page numbers will be processed by "
+            "{provider}. No original file or other health records are included."
+        ),
+        "documents.provider_openai": "OpenAI",
+        "documents.provider_openrouter": "OpenRouter",
+        "documents.provider_ollama": "Ollama (local)",
+        "documents.provider_local_test": "the local demo provider",
+        "documents.summary_failed": (
+            "The description could not be created. The document remains saved. "
+            "You can try again and give consent again."
+        ),
+        "documents.summary_consent_required": (
+            "Choose whether to allow Sano to process this document."
+        ),
+        "documents.summary_partial": "The description covers pages {pages} only.",
+        "documents.summary_partial_status": "The description covers only part of the document.",
+        "documents.summary_complete": "Description is ready.",
+        "documents.summary_processing": "Sano is preparing the description…",
+        "documents.summary_preparing": "Preparing a secure preview…",
+        "documents.summary_available": "You can ask Sano for an optional description.",
+        "documents.summary_all_pages": "All document pages are represented.",
+        "documents.summary_new_consent": "Prepare another attempt to give consent again.",
+        "documents.summary_cancelled": "No description was created.",
+        "documents.selected_provider": "the selected provider",
+        "documents.ask_about": "Ask about this document",
         "documents.pages": "pages",
         "documents.page": "Page",
         "documents.page_controls": "PDF page controls",
@@ -237,7 +295,7 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "documents.save": "Save details",
         "documents.cancel": "Cancel",
         "documents.metadata_saved": "Document details saved.",
-        "documents.file_type_error": "Choose a PDF or plain text file.",
+        "documents.file_type_error": "Choose a PDF, text, JPG, or PNG file.",
         "documents.person_unavailable": "This Person is no longer available.",
         "documents.changed": "This document changed. Refresh the archive and try again.",
         "documents.viewing": "Viewing",
@@ -652,9 +710,15 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "chat.title": "Sano Assistant",
         "chat.kicker": "Source-backed conversation",
         "chat.subtitle": "Answers stay within the authorized Person scope.",
+        "chat.document_context": "Selected document",
+        "chat.document_context_help": (
+            "Your question uses only this document's recognized pages. It does not include "
+            "other health records. Sano will show what is shared and ask for permission "
+            "before contacting the selected provider."
+        ),
         "chat.empty_title": "Ask about your recorded vault",
         "chat.empty_intro": (
-            "OpenCare summarizes source-backed records, identifies unknown information, "
+            "Sano summarizes source-backed information, identifies unknown details, "
             "and prepares clinician discussion questions."
         ),
         "chat.empty_safety": (
@@ -673,6 +737,10 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "chat.boundary_notice": "Not medical advice",
         "chat.ask_label": "Ask a question about this vault",
         "chat.placeholder": "Ask about recorded information and sources…",
+        "chat.document_empty_title": "Ask about this document",
+        "chat.document_empty_intro": "Ask about a result or phrase on its recognized pages.",
+        "chat.document_ask_label": "Ask a question about this document",
+        "chat.document_placeholder": "Ask about a result or phrase in the selected document…",
         "chat.send": "Send",
         "chat.status_prepare": "Preparing an exact disclosure…",
         "chat.status_check": "Checking vault context and sources…",
@@ -682,8 +750,8 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "chat.questions_clinician": "Questions for a clinician",
         "chat.boundaries": "Boundaries",
         "chat.disclosure_preview": "Disclosure preview",
-        "chat.local_provider": "Runs on this OpenCare installation",
-        "chat.external_provider": "Selected authorized data may leave this OpenCare installation",
+        "chat.local_provider": "Runs on this Sano installation",
+        "chat.external_provider": "Selected authorized data may leave this Sano installation",
         "chat.evidence_items": "Evidence items",
         "chat.retention": "Retention",
         "chat.fields": "Fields",
@@ -695,7 +763,7 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "chat.none": "none",
         "chat.not_specified": "not specified",
         "chat.retention_provider_policy": (
-            "provider policy; OpenCare does not retain provider payloads"
+            "provider policy; Sano does not retain provider payloads"
         ),
         "chat.consent_declined": "No provider call was made because disclosure was not approved.",
         "chat.consent_not_granted": "Consent was not granted.",
@@ -703,7 +771,8 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "chat.receipt": "Receipt",
         "chat.status": "status",
         "chat.recorded": "recorded",
-        "chat.error": "OpenCare could not process this request.",
+        "chat.error": "Sano could not process this request.",
+        "chat.refusal_heading": "Sano declined this request before contacting a provider",
         "chat.provider_local_status": "Local deterministic demo",
         "chat.provider_self_hosted_status": "Self-hosted model configured by operator",
         "chat.provider_external_status": "External model configured by operator",
@@ -1383,9 +1452,15 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "chat.title": "Ассистент Sano",
         "chat.kicker": "Разговор на основе источников",
         "chat.subtitle": "Ответы остаются в пределах разрешённого пользователя.",
+        "chat.document_context": "Выбранный документ",
+        "chat.document_context_help": (
+            "Ответ строится только по распознанным страницам этого документа. Другие "
+            "медицинские записи не подключаются. Перед обращением к выбранному "
+            "провайдеру Sano покажет, что будет передано, и запросит разрешение."
+        ),
         "chat.empty_title": "Спросите о записанных данных",
         "chat.empty_intro": (
-            "OpenCare обобщает записи из источников, показывает неизвестные сведения и "
+            "Sano обобщает сведения из источников, показывает неизвестные детали и "
             "готовит вопросы для обсуждения с врачом."
         ),
         "chat.empty_safety": (
@@ -1404,6 +1479,12 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "chat.boundary_notice": "Не медицинская рекомендация",
         "chat.ask_label": "Задайте вопрос об этом хранилище",
         "chat.placeholder": "Спросите о записанных данных и источниках…",
+        "chat.document_empty_title": "Задайте вопрос об этом документе",
+        "chat.document_empty_intro": (
+            "Спросите о показателе или фрагменте на распознанных страницах."
+        ),
+        "chat.document_ask_label": "Задайте вопрос об этом документе",
+        "chat.document_placeholder": "Спросите о показателе или фрагменте в выбранном документе…",
         "chat.send": "Отправить",
         "chat.status_prepare": "Подготавливаем точное раскрытие…",
         "chat.status_check": "Проверяем контекст хранилища и источники…",
@@ -1413,9 +1494,9 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "chat.questions_clinician": "Вопросы для врача",
         "chat.boundaries": "Ограничения",
         "chat.disclosure_preview": "Предпросмотр раскрытия",
-        "chat.local_provider": "Работает в этой установке OpenCare",
+        "chat.local_provider": "Работает в этой установке Sano",
         "chat.external_provider": (
-            "Выбранные разрешённые данные могут покинуть эту установку OpenCare"
+            "Выбранные разрешённые данные могут покинуть эту установку Sano"
         ),
         "chat.evidence_items": "Элементы подтверждений",
         "chat.retention": "Хранение",
@@ -1428,7 +1509,7 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "chat.none": "нет",
         "chat.not_specified": "не указано",
         "chat.retention_provider_policy": (
-            "политика провайдера; OpenCare не хранит данные запроса провайдеру"
+            "политика провайдера; Sano не хранит содержимое запроса провайдеру"
         ),
         "chat.consent_declined": "Вызов провайдера не выполнен: раскрытие не было одобрено.",
         "chat.consent_not_granted": "Согласие не предоставлено.",
@@ -1436,7 +1517,8 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "chat.receipt": "Квитанция",
         "chat.status": "статус",
         "chat.recorded": "зафиксирован",
-        "chat.error": "OpenCare не смог обработать этот запрос.",
+        "chat.error": "Sano не смог обработать этот запрос.",
+        "chat.refusal_heading": "Sano остановил запрос до обращения к провайдеру",
         "chat.provider_local_status": "Локальная детерминированная демонстрация",
         "chat.provider_self_hosted_status": (
             "Самостоятельно размещённая модель, настроенная оператором"
@@ -1863,7 +1945,9 @@ TRANSLATIONS["ru"].update(
         "documents.search_label": "Поиск документов",
         "documents.search_placeholder": "Название или имя файла",
         "documents.upload_label": "Загрузить документ",
-        "documents.upload_help": "PDF и текстовые файлы сохраняются сразу.",
+        "documents.upload_help": (
+            "PDF, текст, JPG и PNG сначала сохраняются. Затем текст распознаётся на устройстве."
+        ),
         "documents.upload": "Загрузить документ",
         "documents.saved": "Документ сохранён.",
         "documents.duplicate_saved": (
@@ -1894,6 +1978,65 @@ TRANSLATIONS["ru"].update(
         "documents.media_type": "Тип содержимого",
         "documents.registered": "Зарегистрирован",
         "documents.extraction": "Состояние текстового слоя",
+        "documents.text_saved": "Документ сохранён. Началось локальное распознавание текста.",
+        "documents.text_pending": "Распознавание текста ожидает запуска.",
+        "documents.text_processing": "Текст распознаётся на этом устройстве.",
+        "documents.text_ready": "Текст готов.",
+        "documents.text_unavailable": (
+            "Распознавание текста недоступно. Оригинал сохранён, его можно открыть."
+        ),
+        "documents.text_failed": (
+            "Не удалось распознать текст. Оригинал сохранён, его можно открыть."
+        ),
+        "documents.retry_text": "Повторить распознавание",
+        "documents.image": "Изображение",
+        "documents.summary_eyebrow": "Необязательное описание ИИ",
+        "documents.summary_title": "Краткое описание документа",
+        "documents.summary_start": "Создать описание",
+        "documents.summary_points": "Основные пункты",
+        "documents.summary_questions": "Вопросы для обсуждения",
+        "documents.summary_consent_check": (
+            "Я разрешаю отправить распознанный текст этого документа "
+            "выбранному ИИ-провайдеру для создания описания."
+        ),
+        "documents.summary_consent_confirm": "Разрешить и создать описание",
+        "documents.summary_disclosure_external": (
+            "Провайдеру {provider} отправятся только распознанный текст этого документа "
+            "и номера страниц. Оригинальный файл и другие медицинские записи не отправляются."
+        ),
+        "documents.summary_disclosure_local": (
+            "На устройстве будет обработан только распознанный текст этого документа "
+            "и номера страниц. Провайдер: {provider}. Оригинальный файл и другие "
+            "медицинские записи не используются."
+        ),
+        "documents.summary_consent_check_local": (
+            "Я разрешаю локально обработать распознанный текст этого документа "
+            "для создания описания."
+        ),
+        "documents.provider_openai": "OpenAI",
+        "documents.provider_openrouter": "OpenRouter",
+        "documents.provider_ollama": "Ollama (локально)",
+        "documents.provider_local_test": "локальный демонстрационный провайдер",
+        "documents.summary_failed": (
+            "Не удалось создать описание. Документ сохранён. "
+            "Для повтора потребуется новое согласие."
+        ),
+        "documents.summary_consent_required": (
+            "Выберите, разрешаете ли вы Sano обработать этот документ."
+        ),
+        "documents.summary_partial": "Описание охватывает только страницы: {pages}.",
+        "documents.summary_partial_status": "Описание охватывает не весь документ.",
+        "documents.summary_complete": "Описание готово.",
+        "documents.summary_processing": "Sano готовит описание…",
+        "documents.summary_preparing": "Готовим безопасный просмотр перед отправкой…",
+        "documents.summary_available": "Можно попросить Sano создать описание документа.",
+        "documents.summary_all_pages": "Учтены все страницы документа.",
+        "documents.summary_new_consent": (
+            "Чтобы повторить попытку, подготовьте её и дайте новое согласие."
+        ),
+        "documents.summary_cancelled": "Описание не создавалось.",
+        "documents.selected_provider": "выбранному провайдеру",
+        "documents.ask_about": "Спросить об этом документе",
         "documents.pages": "стр.",
         "documents.page": "Страница",
         "documents.page_controls": "Управление страницами PDF",
@@ -1913,7 +2056,7 @@ TRANSLATIONS["ru"].update(
         "documents.save": "Сохранить сведения",
         "documents.cancel": "Отмена",
         "documents.metadata_saved": "Сведения о документе сохранены.",
-        "documents.file_type_error": "Выберите PDF или текстовый файл.",
+        "documents.file_type_error": "Выберите PDF, текстовый файл, JPG или PNG.",
         "documents.person_unavailable": "Этот пользователь больше недоступен.",
         "documents.changed": "Документ изменился. Обновите архив и повторите попытку.",
         "documents.viewing": "Просмотр",
@@ -1934,8 +2077,7 @@ TRANSLATIONS["ru"].update(
         "workspace.add_lab": "Добавить анализ",
         "workspace.review_pending_help": "Новые записи проходят проверку до подтверждения.",
         "workspace.condition_safety": (
-            "Формулировка состояния хранится как текст источника и не является диагнозом "
-            "OpenCare."
+            "Формулировка состояния хранится как текст источника и не является диагнозом OpenCare."
         ),
         "workspace.lab_safety": "Значения показаны как указано, без интерпретации.",
         "workspace.medication_name": "Отображаемое название лекарства",
@@ -1969,8 +2111,7 @@ TRANSLATIONS["ru"].update(
         "workspace.superseded": "Заменено",
         "workspace.recorded_in_opencare": "Записано в OpenCare",
         "workspace.record_lifecycle_help": (
-            "События жизненного цикла записей. Запланированные визиты показаны отдельно "
-            "ниже."
+            "События жизненного цикла записей. Запланированные визиты показаны отдельно ниже."
         ),
         "workspace.all": "Все",
         "workspace.create_visit": "Создать визит",
@@ -2136,247 +2277,248 @@ TRANSLATIONS["ru"].update(
 
 # SANO public landing strings (from R8.1 landing/brand foundation).
 # Exact EN/RU parity expected; these strings only appear on the public landing page.
-TRANSLATIONS["en"].update({
-    "brand.sano": "SANO",
-    "landing.nav.why": "What you can do",
-    "landing.nav.how": "How it works",
-    "landing.nav.privacy": "Privacy & trust",
-    "landing.nav.sign_in": "Sign in",
-    "landing.nav.create_account": "Create account",
-    "landing.hero.eyebrow": "Private health workspace",
-    "landing.hero.title": "Your records, under control.",
-    "landing.hero.body": (
-        "Keep source-backed records, prepare for visits, and choose when a bounded AI "
-        "summary can help."
-    ),
-    "landing.hero.primary_cta": "Create account",
-    "landing.hero.secondary_cta": "See how it works",
-    "landing.hero.alt": "Hands writing in a notebook beside a sunlit window",
-    "landing.why.title": "Make the next health conversation easier.",
-    "landing.why.intro": (
-        "SANO turns scattered information into a reviewed, useful record without "
-        "pretending to be a doctor."
-    ),
-    "landing.why.records_title": "Keep the source in view",
-    "landing.why.records_formats": "PDF / TXT",
-    "landing.why.records_body": (
-        "Add a text-layer PDF or TXT, review extracted facts as candidates, and keep "
-        "confirmed records linked to their source."
-    ),
-    "landing.why.visit_title": "Prepare for a visit",
-    "landing.why.visit_body": (
-        "Gather questions and create a source-backed Visit Brief you can review before "
-        "meeting a clinician."
-    ),
-    "landing.why.family_title": "Share with care",
-    "landing.why.family_body": (
-        "Invite trusted family members with Person-scoped access, and manage genetics "
-        "permissions separately."
-    ),
-    "landing.why.ai_title": "Choose when AI helps",
-    "landing.why.ai_body": (
-        "Use selected authorized context only when you grant external consent. Ask for a "
-        "bounded summary with a clear receipt. AI does not change canonical records."
-    ),
-    "landing.why.genetics_title": "Keep genetics separate",
-    "landing.why.genetics_body": (
-        "Use optional consumer-genotype research with separate grants. Raw genome data "
-        "never enters provider context."
-    ),
-    "landing.how.title": "A clear path from source to answer.",
-    "landing.how.intro": (
-        "The useful part is the chain of custody: what you add, what is suggested, what "
-        "you review, and what an answer can safely use."
-    ),
-    "landing.how.step_one_title": "Add your source",
-    "landing.how.step_one_body": "Register a PDF or TXT before deriving a claim.",
-    "landing.how.step_two_title": "Review what was found",
-    "landing.how.step_two_body": (
-        "Candidate facts stay separate until a person reviews and confirms them."
-    ),
-    "landing.how.step_three_title": "Review into a record",
-    "landing.how.step_three_body": (
-        "Only information a person confirms becomes part of the canonical record."
-    ),
-    "landing.how.step_four_title": "Prepare for a visit",
-    "landing.how.step_four_body": (
-        "Use reviewed information to draft questions and a sourced Visit Brief."
-    ),
-    "landing.boundaries.title": "AI and genetics have clear boundaries.",
-    "landing.boundaries.intro": (
-        "SANO makes the useful edges visible before information is shared or used for a "
-        "research question."
-    ),
-    "landing.boundaries.ai_title": "AI sees a selected context",
-    "landing.boundaries.ai_body": (
-        "Only selected, authorized context can be used for a bounded answer. An external "
-        "provider call requires your consent, and the answer cannot change canonical "
-        "records."
-    ),
-    "landing.boundaries.ai_note": "SANO does not diagnose or prescribe treatment.",
-    "landing.boundaries.genetics_title": "Genetics keeps its own permission",
-    "landing.boundaries.genetics_body": (
-        "Genetics access uses separate grants from ordinary health access. Research stays "
-        "limited to the selected evidence and authorized context."
-    ),
-    "landing.boundaries.genetics_note": "Raw genome data never enters provider context.",
-    "landing.privacy.title": "Trust is part of the product.",
-    "landing.privacy.intro": (
-        "SANO is designed for private, self-hosted use. It keeps access explicit and "
-        "makes the edges visible."
-    ),
-    "landing.privacy.local_title": "Local-first by default",
-    "landing.privacy.local_body": "Your installation keeps the workspace under your control.",
-    "landing.privacy.person_title": "Person-scoped access",
-    "landing.privacy.person_body": (
-        "Sharing one Person never silently shares another. Relationships are not grants."
-    ),
-    "landing.privacy.limits_title": "Clear limits",
-    "landing.privacy.limits_body": (
-        "SANO is not a diagnostic or treatment tool. It does not choose medicines or "
-        "doses."
-    ),
-    "landing.privacy.genetics_title": "Separate genetics grants",
-    "landing.privacy.genetics_body": (
-        "Optional genetics research needs its own permission. Raw genome data never "
-        "enters provider context."
-    ),
-    "landing.privacy.alt": "Paper records and a closed notebook in calm afternoon light",
-    "landing.closing.title": "Keep the next step in your hands.",
-    "landing.closing.body": (
-        "Start your private workspace, or use an invitation from someone you trust."
-    ),
-    "landing.closing.register": "Create your account",
-    "landing.closing.invite": "Open an invitation",
-    "landing.footer.note": "Private, self-hosted health workspace.",
-    "landing.footer.address": "sanobot.art",
-    "landing.footer.invite": "Have an invitation?",
-    "landing.footer.invite_link": "Use it here",
-})
+TRANSLATIONS["en"].update(
+    {
+        "brand.sano": "SANO",
+        "landing.nav.why": "What you can do",
+        "landing.nav.how": "How it works",
+        "landing.nav.privacy": "Privacy & trust",
+        "landing.nav.sign_in": "Sign in",
+        "landing.nav.create_account": "Create account",
+        "landing.hero.eyebrow": "Private health workspace",
+        "landing.hero.title": "Your records, under control.",
+        "landing.hero.body": (
+            "Keep source-backed records, prepare for visits, and choose when a bounded AI "
+            "summary can help."
+        ),
+        "landing.hero.primary_cta": "Create account",
+        "landing.hero.secondary_cta": "See how it works",
+        "landing.hero.alt": "Hands writing in a notebook beside a sunlit window",
+        "landing.why.title": "Make the next health conversation easier.",
+        "landing.why.intro": (
+            "SANO turns scattered information into a reviewed, useful record without "
+            "pretending to be a doctor."
+        ),
+        "landing.why.records_title": "Keep the source in view",
+        "landing.why.records_formats": "PDF / TXT",
+        "landing.why.records_body": (
+            "Add a text-layer PDF or TXT, review extracted facts as candidates, and keep "
+            "confirmed records linked to their source."
+        ),
+        "landing.why.visit_title": "Prepare for a visit",
+        "landing.why.visit_body": (
+            "Gather questions and create a source-backed Visit Brief you can review before "
+            "meeting a clinician."
+        ),
+        "landing.why.family_title": "Share with care",
+        "landing.why.family_body": (
+            "Invite trusted family members with Person-scoped access, and manage genetics "
+            "permissions separately."
+        ),
+        "landing.why.ai_title": "Choose when AI helps",
+        "landing.why.ai_body": (
+            "Use selected authorized context only when you grant external consent. Ask for a "
+            "bounded summary with a clear receipt. AI does not change canonical records."
+        ),
+        "landing.why.genetics_title": "Keep genetics separate",
+        "landing.why.genetics_body": (
+            "Use optional consumer-genotype research with separate grants. Raw genome data "
+            "never enters provider context."
+        ),
+        "landing.how.title": "A clear path from source to answer.",
+        "landing.how.intro": (
+            "The useful part is the chain of custody: what you add, what is suggested, what "
+            "you review, and what an answer can safely use."
+        ),
+        "landing.how.step_one_title": "Add your source",
+        "landing.how.step_one_body": "Register a PDF or TXT before deriving a claim.",
+        "landing.how.step_two_title": "Review what was found",
+        "landing.how.step_two_body": (
+            "Candidate facts stay separate until a person reviews and confirms them."
+        ),
+        "landing.how.step_three_title": "Review into a record",
+        "landing.how.step_three_body": (
+            "Only information a person confirms becomes part of the canonical record."
+        ),
+        "landing.how.step_four_title": "Prepare for a visit",
+        "landing.how.step_four_body": (
+            "Use reviewed information to draft questions and a sourced Visit Brief."
+        ),
+        "landing.boundaries.title": "AI and genetics have clear boundaries.",
+        "landing.boundaries.intro": (
+            "SANO makes the useful edges visible before information is shared or used for a "
+            "research question."
+        ),
+        "landing.boundaries.ai_title": "AI sees a selected context",
+        "landing.boundaries.ai_body": (
+            "Only selected, authorized context can be used for a bounded answer. An external "
+            "provider call requires your consent, and the answer cannot change canonical "
+            "records."
+        ),
+        "landing.boundaries.ai_note": "SANO does not diagnose or prescribe treatment.",
+        "landing.boundaries.genetics_title": "Genetics keeps its own permission",
+        "landing.boundaries.genetics_body": (
+            "Genetics access uses separate grants from ordinary health access. Research stays "
+            "limited to the selected evidence and authorized context."
+        ),
+        "landing.boundaries.genetics_note": "Raw genome data never enters provider context.",
+        "landing.privacy.title": "Trust is part of the product.",
+        "landing.privacy.intro": (
+            "SANO is designed for private, self-hosted use. It keeps access explicit and "
+            "makes the edges visible."
+        ),
+        "landing.privacy.local_title": "Local-first by default",
+        "landing.privacy.local_body": "Your installation keeps the workspace under your control.",
+        "landing.privacy.person_title": "Person-scoped access",
+        "landing.privacy.person_body": (
+            "Sharing one Person never silently shares another. Relationships are not grants."
+        ),
+        "landing.privacy.limits_title": "Clear limits",
+        "landing.privacy.limits_body": (
+            "SANO is not a diagnostic or treatment tool. It does not choose medicines or doses."
+        ),
+        "landing.privacy.genetics_title": "Separate genetics grants",
+        "landing.privacy.genetics_body": (
+            "Optional genetics research needs its own permission. Raw genome data never "
+            "enters provider context."
+        ),
+        "landing.privacy.alt": "Paper records and a closed notebook in calm afternoon light",
+        "landing.closing.title": "Keep the next step in your hands.",
+        "landing.closing.body": (
+            "Start your private workspace, or use an invitation from someone you trust."
+        ),
+        "landing.closing.register": "Create your account",
+        "landing.closing.invite": "Open an invitation",
+        "landing.footer.note": "Private, self-hosted health workspace.",
+        "landing.footer.address": "sanobot.art",
+        "landing.footer.invite": "Have an invitation?",
+        "landing.footer.invite_link": "Use it here",
+    }
+)
 
-TRANSLATIONS["ru"].update({
-    "brand.sano": "SANO",
-    "landing.nav.why": "Что можно делать",
-    "landing.nav.how": "Как это работает",
-    "landing.nav.privacy": "Приватность и доверие",
-    "landing.nav.sign_in": "Войти",
-    "landing.nav.create_account": "Создать аккаунт",
-    "landing.hero.eyebrow": "Личное рабочее пространство здоровья",
-    "landing.hero.title": "Ваши записи под контролем.",
-    "landing.hero.body": (
-        "Храните записи с источниками, готовьтесь к визитам и решайте, когда нужен "
-        "ограниченный ответ ИИ."
-    ),
-    "landing.hero.primary_cta": "Создать аккаунт",
-    "landing.hero.secondary_cta": "Как это работает",
-    "landing.hero.alt": "Руки записывают в блокнот у залитого солнцем окна",
-    "landing.why.title": "Сделайте следующий разговор о здоровье проще.",
-    "landing.why.intro": (
-        "SANO превращает разрозненную информацию в проверенную полезную запись, не "
-        "выдавая себя за врача."
-    ),
-    "landing.why.records_title": "Источник всегда рядом",
-    "landing.why.records_formats": "PDF / TXT",
-    "landing.why.records_body": (
-        "Добавляйте PDF с текстовым слоем или TXT, проверяйте извлечённые факты как "
-        "кандидатов и связывайте подтверждённые записи с источником."
-    ),
-    "landing.why.visit_title": "Подготовьтесь к визиту",
-    "landing.why.visit_body": (
-        "Соберите вопросы и создайте краткую информацию о визите с указанием источников, "
-        "которую можно проверить перед разговором с врачом."
-    ),
-    "landing.why.family_title": "Делитесь бережно",
-    "landing.why.family_body": (
-        "Приглашайте близких с доступом к конкретному человеку и управляйте разрешениями "
-        "для генетики отдельно."
-    ),
-    "landing.why.ai_title": "Решайте, когда нужен ИИ",
-    "landing.why.ai_body": (
-        "Используйте выбранный авторизованный контекст только с вашим внешним согласием. "
-        "Запрашивайте ограниченное резюме с понятной квитанцией. ИИ не меняет "
-        "канонические записи."
-    ),
-    "landing.why.genetics_title": "Генетика отдельно",
-    "landing.why.genetics_body": (
-        "Используйте необязательное исследование потребительского генотипа с отдельными "
-        "разрешениями. Сырые геномные данные никогда не передаются провайдеру."
-    ),
-    "landing.how.title": "Понятный путь от источника к ответу.",
-    "landing.how.intro": (
-        "Важна цепочка: что вы добавили, что было предложено, что проверено и что ответ "
-        "может безопасно использовать."
-    ),
-    "landing.how.step_one_title": "Добавьте источник",
-    "landing.how.step_one_body": "Зарегистрируйте PDF или TXT до вывода нового утверждения.",
-    "landing.how.step_two_title": "Проверьте найденное",
-    "landing.how.step_two_body": (
-        "Кандидаты остаются отдельными, пока человек не проверит и не подтвердит их."
-    ),
-    "landing.how.step_three_title": "Проверьте и сохраните",
-    "landing.how.step_three_body": (
-        "Только подтверждённая человеком информация становится частью канонической "
-        "записи."
-    ),
-    "landing.how.step_four_title": "Подготовьтесь к визиту",
-    "landing.how.step_four_body": (
-        "Используйте проверенную информацию для вопросов и краткой информации о визите с "
-        "указанием источников."
-    ),
-    "landing.boundaries.title": "У ИИ и генетики есть чёткие границы.",
-    "landing.boundaries.intro": (
-        "SANO показывает важные границы до того, как информация будет передана или "
-        "использована для исследовательского вопроса."
-    ),
-    "landing.boundaries.ai_title": "ИИ видит только выбранный контекст",
-    "landing.boundaries.ai_body": (
-        "Для ограниченного ответа используется только выбранный авторизованный контекст. "
-        "Внешний вызов требует вашего согласия, а ответ не меняет канонические записи."
-    ),
-    "landing.boundaries.ai_note": "SANO не ставит диагнозы и не назначает лечение.",
-    "landing.boundaries.genetics_title": "Для генетики нужно отдельное разрешение",
-    "landing.boundaries.genetics_body": (
-        "Доступ к генетике отделён от обычного доступа к здоровью. Исследование "
-        "использует только выбранные данные и авторизованный контекст."
-    ),
-    "landing.boundaries.genetics_note": (
-        "Сырые геномные данные никогда не попадают в контекст провайдера."
-    ),
-    "landing.privacy.title": "Доверие встроено в продукт.",
-    "landing.privacy.intro": (
-        "SANO создан для частного самостоятельного размещения. Доступ остаётся явным, а "
-        "границы видимыми."
-    ),
-    "landing.privacy.local_title": "Сначала локально",
-    "landing.privacy.local_body": "Установка хранит рабочую область под вашим контролем.",
-    "landing.privacy.person_title": "Доступ к конкретному человеку",
-    "landing.privacy.person_body": (
-        "Доступ к одному человеку не открывает записи другого. Родственная связь сама по "
-        "себе не даёт доступа."
-    ),
-    "landing.privacy.limits_title": "Понятные ограничения",
-    "landing.privacy.limits_body": (
-        "SANO не ставит диагнозы и не назначает лечение. Система не выбирает лекарства и "
-        "дозы."
-    ),
-    "landing.privacy.genetics_title": "Отдельные разрешения для генетики",
-    "landing.privacy.genetics_body": (
-        "Исследование генетики требует отдельного разрешения. Сырые геномные данные "
-        "никогда не передаются провайдеру."
-    ),
-    "landing.privacy.alt": "Бумажные записи и закрытый блокнот в спокойном дневном свете",
-    "landing.closing.title": "Следующий шаг остаётся за вами.",
-    "landing.closing.body": (
-        "Создайте личную рабочую область или воспользуйтесь приглашением от человека, "
-        "которому вы доверяете."
-    ),
-    "landing.closing.register": "Создать аккаунт",
-    "landing.closing.invite": "Открыть приглашение",
-    "landing.footer.note": "Личное рабочее пространство здоровья на собственном сервере.",
-    "landing.footer.address": "sanobot.art",
-    "landing.footer.invite": "Есть приглашение?",
-    "landing.footer.invite_link": "Использовать его",
-})
+TRANSLATIONS["ru"].update(
+    {
+        "brand.sano": "SANO",
+        "landing.nav.why": "Что можно делать",
+        "landing.nav.how": "Как это работает",
+        "landing.nav.privacy": "Приватность и доверие",
+        "landing.nav.sign_in": "Войти",
+        "landing.nav.create_account": "Создать аккаунт",
+        "landing.hero.eyebrow": "Личное рабочее пространство здоровья",
+        "landing.hero.title": "Ваши записи под контролем.",
+        "landing.hero.body": (
+            "Храните записи с источниками, готовьтесь к визитам и решайте, когда нужен "
+            "ограниченный ответ ИИ."
+        ),
+        "landing.hero.primary_cta": "Создать аккаунт",
+        "landing.hero.secondary_cta": "Как это работает",
+        "landing.hero.alt": "Руки записывают в блокнот у залитого солнцем окна",
+        "landing.why.title": "Сделайте следующий разговор о здоровье проще.",
+        "landing.why.intro": (
+            "SANO превращает разрозненную информацию в проверенную полезную запись, не "
+            "выдавая себя за врача."
+        ),
+        "landing.why.records_title": "Источник всегда рядом",
+        "landing.why.records_formats": "PDF / TXT",
+        "landing.why.records_body": (
+            "Добавляйте PDF с текстовым слоем или TXT, проверяйте извлечённые факты как "
+            "кандидатов и связывайте подтверждённые записи с источником."
+        ),
+        "landing.why.visit_title": "Подготовьтесь к визиту",
+        "landing.why.visit_body": (
+            "Соберите вопросы и создайте краткую информацию о визите с указанием источников, "
+            "которую можно проверить перед разговором с врачом."
+        ),
+        "landing.why.family_title": "Делитесь бережно",
+        "landing.why.family_body": (
+            "Приглашайте близких с доступом к конкретному человеку и управляйте разрешениями "
+            "для генетики отдельно."
+        ),
+        "landing.why.ai_title": "Решайте, когда нужен ИИ",
+        "landing.why.ai_body": (
+            "Используйте выбранный авторизованный контекст только с вашим внешним согласием. "
+            "Запрашивайте ограниченное резюме с понятной квитанцией. ИИ не меняет "
+            "канонические записи."
+        ),
+        "landing.why.genetics_title": "Генетика отдельно",
+        "landing.why.genetics_body": (
+            "Используйте необязательное исследование потребительского генотипа с отдельными "
+            "разрешениями. Сырые геномные данные никогда не передаются провайдеру."
+        ),
+        "landing.how.title": "Понятный путь от источника к ответу.",
+        "landing.how.intro": (
+            "Важна цепочка: что вы добавили, что было предложено, что проверено и что ответ "
+            "может безопасно использовать."
+        ),
+        "landing.how.step_one_title": "Добавьте источник",
+        "landing.how.step_one_body": "Зарегистрируйте PDF или TXT до вывода нового утверждения.",
+        "landing.how.step_two_title": "Проверьте найденное",
+        "landing.how.step_two_body": (
+            "Кандидаты остаются отдельными, пока человек не проверит и не подтвердит их."
+        ),
+        "landing.how.step_three_title": "Проверьте и сохраните",
+        "landing.how.step_three_body": (
+            "Только подтверждённая человеком информация становится частью канонической записи."
+        ),
+        "landing.how.step_four_title": "Подготовьтесь к визиту",
+        "landing.how.step_four_body": (
+            "Используйте проверенную информацию для вопросов и краткой информации о визите с "
+            "указанием источников."
+        ),
+        "landing.boundaries.title": "У ИИ и генетики есть чёткие границы.",
+        "landing.boundaries.intro": (
+            "SANO показывает важные границы до того, как информация будет передана или "
+            "использована для исследовательского вопроса."
+        ),
+        "landing.boundaries.ai_title": "ИИ видит только выбранный контекст",
+        "landing.boundaries.ai_body": (
+            "Для ограниченного ответа используется только выбранный авторизованный контекст. "
+            "Внешний вызов требует вашего согласия, а ответ не меняет канонические записи."
+        ),
+        "landing.boundaries.ai_note": "SANO не ставит диагнозы и не назначает лечение.",
+        "landing.boundaries.genetics_title": "Для генетики нужно отдельное разрешение",
+        "landing.boundaries.genetics_body": (
+            "Доступ к генетике отделён от обычного доступа к здоровью. Исследование "
+            "использует только выбранные данные и авторизованный контекст."
+        ),
+        "landing.boundaries.genetics_note": (
+            "Сырые геномные данные никогда не попадают в контекст провайдера."
+        ),
+        "landing.privacy.title": "Доверие встроено в продукт.",
+        "landing.privacy.intro": (
+            "SANO создан для частного самостоятельного размещения. Доступ остаётся явным, а "
+            "границы видимыми."
+        ),
+        "landing.privacy.local_title": "Сначала локально",
+        "landing.privacy.local_body": "Установка хранит рабочую область под вашим контролем.",
+        "landing.privacy.person_title": "Доступ к конкретному человеку",
+        "landing.privacy.person_body": (
+            "Доступ к одному человеку не открывает записи другого. Родственная связь сама по "
+            "себе не даёт доступа."
+        ),
+        "landing.privacy.limits_title": "Понятные ограничения",
+        "landing.privacy.limits_body": (
+            "SANO не ставит диагнозы и не назначает лечение. Система не выбирает лекарства и дозы."
+        ),
+        "landing.privacy.genetics_title": "Отдельные разрешения для генетики",
+        "landing.privacy.genetics_body": (
+            "Исследование генетики требует отдельного разрешения. Сырые геномные данные "
+            "никогда не передаются провайдеру."
+        ),
+        "landing.privacy.alt": "Бумажные записи и закрытый блокнот в спокойном дневном свете",
+        "landing.closing.title": "Следующий шаг остаётся за вами.",
+        "landing.closing.body": (
+            "Создайте личную рабочую область или воспользуйтесь приглашением от человека, "
+            "которому вы доверяете."
+        ),
+        "landing.closing.register": "Создать аккаунт",
+        "landing.closing.invite": "Открыть приглашение",
+        "landing.footer.note": "Личное рабочее пространство здоровья на собственном сервере.",
+        "landing.footer.address": "sanobot.art",
+        "landing.footer.invite": "Есть приглашение?",
+        "landing.footer.invite_link": "Использовать его",
+    }
+)
 
 # UI-R2 workspace hierarchy, document analysis states, and recovery copy.
 # Exact EN/RU parity is asserted by tests/test_ui_localization.py; provider
@@ -2426,9 +2568,7 @@ TRANSLATIONS["ru"].update(
     {
         "workspace.section_navigation": "Разделы рабочей области",
         "workspace.attention_title": "Требует внимания",
-        "workspace.attention_clear": (
-            "Нет элементов, ожидающих проверки или восстановления."
-        ),
+        "workspace.attention_clear": ("Нет элементов, ожидающих проверки или восстановления."),
         "workspace.text_extraction": "Извлечение текста",
         "workspace.text_ready": "Текст готов",
         "workspace.review_state": "Статус проверки",
@@ -2445,9 +2585,7 @@ TRANSLATIONS["ru"].update(
         "workspace.analyze_document": "Проанализировать документ",
         "workspace.continue_analysis": "Продолжить анализ",
         "workspace.open_document": "Открыть документ",
-        "workspace.analysis_review_help": (
-            "Сверьте доступные записи с извлечённым текстом."
-        ),
+        "workspace.analysis_review_help": ("Сверьте доступные записи с извлечённым текстом."),
         "workspace.analysis_source_only_help": (
             "Источник сохранён и доступен для ручной проверки."
         ),
@@ -2476,13 +2614,9 @@ TRANSLATIONS["en"].update(
         "chat.status_execute": "Executing the approved request…",
         "chat.status_receipt": "Finalizing the execution receipt…",
         "chat.approve_disclosure": "Approve this disclosure",
-        "chat.consent_help": (
-            "Nothing is sent before you approve this exact disclosure."
-        ),
+        "chat.consent_help": ("Nothing is sent before you approve this exact disclosure."),
         "chat.declined_heading": "Disclosure was not approved",
-        "chat.refusal_heading": (
-            "OpenCare refused this request before contacting a provider"
-        ),
+        "chat.refusal_heading": ("OpenCare refused this request before contacting a provider"),
         "chat.refusal_next_step": (
             "Safe next step: review the recorded sources in Workspace or ask "
             "a source-backed question instead."
@@ -2499,13 +2633,10 @@ TRANSLATIONS["ru"].update(
         "chat.status_receipt": "Завершаем оформление квитанции…",
         "chat.approve_disclosure": "Одобрить это раскрытие",
         "chat.consent_help": (
-            "Ничего не будет отправлено, пока вы не одобрите это точное "
-            "раскрытие."
+            "Ничего не будет отправлено, пока вы не одобрите это точное раскрытие."
         ),
         "chat.declined_heading": "Раскрытие не одобрено",
-        "chat.refusal_heading": (
-            "OpenCare отклонил этот запрос до обращения к провайдеру"
-        ),
+        "chat.refusal_heading": ("OpenCare отклонил этот запрос до обращения к провайдеру"),
         "chat.refusal_next_step": (
             "Безопасный следующий шаг: проверьте записанные источники в "
             "рабочей области или задайте вопрос с опорой на источники."

@@ -145,6 +145,14 @@ def test_tesseract_resolution_uses_path_or_configured_executable(
     assert discovered.tesseract_path == "/path/tesseract"
 
 
+def test_tesseract_resolution_supports_sano_path_setting(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("SANO_TESSERACT_PATH", r"C:\Sano\Tesseract\tesseract.exe")
+    adapter = LocalOcrAdapter()
+    assert adapter.tesseract_path == r"C:\Sano\Tesseract\tesseract.exe"
+
+
 def test_tesseract_command_is_local_russian_english_and_bounded(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

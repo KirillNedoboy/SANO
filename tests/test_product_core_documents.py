@@ -104,9 +104,13 @@ def test_pdf_embedded_text_and_blank_pdf_are_accepted(tmp_path: Path) -> None:
     output = io.BytesIO()
     writer.write(output)
     blank = documents.register("person-1", output.getvalue(), "application/pdf")
-    _, blank_page = documents.get_page(blank.source.id, blank.extraction.extraction_id, 1)
-    assert blank.extraction.page_count == 1
-    assert blank_page.normalized_text == ""
+    if blank.extraction is None:
+        assert documents.get_text_processing(blank.source.id).status == "unavailable"
+        assert documents.read_original(blank.source.id)[1] == output.getvalue()
+    else:
+        _, blank_page = documents.get_page(blank.source.id, blank.extraction.extraction_id, 1)
+        assert blank.extraction.page_count == 1
+        assert blank_page.normalized_text == ""
 
     encrypted_writer = PdfWriter()
     encrypted_writer.append_pages_from_reader(PdfReader(io.BytesIO(_text_pdf("secret"))))
@@ -119,20 +123,27 @@ def test_pdf_embedded_text_and_blank_pdf_are_accepted(tmp_path: Path) -> None:
         )
 
 
-def test_validation_failures_leave_no_durable_source(tmp_path: Path) -> None:
+def test_invalid_containers_are_rejected_but_extraction_limits_keep_original(
+    tmp_path: Path,
+) -> None:
     database, documents = _service(tmp_path)
 
     for payload, media_type, reason in (
         (b"\xff", "text/plain", "invalid_utf8"),
         (b"not-pdf", "application/pdf", "pdf_signature_invalid"),
         (b"%PDF-broken", "application/pdf", "malformed_pdf"),
-        (("x" * 100_001).encode(), "text/plain", "page_chars_limit_exceeded"),
     ):
         with pytest.raises(DocumentValidationError, match=reason):
             documents.register("person-1", payload, media_type)
 
+    oversized_text = documents.register("person-1", ("x" * 100_001).encode(), "text/plain")
+    assert oversized_text.created is True
+    assert oversized_text.extraction is None
+    assert documents.read_original(oversized_text.source.id)[1].startswith(b"x")
+    assert documents.get_text_processing(oversized_text.source.id).status == "failed"
+
     with database.connect() as connection:
-        assert connection.execute("SELECT count(*) FROM sources").fetchone()[0] == 0
+        assert connection.execute("SELECT count(*) FROM sources").fetchone()[0] == 1
         assert connection.execute("SELECT count(*) FROM document_extractions").fetchone()[0] == 0
 
 
@@ -164,9 +175,10 @@ def test_extractions_are_database_immutable_and_dedup_verifies_them(tmp_path: Pa
             "DELETE FROM document_extraction_pages WHERE extraction_id = ?",
             (first.extraction.extraction_id,),
         )
-        connection.execute(
-            "DELETE FROM document_extractions WHERE extraction_id = ?",
-            (first.extraction.extraction_id,),
-        )
-    with pytest.raises(IntegrityStorageError, match="missing"):
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(
+                "DELETE FROM document_extractions WHERE extraction_id = ?",
+                (first.extraction.extraction_id,),
+            )
+    with pytest.raises(IntegrityStorageError, match="page count"):
         documents.register("person-1", b"evidence", "text/plain")
