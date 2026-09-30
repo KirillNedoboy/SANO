@@ -398,17 +398,28 @@ def run_review() -> tuple[int, dict[str, str], dict[str, int]]:
             and text_document.extraction.page_count == 1,
             "plain-text normalization changed",
         )
-        source_count = len(documents.list_for_person("alice-person")) + len(
-            documents.list_for_person("carol-person")
-        )
         blank_writer = PdfWriter()
         blank_writer.add_blank_page(width=100, height=100)
         blank_output = io.BytesIO()
         blank_writer.write(blank_output)
+        blank_document = documents.register(
+            "alice-person",
+            blank_output.getvalue(),
+            "application/pdf",
+            original_filename="synthetic-blank.pdf",
+        )
+        checks.check(
+            blank_document.created
+            and blank_document.extraction.total_chars == 0
+            and blank_document.extraction.page_count == 1,
+            "valid blank PDF original was not durably archived",
+        )
+        source_count = len(documents.list_for_person("alice-person")) + len(
+            documents.list_for_person("carol-person")
+        )
         invalid_documents = (
             (b"%PDF-broken", "application/pdf"),
             (_encrypted_pdf(), "application/pdf"),
-            (blank_output.getvalue(), "application/pdf"),
             (b"\xff", "text/plain"),
             (("x" * 100_001).encode("utf-8"), "text/plain"),
         )

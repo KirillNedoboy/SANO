@@ -18,6 +18,7 @@ from typing import Literal
 import pypdf
 from pypdf import filters as pypdf_filters
 
+from app.product_core.document_dates import extract_document_date
 from app.product_core.errors import (
     CandidateNotFoundError,
     CanonicalRecordNotFoundError,
@@ -86,6 +87,7 @@ MAX_DOCUMENT_PAGES = 200
 MAX_DECODED_PAGE_BYTES = 200_000
 MAX_PAGE_CHARS = 100_000
 MAX_TOTAL_CHARS = 1_000_000
+_UNSET = object()
 
 # pypdf's Flate decoder otherwise permits a 75 MB output allocation. Cap it
 # one byte above the contract threshold so extraction can detect overflow
@@ -655,6 +657,11 @@ class DocumentService:
         text_hash = self._canonical_text_hash([item[0] for item in extracted_pages])
         total_chars = sum(len(item[0]) for item in extracted_pages)
         safe_filename = self.sanitize_original_filename(original_filename)
+        document_title = safe_filename or "Untitled document"
+        document_date = extract_document_date("\n".join(item[0] for item in extracted_pages))
+        document_date_source: Literal["extracted", "user", "unknown"] = (
+            "extracted" if document_date is not None else "unknown"
+        )
         relative_path: str | None = None
         try:
             with self.database.uow(begin_mode="IMMEDIATE") as uow:
@@ -688,6 +695,9 @@ class DocumentService:
                     provenance={"entry_method": "document_upload"},
                     original_filename=safe_filename,
                     document_kind=document_kind,
+                    document_title=document_title,
+                    document_date=document_date,
+                    document_date_source=document_date_source,
                 )
                 snapshot = DocumentExtractionSnapshot(
                     extraction_id=extraction_id,
@@ -714,6 +724,14 @@ class DocumentService:
                     for index, (text, decoded_bytes) in enumerate(extracted_pages, start=1)
                 ]
                 uow.sources.insert(source)
+                uow.document_metadata.insert(
+                    source_id=source.id,
+                    person_id=source.person_id,
+                    title=document_title,
+                    document_date=document_date,
+                    document_date_source=document_date_source,
+                    updated_at=now,
+                )
                 uow.document_extractions.insert(snapshot, pages)
                 return DocumentRegistrationResult(source, snapshot, True)
         except sqlite3.IntegrityError:
@@ -737,6 +755,18 @@ class DocumentService:
                 for source in uow.sources.list_for_person(person_id)
                 if source.source_type == "document"
             ]
+            documents.sort(
+                key=lambda source: (
+                    source.document_date is None,
+                    -(
+                        source.document_date.toordinal()
+                        if source.document_date is not None
+                        else 0
+                    ),
+                    -source.created_at.timestamp(),
+                    source.id,
+                )
+            )
             return [(source, self._verify_document_in_uow(uow, source)) for source in documents]
 
     def get(self, source_id: str) -> tuple[Source, DocumentExtractionSnapshot]:
@@ -745,6 +775,55 @@ class DocumentService:
             if source is None or source.source_type != "document":
                 raise SourceNotFoundError(f"document source not found: {source_id}")
             return source, self._verify_document_in_uow(uow, source)
+
+    def read_original(self, source_id: str) -> tuple[Source, bytes]:
+        with self.database.uow() as uow:
+            source = uow.sources.get(source_id)
+            if source is None or source.source_type != "document":
+                raise SourceNotFoundError(f"document source not found: {source_id}")
+            self._verify_document_in_uow(uow, source)
+            return source, self.store.read(source)
+
+    def update_metadata(
+        self,
+        source_id: str,
+        *,
+        title: str | object = _UNSET,
+        document_date: date | None | object = _UNSET,
+        authorize: MutationAuthorizer | None = None,
+    ) -> Source:
+        with self.database.uow(begin_mode="IMMEDIATE") as uow:
+            assert uow.connection is not None
+            if authorize is not None:
+                authorize(uow.connection)
+            source = uow.sources.get(source_id)
+            if source is None or source.source_type != "document":
+                raise SourceNotFoundError(f"document source not found: {source_id}")
+            current_title = source.document_title or source.original_filename or "Untitled document"
+            next_title = current_title if title is _UNSET else self._validate_document_title(title)
+            if document_date is _UNSET:
+                next_date = source.document_date
+                next_date_source = source.document_date_source or (
+                    "extracted" if next_date is not None else "unknown"
+                )
+            else:
+                if document_date is not None and not isinstance(document_date, date):
+                    raise DocumentValidationError("document_date_invalid")
+                next_date = document_date
+                next_date_source = "user" if next_date is not None else "unknown"
+            now = ensure_utc_datetime(self.clock())
+            uow.document_metadata.update(
+                source_id=source.id,
+                person_id=source.person_id,
+                title=next_title,
+                document_date=next_date,
+                document_date_source=next_date_source,
+                updated_at=now,
+            )
+            updated = uow.sources.get(source_id)
+            if updated is None:
+                raise IntegrityStorageError("document metadata update disappeared")
+            return updated
 
     def get_page(
         self, source_id: str, extraction_id: str, page_number: int
@@ -832,10 +911,12 @@ class DocumentService:
             if len(reader.pages) > MAX_DOCUMENT_PAGES:
                 raise DocumentValidationError("page_limit_exceeded")
             if not reader.pages:
-                raise DocumentValidationError("no_usable_text")
+                # There is no source page to represent or verify.  Blank and
+                # scanned PDFs with real pages are accepted below; a
+                # structurally empty PDF remains an explicit validation error.
+                raise DocumentValidationError("pdf_no_pages")
             pages: list[tuple[str, int]] = []
             total_chars = 0
-            usable = False
             for page in reader.pages:
                 contents = page.get_contents()
                 decoded_bytes = 0 if contents is None else len(contents.get_data())
@@ -844,10 +925,7 @@ class DocumentService:
                 total_chars += len(text)
                 if total_chars > MAX_TOTAL_CHARS:
                     raise DocumentValidationError("total_chars_limit_exceeded")
-                usable = usable or bool(text.strip())
                 pages.append((text, decoded_bytes))
-            if not usable:
-                raise DocumentValidationError("no_usable_text")
             return pages, "pypdf", pypdf.__version__, "pdf"
         except DocumentValidationError:
             raise
@@ -887,6 +965,19 @@ class DocumentService:
         if not cleaned:
             return None
         return cleaned[:200]
+
+    @staticmethod
+    def _validate_document_title(value: object) -> str:
+        if not isinstance(value, str):
+            raise DocumentValidationError("document_title_invalid")
+        cleaned = value.strip()
+        if not cleaned:
+            raise DocumentValidationError("document_title_invalid")
+        if len(cleaned) > 200 or any(
+            unicodedata.category(character) == "Cc" for character in cleaned
+        ):
+            raise DocumentValidationError("document_title_invalid")
+        return cleaned
 
 
 class FactLifecycleService:

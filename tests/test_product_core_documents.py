@@ -90,7 +90,7 @@ def test_text_document_preserves_raw_bytes_and_minimally_normalizes(tmp_path: Pa
         assert connection.execute("PRAGMA foreign_key_check").fetchall() == []
 
 
-def test_pdf_embedded_text_is_accepted_and_blank_pdf_is_rejected(tmp_path: Path) -> None:
+def test_pdf_embedded_text_and_blank_pdf_are_accepted(tmp_path: Path) -> None:
     _, documents = _service(tmp_path)
 
     accepted = documents.register("person-1", _text_pdf("Embedded evidence"), "application/pdf")
@@ -103,8 +103,10 @@ def test_pdf_embedded_text_is_accepted_and_blank_pdf_is_rejected(tmp_path: Path)
     writer.add_blank_page(width=100, height=100)
     output = io.BytesIO()
     writer.write(output)
-    with pytest.raises(DocumentValidationError, match="no_usable_text"):
-        documents.register("person-1", output.getvalue(), "application/pdf")
+    blank = documents.register("person-1", output.getvalue(), "application/pdf")
+    _, blank_page = documents.get_page(blank.source.id, blank.extraction.extraction_id, 1)
+    assert blank.extraction.page_count == 1
+    assert blank_page.normalized_text == ""
 
     encrypted_writer = PdfWriter()
     encrypted_writer.append_pages_from_reader(PdfReader(io.BytesIO(_text_pdf("secret"))))

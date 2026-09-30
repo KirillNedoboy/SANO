@@ -85,11 +85,23 @@
       <a href="#overview">{{ t("workspace.overview_title") }}</a>
       <a href="#review">{{ t("workspace.section_review") }}</a>
       <a href="#records">{{ t("workspace.section_records") }}</a>
-      <a href="#documents">{{ t("nav.documents") }}</a>
+      <a href="/documents">{{ t("nav.documents") }}</a>
       <a href="#timeline">{{ t("workspace.section_timeline") }}</a>
       <a href="#visits-brief">{{ t("workspace.section_visits") }}</a>
       <a href="#export">{{ t("workspace.section_export") }}</a>
     </nav>
+
+    <label id="health-section-control" class="workspace-field" for="health-section-selector" hidden>
+      <span>{{ t("workspace.section_navigation") }}</span>
+      <select id="health-section-selector" class="ui-control">
+        <option value="records">{{ t("workspace.section_records") }}</option>
+        <option value="overview">{{ t("workspace.overview_title") }}</option>
+        <option value="review">{{ t("workspace.section_review") }}</option>
+        <option value="timeline">{{ t("workspace.section_timeline") }}</option>
+        <option value="visits-brief">{{ t("workspace.section_visits") }}</option>
+        <option value="export">{{ t("workspace.section_export") }}</option>
+      </select>
+    </label>
 
     <div id="workspace-content" aria-disabled="true" hidden>
       <section id="overview" class="workspace-section" aria-labelledby="overview-title">

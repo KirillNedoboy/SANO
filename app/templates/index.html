@@ -1,63 +1,181 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>OpenCare Proof Kit</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}" />
-  </head>
-  <body>
-    <main class="shell">
-      <section class="hero">
-        <div class="hero-copy">
-          <p class="eyebrow">Local-first health AI proof layer</p>
-          <h1>OpenCare Proof Kit</h1>
-          <p class="lede">
-            A private, evidence-grounded demo pipeline for turning synthetic health data and
-            deterministic PGx rules into a clinician-reviewable briefing.
-          </p>
-          <div class="cta-row">
-            <a class="button button-primary" href="/demo">Open synthetic demo</a>
-            <a class="button button-secondary" href="/demo/report-view?drug=sertraline">
-              View report
-            </a>
+<!doctype html>
+<html lang="{{ locale|default('en', true)|e }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f5f8f4">
+  <meta name="referrer" content="no-referrer">
+  <title>{{ t("brand.sano") }} | {{ t("landing.hero.title") }}</title>
+  <link rel="icon" href="{{ url_for('static', path='/brand/sano-favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', path='/brand.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='/landing.css') }}">
+  <script id="public-auth-translations" type="application/json">{{ translations|default({}, true)|tojson }}</script>
+  <script src="{{ url_for('static', path='/public_auth.js') }}" defer></script>
+</head>
+<body class="sano-site" data-supported-locales="en ru">
+  <a class="sano-skip-link" href="#sano-main">{{ t("shell.skip_to_content") }}</a>
+
+  <header class="sano-header">
+    <div class="sano-container sano-header__inner">
+      <a class="sano-wordmark" href="/" aria-label="{{ t('brand.sano') }}" translate="no">
+        <img src="{{ url_for('static', path='/brand/sano-wordmark.svg') }}" alt="SANO" width="148" height="34">
+      </a>
+      <nav class="sano-nav" aria-label="{{ t('shell.primary_navigation') }}">
+        <a href="#why">{{ t("landing.nav.why") }}</a>
+        <a href="#how">{{ t("landing.nav.how") }}</a>
+        <a href="#privacy">{{ t("landing.nav.privacy") }}</a>
+      </nav>
+      <div class="sano-header__actions">
+        <label class="sano-locale" for="public-auth-locale">
+          <span>{{ t("shell.language") }}</span>
+          <select id="public-auth-locale" name="locale" autocomplete="off">
+            <option value="en"{% if locale == 'en' %} selected{% endif %}>EN</option>
+            <option value="ru"{% if locale == 'ru' %} selected{% endif %}>RU</option>
+          </select>
+        </label>
+        <a class="sano-text-link" href="/login">{{ t("landing.nav.sign_in") }}</a>
+        <a class="sano-button sano-button--small" href="/register">{{ t("landing.nav.create_account") }}</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="sano-main" tabindex="-1">
+    <section class="sano-hero" aria-labelledby="sano-hero-title">
+      <div class="sano-container">
+        <div class="sano-hero__stage">
+          <div class="sano-hero__copy">
+            <p class="sano-kicker">{{ t("landing.hero.eyebrow") }}</p>
+            <h1 id="sano-hero-title">{{ t("landing.hero.title") }}</h1>
+            <p class="sano-hero__body">{{ t("landing.hero.body") }}</p>
+            <div class="sano-actions">
+              <a class="sano-button" href="/register">{{ t("landing.hero.primary_cta") }}</a>
+              <a class="sano-button sano-button--quiet" href="#how">{{ t("landing.hero.secondary_cta") }}</a>
+            </div>
           </div>
+          <figure class="sano-hero__figure">
+            <img src="{{ url_for('static', path='/brand/sano-hero.webp') }}" alt="{{ t('landing.hero.alt') }}" width="1536" height="1024" fetchpriority="high">
+          </figure>
         </div>
-        <div class="hero-panel">
-          <h2>What it is</h2>
-          <ul class="compact-list">
-            <li>Local-first and private by default.</li>
-            <li>Deterministic evidence and safety checks before report writing.</li>
-            <li>Designed for reviewer demos, audits, and transparent inspection.</li>
-          </ul>
-          <h2>What it is not</h2>
-          <ul class="compact-list">
-            <li>No diagnosis.</li>
-            <li>No dosage recommendation.</li>
-            <li>No start/stop medication advice.</li>
+      </div>
+    </section>
+
+    <section class="sano-section sano-section--capabilities" id="why" aria-labelledby="why-title">
+      <div class="sano-container">
+        <div class="sano-section__intro">
+          <h2 id="why-title">{{ t("landing.why.title") }}</h2>
+          <p>{{ t("landing.why.intro") }}</p>
+        </div>
+        <div class="sano-scenarios">
+          <article class="sano-scenario sano-scenario--lead">
+            <p class="sano-scenario__meta">{{ t("landing.why.records_formats") }}</p>
+            <div>
+              <h3>{{ t("landing.why.records_title") }}</h3>
+              <p>{{ t("landing.why.records_body") }}</p>
+            </div>
+          </article>
+          <article class="sano-scenario">
+            <h3>{{ t("landing.why.visit_title") }}</h3>
+            <p>{{ t("landing.why.visit_body") }}</p>
+          </article>
+          <article class="sano-scenario">
+            <h3>{{ t("landing.why.family_title") }}</h3>
+            <p>{{ t("landing.why.family_body") }}</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sano-section sano-section--how" id="how" aria-labelledby="how-title">
+      <div class="sano-container sano-how__grid">
+        <div class="sano-section__intro">
+          <h2 id="how-title">{{ t("landing.how.title") }}</h2>
+          <p>{{ t("landing.how.intro") }}</p>
+        </div>
+        <ol class="sano-record-path">
+          <li>
+            <span class="sano-step__number" aria-hidden="true">1</span>
+            <div><h3>{{ t("landing.how.step_one_title") }}</h3><p>{{ t("landing.how.step_one_body") }}</p></div>
+          </li>
+          <li>
+            <span class="sano-step__number" aria-hidden="true">2</span>
+            <div><h3>{{ t("landing.how.step_two_title") }}</h3><p>{{ t("landing.how.step_two_body") }}</p></div>
+          </li>
+          <li>
+            <span class="sano-step__number" aria-hidden="true">3</span>
+            <div><h3>{{ t("landing.how.step_three_title") }}</h3><p>{{ t("landing.how.step_three_body") }}</p></div>
+          </li>
+          <li>
+            <span class="sano-step__number" aria-hidden="true">4</span>
+            <div><h3>{{ t("landing.how.step_four_title") }}</h3><p>{{ t("landing.how.step_four_body") }}</p></div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="sano-section sano-section--boundaries" aria-labelledby="boundaries-title">
+      <div class="sano-container">
+        <div class="sano-section__intro">
+          <h2 id="boundaries-title">{{ t("landing.boundaries.title") }}</h2>
+          <p>{{ t("landing.boundaries.intro") }}</p>
+        </div>
+        <div class="sano-boundaries-story">
+          <article class="sano-boundary sano-boundary--ai">
+            <h3>{{ t("landing.boundaries.ai_title") }}</h3>
+            <p>{{ t("landing.boundaries.ai_body") }}</p>
+            <p class="sano-boundary__note">{{ t("landing.boundaries.ai_note") }}</p>
+          </article>
+          <article class="sano-boundary sano-boundary--genetics">
+            <h3>{{ t("landing.boundaries.genetics_title") }}</h3>
+            <p>{{ t("landing.boundaries.genetics_body") }}</p>
+            <p class="sano-boundary__note">{{ t("landing.boundaries.genetics_note") }}</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sano-section sano-section--privacy" id="privacy" aria-labelledby="privacy-title">
+      <div class="sano-container sano-privacy__grid">
+        <figure class="sano-privacy__figure">
+          <img src="{{ url_for('static', path='/brand/sano-mood.webp') }}" alt="{{ t('landing.privacy.alt') }}" width="1122" height="1402" loading="lazy">
+        </figure>
+        <div class="sano-privacy__copy">
+          <h2 id="privacy-title">{{ t("landing.privacy.title") }}</h2>
+          <p>{{ t("landing.privacy.intro") }}</p>
+          <ul class="sano-privacy-points">
+            <li><h3>{{ t("landing.privacy.local_title") }}</h3><p>{{ t("landing.privacy.local_body") }}</p></li>
+            <li><h3>{{ t("landing.privacy.person_title") }}</h3><p>{{ t("landing.privacy.person_body") }}</p></li>
+            <li><h3>{{ t("landing.privacy.limits_title") }}</h3><p>{{ t("landing.privacy.limits_body") }}</p></li>
+            <li><h3>{{ t("landing.privacy.genetics_title") }}</h3><p>{{ t("landing.privacy.genetics_body") }}</p></li>
           </ul>
         </div>
-      </section>
+      </div>
+      <div class="sano-container sano-closing">
+        <div>
+          <h2>{{ t("landing.closing.title") }}</h2>
+          <p>{{ t("landing.closing.body") }}</p>
+        </div>
+        <div class="sano-actions">
+          <a class="sano-button" href="/register">{{ t("landing.closing.register") }}</a>
+          <a class="sano-button sano-button--quiet" href="/invite">{{ t("landing.closing.invite") }}</a>
+        </div>
+      </div>
+    </section>
+  </main>
 
-      <section class="grid two-up">
-        <article class="panel">
-          <h2>Local-first architecture</h2>
-          <ol class="pipeline-list">
-            {% for step in pipeline_steps %}
-            <li>{{ step.replace("_", " ") }}</li>
-            {% endfor %}
-          </ol>
-        </article>
-
-        <article class="panel">
-          <h2>Reviewer quick links</h2>
-          <ul class="link-list">
-            {% for label, href in quick_links %}
-            <li><a href="{{ href }}">{{ label }}</a></li>
-            {% endfor %}
-          </ul>
-        </article>
-      </section>
-    </main>
-  </body>
+  <footer class="sano-footer">
+    <div class="sano-container sano-footer__inner">
+      <div>
+        <img src="{{ url_for('static', path='/brand/sano-wordmark.svg') }}" alt="SANO" width="112" height="26" loading="lazy">
+        <p>{{ t("landing.footer.note") }}</p>
+        <p class="sano-footer__address">{{ t("landing.footer.address") }}</p>
+      </div>
+      <nav aria-label="{{ t('landing.nav.sign_in') }}">
+        <a href="/login">{{ t("landing.nav.sign_in") }}</a>
+        <a href="/register">{{ t("landing.nav.create_account") }}</a>
+        <a href="/invite">{{ t("landing.footer.invite") }}</a>
+      </nav>
+    </div>
+  </footer>
+</body>
 </html>

@@ -931,7 +931,7 @@ def run_review() -> tuple[int, dict[str, str]]:
 
     # ------------------------------------------------------------------ #
     checks.check(
-        product_migrations.PRODUCT_MIGRATIONS[-1].version == 11,
+        product_migrations.PRODUCT_MIGRATIONS[-1].version == 12,
         "product schema version is not the current v11",
     )
     checks.check(

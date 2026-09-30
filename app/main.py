@@ -300,6 +300,7 @@ def _uses_actor_session_boundary(path: str) -> bool:
         in {
             "/",
             "/workspace",
+            "/documents",
             "/genetics",
             "/vault",
             "/chat",
@@ -393,8 +394,16 @@ async def enforce_private_access(
 
 
 @app.get("/", response_class=HTMLResponse)
-def index() -> RedirectResponse:
-    return RedirectResponse(url="/workspace", status_code=307)
+def index(request: Request) -> Response:
+    """Render the public SANO landing for unauthenticated visitors; redirect authenticated users to Documents."""
+    session_token = request.cookies.get("opencare_session")
+    if session_token:
+        try:
+            resolve_product_core_access(request)
+            return RedirectResponse(url="/documents", status_code=307)
+        except Exception:
+            pass
+    return _actor_page(request, "index.html")
 
 
 def _live_access_error(exc: Exception) -> JSONResponse:
@@ -445,7 +454,7 @@ def actor_login_page(request: Request, next: str | None = None) -> HTMLResponse:
     return _actor_page(
         request,
         "actor_login.html",
-        {"next_path": _normalize_next_path(next, default="/workspace")},
+        {"next_path": _normalize_next_path(next, default="/documents")},
     )
 
 
@@ -497,7 +506,24 @@ def workspace(request: Request) -> Response:
     return _actor_page(
         request,
         "product_core_workspace.html",
-        {"active_nav": "overview", "active_person_id": access.active_person_id},
+        {"active_nav": "health", "active_person_id": access.active_person_id},
+    )
+
+
+@app.get("/documents", response_class=HTMLResponse)
+def documents_page(request: Request) -> Response:
+    access = _resolve_browser_access(request)
+    if isinstance(access, Response):
+        return access
+    if access.active_person_id is not None:
+        try:
+            access.require_active_person("person.read")
+        except (ProductCoreNotFoundError, ScopeForbiddenError) as exc:
+            return _live_access_error(exc)
+    return _actor_page(
+        request,
+        "documents.html",
+        {"active_nav": "documents", "active_person_id": access.active_person_id},
     )
 
 
@@ -532,7 +558,7 @@ def chat_page(request: Request) -> Response:
         request,
         "chat.html",
         {
-            "active_nav": "chat",
+            "active_nav": "assistant",
             "active_person_id": person_id,
             "vault_source_label": "Product Core",
             "vault_source_name": person.display_name,

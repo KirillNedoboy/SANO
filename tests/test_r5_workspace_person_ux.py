@@ -149,14 +149,13 @@ def test_workspace_preserves_machine_values_and_navigation_contracts() -> None:
         "overview",
         "review",
         "records",
-        "documents",
         "timeline",
         "visits-brief",
         "export",
     ]
     for value in ('"pending"', '"confirmed"', '"corrected"', '"rejected"', '"unsupported"'):
         assert value in template or value in script
-    assert all(route not in template for route in ("/health", "/documents", "/activity"))
+    assert all(route not in template for route in ("/health", "/activity"))
     assert "state.loadVersion" in script
     assert "shouldApplyResponse" in script
 

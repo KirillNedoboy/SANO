@@ -32,15 +32,11 @@
 
   const resolvePrimaryNavigation = () => {
     const { pathname, hash } = window.location;
+    if (pathname === "/documents") return "documents";
     if (pathname === "/workspace") {
-      return {
-        "#overview": "overview",
-        "#records": "health",
-        "#documents": "documents",
-        "#timeline": "activity",
-      }[hash] || "overview";
+      return "health";
     }
-    if (pathname === "/chat") return "chat";
+    if (pathname === "/chat") return "assistant";
     if (pathname === "/genetics") return "genetics";
     if (pathname === "/family-access") return hash === "#account-settings" ? "settings" : "family";
     return null;
@@ -49,6 +45,17 @@
   const syncPrimaryNavigation = () => {
     const activeKey = resolvePrimaryNavigation();
     if (!activeKey) return;
+    shell.dataset.sanoView = activeKey;
+    if (activeKey === "health") {
+      if (window.location.hash === "#documents") {
+        window.location.replace("/documents");
+        return;
+      }
+      const sections = ["records", "overview", "review", "timeline", "visits-brief", "export"];
+      const requested = window.location.hash.slice(1);
+      shell.dataset.healthSection = sections.includes(requested) ? requested : "records";
+      document.dispatchEvent(new CustomEvent("sano-health-navigation"));
+    }
     navigationLinks.forEach((link) => {
       link.classList.remove("is-active");
       link.removeAttribute("aria-current");
@@ -58,6 +65,12 @@
     activeLink.classList.add("is-active");
     activeLink.setAttribute("aria-current", "page");
   };
+
+  const healthSelector = document.getElementById("health-section-selector");
+  healthSelector?.addEventListener("change", (event) => {
+    const sections = ["records", "overview", "review", "timeline", "visits-brief", "export"];
+    if (sections.includes(event.target.value)) window.location.hash = event.target.value;
+  });
 
   const setNavigationOpen = (open) => {
     const isOpen = Boolean(open);

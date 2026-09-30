@@ -82,11 +82,12 @@ def test_demo_audit_endpoint_returns_audit_only() -> None:
     assert "report_markdown" not in payload
 
 
-def test_index_redirects_to_product_workspace() -> None:
+def test_index_renders_landing_page() -> None:
     response = get("/", follow_redirects=False)
 
-    assert response.status_code == 307
-    assert response.headers["location"] == "/workspace"
+    assert response.status_code == 200
+    assert "SANO" in response.text
+    assert "Your records, under control." in response.text
 
 
 def test_demo_page_renders_synthetic_demo_patient() -> None:

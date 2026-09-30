@@ -4,9 +4,10 @@ This document defines intended ownership for the combined OpenCare foundation.
 The implementation sequence through G1-G5, P1, P2, D1, and P3 is complete on
 public `main`. It does not move modules or change imports.
 
-Current runtime ownership includes Product Core schema v9, D1 document ingest,
+Current runtime ownership on `codex/sano-a1` includes Product Core schema v12,
+the public-main v9/v11 references below being historical baselines, D1 document ingest,
 `app/product_core/genetics.py`, separate genetics grants, `/workspace`,
-`/family-access`, and `/genetics`. Historical phase notes below are retained
+`/documents`, `/family-access`, and `/genetics`. Historical phase notes below are retained
 for architecture provenance, not as pending work.
 ## Product Core
 
@@ -15,6 +16,8 @@ Product Core owns user-facing health workspace concepts:
 - people;
 - family;
 - sources;
+- consumer document archive metadata (title, document date, and date provenance)
+  beside immutable source bytes;
 - candidate facts;
 - canonical records;
 - review;
@@ -29,6 +32,11 @@ Product Core owns user-facing health workspace concepts:
 Product Core owns user intent and record lifecycle. It may call Trust
 Foundation interfaces for provenance, policy, validation, audit, evaluations,
 and deterministic artifact generation.
+
+The SANO-A1 archive keeps original PDF/TXT bytes as immutable Source material.
+Its sidecar metadata is editable and Person-scoped; original view/download
+routes enforce `document.read`, and metadata updates enforce `document.write`.
+Upload does not invoke OCR, D2, AI, or a provider.
 
 Phase 1A implements the medication-only persistence boundary in
 `app/product_core/` with standard-library `sqlite3`, explicit migrations,
@@ -152,7 +160,7 @@ truth.
 
 ## Current ownership mapping
 
-`app/product_core` owns the live schema v9 workspace, lifecycle, document
+`app/product_core` owns the live SANO-A1 schema v12 workspace, lifecycle, document
 ingest, persisted genetics service, exports, backup, and recovery.
 `app/family_access` owns Actor sessions, consent, and Family Access policy.
 `app/agent_trust` owns reusable Trust Envelope and receipt contracts.

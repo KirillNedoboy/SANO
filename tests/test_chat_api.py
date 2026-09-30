@@ -48,7 +48,7 @@ def test_chat_route_opens_chat_workspace() -> None:
     response = request("GET", "/demo/chat")
 
     assert response.status_code == 200
-    assert "OpenCare chat" in response.text
+    assert "Sano" in response.text
 
 
 def test_public_demo_chat_route_is_passwordless() -> None:

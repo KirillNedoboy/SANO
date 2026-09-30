@@ -513,7 +513,7 @@ def run_review() -> tuple[int, dict[str, str]]:
     report = backup.backup(destination)
     checks.check(
         # D2.2: current product schema is v11 (procedure/recommendation/follow-up).
-        report.valid is True and report.product_core_schema_version == 11,
+        report.valid is True and report.product_core_schema_version == 12,
         "backup invalid",
     )
     target = tmp_root / "recovered"

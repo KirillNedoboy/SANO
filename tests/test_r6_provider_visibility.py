@@ -130,7 +130,7 @@ def test_settings_renders_deterministic_provider_metadata(
     assert "AI provider" in response.text
     assert "Deterministic test provider" in response.text
     assert "Local deterministic" in response.text
-    assert "Managed by the OpenCare installation operator" in response.text
+    assert "Managed by the Sano installation operator" in response.text
     assert "api_key" not in response.text.lower()
     assert "OPENCARE_LLM_API_KEY" not in response.text
 

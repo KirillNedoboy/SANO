@@ -63,6 +63,18 @@ class SourceRepository(Protocol):
     def path_referenced(self, relative_path: str) -> bool: ...
 
 
+_SOURCE_WITH_DOCUMENT_METADATA_SQL = """
+    SELECT sources.*,
+           document_metadata.title AS document_title,
+           document_metadata.document_date AS document_date,
+           document_metadata.document_date_source AS document_date_source
+    FROM sources
+    LEFT JOIN document_metadata
+      ON document_metadata.source_id = sources.id
+     AND document_metadata.person_id = sources.person_id
+"""
+
+
 class DocumentExtractionRepository(Protocol):
     def get(self, extraction_id: str) -> DocumentExtractionSnapshot | None: ...
 
@@ -76,6 +88,30 @@ class DocumentExtractionRepository(Protocol):
         self,
         snapshot: DocumentExtractionSnapshot,
         pages: list[DocumentExtractionPage],
+    ) -> None: ...
+
+
+class DocumentMetadataRepository(Protocol):
+    def insert(
+        self,
+        *,
+        source_id: str,
+        person_id: str,
+        title: str,
+        document_date: date | None,
+        document_date_source: str,
+        updated_at: datetime,
+    ) -> None: ...
+
+    def update(
+        self,
+        *,
+        source_id: str,
+        person_id: str,
+        title: str,
+        document_date: date | None,
+        document_date_source: str,
+        updated_at: datetime,
     ) -> None: ...
 
 
@@ -295,12 +331,16 @@ class SQLiteSourceRepository:
         self.connection = connection
 
     def get(self, source_id: str) -> Source | None:
-        row = self.connection.execute("SELECT * FROM sources WHERE id = ?", (source_id,)).fetchone()
+        row = self.connection.execute(
+            _SOURCE_WITH_DOCUMENT_METADATA_SQL + " WHERE sources.id = ?",
+            (source_id,),
+        ).fetchone()
         return None if row is None else _source_from_row(row)
 
     def list_for_person(self, person_id: str) -> list[Source]:
         rows = self.connection.execute(
-            "SELECT * FROM sources WHERE person_id = ? ORDER BY created_at, id",
+            _SOURCE_WITH_DOCUMENT_METADATA_SQL
+            + " WHERE sources.person_id = ? ORDER BY sources.created_at, sources.id",
             (person_id,),
         ).fetchall()
         return [_source_from_row(row) for row in rows]
@@ -312,10 +352,9 @@ class SQLiteSourceRepository:
         content_hash: str,
     ) -> Source | None:
         row = self.connection.execute(
-            """
-            SELECT * FROM sources
-            WHERE person_id = ? AND source_type = ? AND content_hash = ?
-            """,
+            _SOURCE_WITH_DOCUMENT_METADATA_SQL
+            + " WHERE sources.person_id = ? AND sources.source_type = ?"
+            " AND sources.content_hash = ?",
             (person_id, source_type, content_hash),
         ).fetchone()
         return None if row is None else _source_from_row(row)
@@ -352,6 +391,66 @@ class SQLiteSourceRepository:
             ).fetchone()
             is not None
         )
+
+
+class SQLiteDocumentMetadataRepository:
+    def __init__(self, connection: sqlite3.Connection) -> None:
+        self.connection = connection
+
+    def insert(
+        self,
+        *,
+        source_id: str,
+        person_id: str,
+        title: str,
+        document_date: date | None,
+        document_date_source: str,
+        updated_at: datetime,
+    ) -> None:
+        self.connection.execute(
+            """
+            INSERT INTO document_metadata(
+                source_id, person_id, title, document_date,
+                document_date_source, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                source_id,
+                person_id,
+                title,
+                None if document_date is None else document_date.isoformat(),
+                document_date_source,
+                updated_at.isoformat(),
+            ),
+        )
+
+    def update(
+        self,
+        *,
+        source_id: str,
+        person_id: str,
+        title: str,
+        document_date: date | None,
+        document_date_source: str,
+        updated_at: datetime,
+    ) -> None:
+        cursor = self.connection.execute(
+            """
+            UPDATE document_metadata
+            SET title = ?, document_date = ?, document_date_source = ?, updated_at = ?
+            WHERE source_id = ? AND person_id = ?
+            """,
+            (
+                title,
+                None if document_date is None else document_date.isoformat(),
+                document_date_source,
+                updated_at.isoformat(),
+                source_id,
+                person_id,
+            ),
+        )
+        if cursor.rowcount != 1:
+            raise IntegrityStorageError("document metadata is missing")
 
 
 class SQLiteDocumentExtractionRepository:
@@ -1585,6 +1684,8 @@ class SQLiteExecutionReceiptRepository:
 
 
 def _source_from_row(row: sqlite3.Row) -> Source:
+    keys = set(row.keys())
+    raw_document_date = row["document_date"] if "document_date" in keys else None
     return Source(
         id=row["id"],
         person_id=row["person_id"],
@@ -1597,6 +1698,13 @@ def _source_from_row(row: sqlite3.Row) -> Source:
         provenance=json.loads(row["provenance_json"]),
         original_filename=row["original_filename"],
         document_kind=row["document_kind"],
+        document_title=(row["document_title"] if "document_title" in keys else None),
+        document_date=(
+            None if raw_document_date is None else date.fromisoformat(raw_document_date)
+        ),
+        document_date_source=(
+            row["document_date_source"] if "document_date_source" in keys else None
+        ),
     )
 
 

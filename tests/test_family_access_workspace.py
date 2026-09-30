@@ -87,10 +87,10 @@ def test_login_next_rejects_external_values_and_defaults_to_workspace(
     unsafe = product_core_client.get(
         "/login?next=https%3A%2F%2Fevil.example%2Fsteal"
     )
-    assert 'value="/workspace"' in unsafe.text
+    assert 'value="/documents"' in unsafe.text
 
     protocol_relative = product_core_client.get("/login?next=%2F%2Fevil.example")
-    assert 'value="/workspace"' in protocol_relative.text
+    assert 'value="/documents"' in protocol_relative.text
 
     safe = product_core_client.get("/login?next=%2Fgenetics")
     assert 'value="/genetics"' in safe.text

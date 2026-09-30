@@ -7,7 +7,7 @@ def test_root_redirects_to_workspace(product_core_client: TestClient) -> None:
     response = product_core_client.get("/", follow_redirects=False)
 
     assert response.status_code == 307
-    assert response.headers["location"] == "/workspace"
+    assert response.headers["location"] == "/documents"
 
 
 def test_workspace_renders_complete_p2_health_workspace(
@@ -16,7 +16,7 @@ def test_workspace_renders_complete_p2_health_workspace(
     response = product_core_client.get("/workspace")
 
     assert response.status_code == 200
-    assert "OpenCare Health Workspace" in response.text
+    assert "Sano Health Workspace" in response.text
     assert "Visit Preparation Workspace" not in response.text
     for section_id in (
         "person-context",
@@ -72,4 +72,4 @@ def test_chat_remains_available(product_core_client: TestClient) -> None:
     response = product_core_client.get("/chat")
 
     assert response.status_code == 200
-    assert "OpenCare chat" in response.text
+    assert "Sano chat" in response.text

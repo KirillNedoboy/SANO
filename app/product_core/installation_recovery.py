@@ -14,7 +14,7 @@ from pathlib import Path
 
 from app.product_core.installation_backup import (
     BACKUP_FORMAT_VERSION,
-    PRODUCT_CORE_SCHEMA_VERSION,
+    SUPPORTED_BACKUP_SCHEMA_VERSIONS,
     InstallationBackupError,
     _canonical_json,
     _parse_canonical_manifest,
@@ -101,10 +101,22 @@ class InstallationRecoveryService:
         try:
             self.preflight(backup, target)
             manifest = _verified_manifest(backup)
+            manifest_schema_version = manifest["product_core_schema_version"]
+            if (
+                type(manifest_schema_version) is not int
+                or manifest_schema_version not in SUPPORTED_BACKUP_SCHEMA_VERSIONS
+            ):
+                raise InstallationRecoveryError("backup_manifest_invalid")
             manifest_checksum = hashlib.sha256(_canonical_json(manifest)).hexdigest()
             staging = _create_private_directory(target.parent, "staging")
             _copy_verified_payloads(backup, manifest, staging)
-            _write_recovery_report(staging, manifest_checksum, self.clock(), activation="staged")
+            _write_recovery_report(
+                staging,
+                manifest_checksum,
+                self.clock(),
+                activation="staged",
+                expected_schema_version=manifest_schema_version,
+            )
             _verify_recovered_installation(staging, activation="staged")
             _set_recovery_report_activation(staging, "activated")
 
@@ -308,7 +320,12 @@ def _copy_file_verified(source: Path, destination: Path, size: int, digest: str)
 
 
 def _write_recovery_report(
-    staging: Path, manifest_checksum: str, now: datetime, *, activation: str
+    staging: Path,
+    manifest_checksum: str,
+    now: datetime,
+    *,
+    activation: str,
+    expected_schema_version: int | None = None,
 ) -> None:
     database = staging / "database.sqlite3"
     snapshot = _read_snapshot(database)
@@ -317,6 +334,8 @@ def _write_recovery_report(
         sources = _snapshot_sources(snapshot.connection)
     finally:
         snapshot.connection.close()
+    if expected_schema_version is not None and schema_version != expected_schema_version:
+        raise InstallationRecoveryError("recovery_schema_mismatch")
     source_bytes = sum(source.size_bytes for source in sources)
     report = {
         "backup_format_version": BACKUP_FORMAT_VERSION,
@@ -367,7 +386,8 @@ def _read_recovery_report(path: Path) -> dict[str, object]:
     if (
         report["recovery_format_version"] != RECOVERY_FORMAT_VERSION
         or report["backup_format_version"] != BACKUP_FORMAT_VERSION
-        or report["product_core_schema_version"] != PRODUCT_CORE_SCHEMA_VERSION
+        or type(report["product_core_schema_version"]) is not int
+        or report["product_core_schema_version"] not in SUPPORTED_BACKUP_SCHEMA_VERSIONS
         or not isinstance(report["backup_manifest_checksum"], str)
         or SHA256_PATTERN.fullmatch(report["backup_manifest_checksum"]) is None
         or report["rollback_result"] != "not_required"

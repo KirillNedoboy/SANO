@@ -5,6 +5,7 @@ import sqlite3
 from collections.abc import Callable
 from contextlib import suppress
 from typing import Annotated, Any
+from urllib.parse import quote, unquote
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, Request, Response
 from fastapi.exceptions import RequestValidationError
@@ -31,6 +32,7 @@ from app.product_core.api_models import (
     CorrectCandidateRequest,
     DocumentExtractionResponse,
     DocumentListResponse,
+    DocumentMetadataUpdateRequest,
     DocumentPageResponse,
     DocumentRegistrationResponse,
     DocumentResponse,
@@ -351,6 +353,9 @@ _PERSON_PATH_SCOPES: dict[str, tuple[str, ...]] = {
     "product_core_list_documents": ("document.read",),
     "product_core_get_document": ("document.read",),
     "product_core_get_document_page": ("document.read",),
+    "product_core_get_document_original": ("document.read",),
+    "product_core_download_document_original": ("document.read",),
+    "product_core_update_document_metadata": ("document.write",),
     "product_core_register_document": ("source.write", "document.write"),
 }
 _VISIT_PATH_SCOPES: dict[str, tuple[str, ...]] = {
@@ -429,6 +434,7 @@ _ATOMIC_MUTATION_OPERATIONS = {
     "product_core_register_manual_lab_source",
     "product_core_register_plain_text_source",
     "product_core_register_document",
+    "product_core_update_document_metadata",
     "product_core_create_medication_candidate",
     "product_core_create_condition_candidate",
     "product_core_create_lab_candidate",
@@ -735,6 +741,26 @@ async def _read_bounded_document_body(request: Request) -> bytes:
     return bytes(payload)
 
 
+def _document_filename_header(request: Request) -> str | None:
+    """Decode the ASCII-safe upload filename header used by the browser UI.
+
+    HTTP headers are byte-oriented in the ASGI stack, while a user's filename
+    may be Unicode.  The client sends ``encodeURIComponent`` output so the
+    header stays valid on every server; keep raw ASCII headers compatible with
+    existing callers and reject malformed percent encodings as no filename.
+    """
+    value = request.headers.get("x-opencare-filename")
+    if value is None:
+        return None
+    if "%" not in value:
+        return value
+    try:
+        decoded = unquote(value, encoding="utf-8", errors="strict")
+    except UnicodeDecodeError:
+        return value
+    return decoded
+
+
 async def _read_bounded_genetics_body(request: Request) -> bytes:
     raw_length = request.headers.get("content-length")
     if raw_length is None or not raw_length.isdecimal():
@@ -762,6 +788,11 @@ def _document_response(source: Any, extraction: Any) -> DocumentResponse:
         size_bytes=source.size_bytes,
         original_filename=source.original_filename,
         document_kind=source.document_kind,
+        title=source.document_title or source.original_filename or "Untitled document",
+        document_date=source.document_date,
+        document_date_source=source.document_date_source or (
+            "extracted" if source.document_date is not None else "unknown"
+        ),
         created_at=source.created_at,
         extraction=DocumentExtractionResponse(
             extraction_id=extraction.extraction_id,
@@ -1573,7 +1604,7 @@ async def register_document(
         person_id,
         payload,
         media_type,
-        original_filename=request.headers.get("x-opencare-filename"),
+        original_filename=_document_filename_header(request),
         authorize=access.authorize_person_mutation(
             person_id,
             "source.write",
@@ -1650,6 +1681,103 @@ def get_document_page(
         extracted_chars=page.extracted_chars,
         page_hash=page.page_hash,
     )
+
+
+def _document_content_disposition(source: Any, disposition: str) -> str:
+    filename = source.original_filename
+    if not isinstance(filename, str) or not filename.strip():
+        extension = "pdf" if source.document_kind == "pdf" else "txt"
+        filename = f"document.{extension}"
+    filename = filename.replace("\\", "-").replace("/", "-")
+    filename = "".join(
+        character
+        for character in filename
+        if ord(character) >= 32 and ord(character) != 127 and character not in {'"', "'"}
+    ).strip(" .")
+    if not filename:
+        filename = "document.pdf" if source.document_kind == "pdf" else "document.txt"
+    ascii_name = filename.encode("ascii", "ignore").decode("ascii") or "document"
+    if "." not in ascii_name:
+        ascii_name += ".pdf" if source.document_kind == "pdf" else ".txt"
+    return f'{disposition}; filename="{ascii_name}"; filename*=UTF-8\'\'{quote(filename)}'
+
+
+def _document_original_response(source: Any, payload: bytes, disposition: str) -> Response:
+    return Response(
+        content=payload,
+        media_type=source.media_type,
+        headers={
+            "Content-Disposition": _document_content_disposition(source, disposition),
+            "Cache-Control": "no-store",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
+
+
+@router.get(
+    "/people/{person_id}/documents/{source_id}/original",
+    response_class=Response,
+    responses={404: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
+    operation_id="product_core_get_document_original",
+)
+def get_document_original(
+    person_id: ProductCoreIdentifier,
+    source_id: ProductCoreIdentifier,
+    runtime: RuntimeDependency,
+    access: AccessDependency,
+) -> Response:
+    access.require_source_for_person(source_id, person_id, "document.read")
+    source, payload = runtime.documents.read_original(source_id)
+    return _document_original_response(source, payload, "inline")
+
+
+@router.get(
+    "/people/{person_id}/documents/{source_id}/download",
+    response_class=Response,
+    responses={404: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
+    operation_id="product_core_download_document_original",
+)
+def download_document_original(
+    person_id: ProductCoreIdentifier,
+    source_id: ProductCoreIdentifier,
+    runtime: RuntimeDependency,
+    access: AccessDependency,
+) -> Response:
+    access.require_source_for_person(source_id, person_id, "document.read")
+    source, payload = runtime.documents.read_original(source_id)
+    return _document_original_response(source, payload, "attachment")
+
+
+@router.patch(
+    "/people/{person_id}/documents/{source_id}",
+    response_model=DocumentResponse,
+    responses={404: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
+    operation_id="product_core_update_document_metadata",
+)
+def update_document_metadata(
+    person_id: ProductCoreIdentifier,
+    source_id: ProductCoreIdentifier,
+    payload: DocumentMetadataUpdateRequest,
+    runtime: RuntimeDependency,
+    access: AccessDependency,
+) -> DocumentResponse:
+    access.require_source_for_person(source_id, person_id, "document.write")
+    update_kwargs: dict[str, Any] = {}
+    if "title" in payload.model_fields_set:
+        update_kwargs["title"] = payload.title
+    if "document_date" in payload.model_fields_set:
+        update_kwargs["document_date"] = payload.document_date
+    source = runtime.documents.update_metadata(
+        source_id,
+        **update_kwargs,
+        authorize=access.authorize_person_mutation(
+            person_id,
+            "document.write",
+            action="document.update_metadata",
+        ),
+    )
+    _source, extraction = runtime.documents.get(source_id)
+    return _document_response(source, extraction)
 
 
 def _d2_service(request: Request, runtime: ProductCoreRuntime) -> DocumentFactExtractionService:

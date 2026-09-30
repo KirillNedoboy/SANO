@@ -6,6 +6,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
+from app.product_core.document_dates import extract_document_date
 from app.product_core.models import ensure_utc_datetime, isoformat_utc
 
 
@@ -13,6 +14,42 @@ from app.product_core.models import ensure_utc_datetime, isoformat_utc
 class Migration:
     version: int
     statements: tuple[str, ...]
+    post_apply: Callable[[sqlite3.Connection], None] | None = None
+
+
+def _backfill_document_metadata_dates(connection: sqlite3.Connection) -> None:
+    rows = connection.execute(
+        """
+        SELECT metadata.source_id, metadata.person_id, pages.normalized_text
+        FROM document_metadata AS metadata
+        JOIN document_extractions AS extractions
+          ON extractions.source_id = metadata.source_id
+         AND extractions.person_id = metadata.person_id
+         AND extractions.status = 'complete'
+        JOIN document_extraction_pages AS pages
+          ON pages.extraction_id = extractions.extraction_id
+        ORDER BY metadata.source_id, metadata.person_id, extractions.extraction_id,
+                 pages.page_number
+        """
+    ).fetchall()
+    text_by_source: dict[tuple[str, str], list[str]] = {}
+    for row in rows:
+        key = (str(row[0]), str(row[1]))
+        text_by_source.setdefault(key, []).append(str(row[2] or ""))
+    for (source_id, person_id), pages in text_by_source.items():
+        extracted = extract_document_date("\n".join(pages))
+        if extracted is not None:
+            connection.execute(
+                """
+                UPDATE document_metadata
+                SET document_date = ?, document_date_source = 'extracted'
+                WHERE source_id = ?
+                  AND person_id = ?
+                  AND document_date IS NULL
+                  AND document_date_source = 'unknown'
+                """,
+                (extracted.isoformat(), source_id, person_id),
+            )
 
 
 PRODUCT_MIGRATIONS = (
@@ -2584,6 +2621,88 @@ PRODUCT_MIGRATIONS = (
             """,
         ),
     ),
+    Migration(
+        version=12,
+        statements=(
+            """
+            CREATE TABLE document_metadata (
+                source_id TEXT PRIMARY KEY,
+                person_id TEXT NOT NULL REFERENCES people(person_id),
+                title TEXT NOT NULL CHECK (
+                    length(trim(title)) > 0 AND length(title) <= 200
+                ),
+                document_date TEXT CHECK (
+                    document_date IS NULL
+                    OR (
+                        length(document_date) = 10
+                        AND date(document_date) IS NOT NULL
+                        AND date(document_date) = document_date
+                    )
+                ),
+                document_date_source TEXT NOT NULL CHECK (
+                    document_date_source IN ('extracted', 'user', 'unknown')
+                ),
+                updated_at TEXT NOT NULL,
+                UNIQUE (source_id, person_id),
+                FOREIGN KEY (source_id, person_id)
+                    REFERENCES sources(id, person_id),
+                CHECK (
+                    (document_date IS NULL AND document_date_source = 'unknown')
+                    OR (document_date IS NOT NULL AND document_date_source IN ('extracted', 'user'))
+                )
+            )
+            """,
+            """
+            INSERT INTO document_metadata(
+                source_id, person_id, title, document_date, document_date_source, updated_at
+            )
+            SELECT id, person_id,
+                   substr(COALESCE(NULLIF(trim(original_filename), ''), 'Untitled document'), 1, 200),
+                   NULL, 'unknown', created_at
+            FROM sources
+            WHERE source_type = 'document'
+            """,
+            """
+            CREATE TRIGGER document_metadata_document_only_insert
+            BEFORE INSERT ON document_metadata
+            WHEN NOT EXISTS (
+                SELECT 1 FROM sources
+                WHERE id = NEW.source_id
+                  AND person_id = NEW.person_id
+                  AND source_type = 'document'
+            )
+            BEGIN
+                SELECT RAISE(ABORT, 'document_metadata_source_mismatch');
+            END
+            """,
+            """
+            CREATE TRIGGER document_metadata_identity_immutable
+            BEFORE UPDATE OF source_id, person_id ON document_metadata
+            WHEN NEW.source_id <> OLD.source_id OR NEW.person_id <> OLD.person_id
+            BEGIN
+                SELECT RAISE(ABORT, 'document_metadata_identity_immutable');
+            END
+            """,
+            """
+            CREATE TRIGGER document_metadata_document_only_update
+            BEFORE UPDATE ON document_metadata
+            WHEN NOT EXISTS (
+                SELECT 1 FROM sources
+                WHERE id = NEW.source_id
+                  AND person_id = NEW.person_id
+                  AND source_type = 'document'
+            )
+            BEGIN
+                SELECT RAISE(ABORT, 'document_metadata_source_mismatch');
+            END
+            """,
+            """
+            CREATE INDEX document_metadata_person_date_idx
+            ON document_metadata(person_id, document_date DESC, updated_at DESC, source_id)
+            """,
+        ),
+        post_apply=_backfill_document_metadata_dates,
+    ),
 )
 
 
@@ -2655,6 +2774,8 @@ class MigrationRunner:
                     connection.execute(statement, (applied_at, applied_at))
                 else:
                     connection.execute(statement)
+            if migration.post_apply is not None:
+                migration.post_apply(connection)
             foreign_key_violations = connection.execute("PRAGMA foreign_key_check").fetchall()
             if foreign_key_violations:
                 raise sqlite3.IntegrityError("migration left foreign key violations")

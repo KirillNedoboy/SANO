@@ -1,0 +1,109 @@
+{% extends "product_shell.html" %}
+{% block title %}{{ t("page.documents_title") }}{% endblock %}
+{% block page_styles %}<link rel="stylesheet" href="{{ url_for('static', path='/sano_documents.css') }}">{% endblock %}
+{% block page_scripts %}<script src="{{ url_for('static', path='/sano_documents.js') }}" defer></script>{% endblock %}
+{% block body_attributes %}data-sano-documents-page="true"{% endblock %}
+{% block content %}
+  <header class="sano-documents__header">
+    <p class="sano-documents__eyebrow">{{ t("documents.eyebrow") }}</p>
+    <h1>{{ t("documents.title") }}</h1>
+    <p class="sano-documents__intro">{{ t("documents.intro") }}</p>
+  </header>
+
+  <form id="documents-upload-form" class="sano-documents__upload" hidden>
+    <div>
+      <label class="sano-documents__field" for="documents-file">
+        <span>{{ t("documents.upload_label") }}</span>
+        <input id="documents-file" class="ui-control" type="file" accept=".pdf,.txt,application/pdf,text/plain" required>
+      </label>
+      <p class="sano-documents__meta">{{ t("documents.upload_help") }}</p>
+    </div>
+    <button id="documents-upload-button" class="ui-button ui-button--primary" type="submit">{{ t("documents.upload") }}</button>
+  </form>
+
+  <section class="sano-documents__person" aria-labelledby="documents-person-title">
+    <div>
+      <p class="sano-documents__label">{{ t("documents.active_person") }}</p>
+      <h2 id="documents-person-title"><span id="documents-selected-person">{{ t("documents.no_person") }}</span></h2>
+      <p id="documents-person-help" class="sano-documents__meta">{{ t("documents.choose_person") }}</p>
+    </div>
+    <label class="sano-documents__field" for="documents-person-selector">
+      <span>{{ t("documents.switch_person") }}</span>
+      <select id="documents-person-selector" class="ui-control" disabled>
+        <option value="">{{ t("documents.loading_people") }}</option>
+      </select>
+    </label>
+  </section>
+
+  <section id="documents-controls" class="sano-documents__controls" aria-labelledby="documents-controls-title" hidden>
+    <div class="sano-documents__controls-heading">
+      <div>
+        <h2 id="documents-controls-title">{{ t("documents.archive") }}</h2>
+        <p class="sano-documents__meta">{{ t("documents.archive_help") }}</p>
+      </div>
+      <label class="sano-documents__field sano-documents__search" for="documents-search">
+        <span>{{ t("documents.search_label") }}</span>
+        <input id="documents-search" class="ui-control" type="search" autocomplete="off" placeholder="{{ t('documents.search_placeholder') }}">
+      </label>
+    </div>
+  </section>
+
+  <p id="documents-status" class="ui-notice ui-notice--info" role="status" aria-live="polite" hidden></p>
+  <section id="documents-empty" class="ui-empty-state" aria-labelledby="documents-empty-title" hidden>
+    <h2 id="documents-empty-title">{{ t("documents.empty_title") }}</h2>
+    <p>{{ t("documents.empty_help") }}</p>
+  </section>
+  <section id="documents-archive" class="sano-documents__archive" aria-label="{{ t('documents.archive') }}" hidden>
+    <div id="documents-year-groups"></div>
+  </section>
+
+  <section id="documents-viewer" class="sano-documents__viewer" aria-labelledby="documents-viewer-title" hidden>
+    <div class="sano-documents__viewer-heading">
+      <div>
+        <p class="sano-documents__eyebrow">{{ t("documents.viewer_eyebrow") }}</p>
+        <h2 id="documents-viewer-title">{{ t("documents.viewer_title") }}</h2>
+        <p id="documents-viewer-meta" class="sano-documents__meta"></p>
+      </div>
+      <div class="sano-documents__actions">
+        <a id="documents-download" class="ui-button ui-button--secondary" href="#" download>{{ t("documents.download") }}</a>
+        <button id="documents-close" class="ui-button ui-button--secondary" type="button">{{ t("documents.close") }}</button>
+      </div>
+    </div>
+    <div class="sano-documents__frame-wrap">
+      <div id="documents-pdf-viewer" class="sano-documents__pdf-viewer" hidden>
+        <div class="sano-documents__pdf-controls" aria-label="{{ t('documents.page_controls') }}">
+          <button id="documents-pdf-prev" class="ui-button ui-button--secondary" type="button">{{ t("documents.previous_page") }}</button>
+          <span id="documents-pdf-page-status" class="sano-documents__meta" aria-live="polite"></span>
+          <button id="documents-pdf-next" class="ui-button ui-button--secondary" type="button">{{ t("documents.next_page") }}</button>
+        </div>
+        <div class="sano-documents__actions">
+          <button id="documents-pdf-zoom-out" class="ui-button ui-button--secondary" type="button">{{ t("documents.zoom_out") }}</button>
+          <button id="documents-pdf-zoom-in" class="ui-button ui-button--secondary" type="button">{{ t("documents.zoom_in") }}</button>
+        </div>
+        <p id="documents-pdf-status" class="sano-documents__meta" role="status" aria-live="polite"></p>
+        <div id="documents-pdf-pages" class="sano-documents__pdf-pages"></div>
+      </div>
+      <pre id="documents-text-viewer" class="sano-documents__text-viewer" hidden tabindex="0"></pre>
+    </div>
+    <details class="ui-disclosure sano-documents__technical">
+      <summary>{{ t("documents.technical_details") }}</summary>
+      <dl id="documents-technical-list"></dl>
+    </details>
+    <form id="documents-metadata-form" class="sano-documents__edit" hidden>
+      <h3>{{ t("documents.edit_title") }}</h3>
+      <p class="sano-documents__meta">{{ t("documents.edit_help") }}</p>
+      <label class="sano-documents__field" for="documents-edit-title">
+        <span>{{ t("documents.title_field") }}</span>
+        <input id="documents-edit-title" class="ui-control" type="text" maxlength="200" required>
+      </label>
+      <label class="sano-documents__field" for="documents-edit-date">
+        <span>{{ t("documents.date_field") }}</span>
+        <input id="documents-edit-date" class="ui-control" type="date">
+      </label>
+      <div class="sano-documents__actions">
+        <button id="documents-save" class="ui-button ui-button--primary" type="submit">{{ t("documents.save") }}</button>
+        <button id="documents-cancel-edit" class="ui-button ui-button--secondary" type="button">{{ t("documents.cancel") }}</button>
+      </div>
+    </form>
+  </section>
+{% endblock %}

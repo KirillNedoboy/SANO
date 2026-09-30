@@ -9,6 +9,26 @@ readiness claim.
 - Package/runtime development identity: `0.3.0.dev0`; this is not a published
   `v0.3.0` release.
 
+## Current local delivery status
+
+- **SANO Brand Direction v1:** `FIXED`.
+- **SANO-A1 consumer document archive:** implemented and locally verified on `codex/sano-a1`. The existing
+  installation was migrated through verified backup/recovery into the persistent
+  Sano workspace; the local runtime uses the retained account database. The archive
+  saves PDF/TXT originals immediately, groups by document date, supports title
+  and date metadata, original view/download, and Person-scoped authorization.
+  Upload does not run OCR, AI extraction, D2, or provider calls. The branch's
+  Product Core metadata migration is v12; the public-main v11 baseline remains
+  historical. Verification and migration evidence: `docs/sano-a1-validation.md`.
+```text
+R7 = DONE / published
+UI-R4.1 = COMPLETE locally at 1a8f21788768ae6a67d9e62ba71858eae7dcf95a
+merge/push пока не подтверждены
+SANO Brand Direction v1 = FIXED
+G5 = READY_FOR_SECOND_CLIENT_SMOKE
+AlphaGenome = PAUSED after C.1
+```
+
 The completed sequence on public `main` is:
 
 ```text
@@ -22,7 +42,7 @@ ecosystem evidence pending.
 
 ## Implemented boundary
 
-- Product Core schema v11 owns Person-scoped Sources, medications,
+- Product Core schema v12 on the SANO-A1 branch owns Person-scoped Sources, medications,
   recorded conditions, labs, procedures, recommendations, follow-ups, Visits,
   Visit Questions, Visit Briefs, document extractions, genetics datasets,
   findings, grants, research sessions, export, backup, and recovery. v10 rows
@@ -41,6 +61,9 @@ ecosystem evidence pending.
 - D1 PDF/TXT document ingest is implemented and published on public `main`:
   immutable Source bytes, bounded embedded-text extraction, page/span
   provenance, document grants, review lifecycle, export v6, and recovery.
+  SANO-A1 adds a consumer archive sidecar for editable title/date metadata and
+  original view/download while preserving immutable bytes and the D1 review
+  boundary.
 - D2.1 automatic source-grounded medication/condition/lab extraction = DONE /
   published. D2.2 procedures, recommendations, and follow-up extraction =
   DONE / published. D2 Document Intelligence = DONE / published. Supported
@@ -430,7 +453,9 @@ bounded embedded-text extraction, and keeps review human-controlled for
 medication, condition, and lab records. OCR and automated clinical/model
 extraction remain out of scope. Family Access v1/v2 remain frozen; v3 adds
 explicit document scopes. Portable export v4 includes authorized document
-payloads and immutable extraction metadata.
+payloads and immutable extraction metadata. The local SANO-A1 archive extends
+this boundary with sidecar title/date metadata and original PDF/TXT viewing;
+uploads remain source-only and do not start D2 or provider work.
 
 ## P3 Genetics Research Studio (implemented and published on public `main`)
 

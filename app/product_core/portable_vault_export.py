@@ -406,6 +406,11 @@ def _source_dto(source: Source) -> dict[str, object]:
         "media_type": source.media_type,
         "original_filename": original_filename,
         "document_kind": source.document_kind,
+        "document_title": source.document_title,
+        "document_date": (
+            None if source.document_date is None else source.document_date.isoformat()
+        ),
+        "document_date_source": source.document_date_source,
         "created_at": isoformat_utc(source.created_at),
     }
 

@@ -148,9 +148,8 @@
     return { personId: state.person?.person_id || "", generation: state.loadVersion, signal: state.controller?.signal };
   }
   function documentCandidateAllowed(type = byId("document-candidate-type")?.value) {
-    // D2 automatic extraction is the normal document workflow. Keep the
-    // legacy manual-candidate endpoint for compatibility, but do not expose
-    // its span/category form in the Documents surface.
+    // The archive upload is source-only. Keep the legacy manual-candidate
+    // endpoint for compatibility, but do not expose it in the archive.
     return false;
   }
   async function sha256Hex(value) {
@@ -186,43 +185,6 @@
     byId("document-candidate-form").hidden = !span || !documentCandidateAllowed();
   }
 
-  // One exhaustive document fact-run presentation map, shared by the
-  // Documents rows and the Overview attention rows. Recovery actions exist
-  // only where the service actually supports re-execution.
-  const DOCUMENT_RUN_PRESENTATION = {
-    prepared: { labelKey: "workspace.analysis_prepared", tone: "info", action: "continue" },
-    consent_required: { labelKey: "workspace.analysis_consent_required", tone: "warning", action: "continue" },
-    consented: { labelKey: "workspace.analysis_consented", tone: "info", action: "continue" },
-    executing: { labelKey: "workspace.analysis_in_progress", tone: "info", action: "wait" },
-    partial: { labelKey: "workspace.ai_partial", tone: "warning", action: "review" },
-    // Runtime evidence: consent(approve) is a no-op unless the run is
-    // consent_required, so a failed external run cannot be re-executed.
-    failed: { labelKey: "workspace.analysis_failed", tone: "danger", action: "none" },
-    declined: { labelKey: "workspace.analysis_declined", tone: "", action: "none" },
-    unavailable: { labelKey: "workspace.ai_unavailable", tone: "warning", action: "none" },
-  };
-  const DOCUMENT_RUN_HELP = { wait: "workspace.analysis_wait_help", none: "workspace.analysis_source_only_help" };
-  const DOCUMENT_ATTENTION_STATES = ["not_analyzed", "prepared", "consent_required", "consented", "partial", "failed", "unavailable"];
-
-  function documentRunStatus(run) {
-    return run?.status || "not_analyzed";
-  }
-  function documentRunPresentation(run) {
-    const runStatus = documentRunStatus(run);
-    const newCandidates = Number.isInteger(run?.new_candidates) ? run.new_candidates : 0;
-    if (runStatus === "not_analyzed") return { labelKey: "workspace.ai_not_analyzed", tone: "", action: "analyze", helpKey: "" };
-    if (runStatus === "completed") {
-      return newCandidates > 0
-        ? { labelKey: "workspace.analysis_ready_for_review", tone: "success", action: "review", helpKey: "workspace.analysis_review_help" }
-        : { labelKey: "workspace.analysis_complete", tone: "success", action: "open", helpKey: "" };
-    }
-    const known = DOCUMENT_RUN_PRESENTATION[runStatus];
-    if (!known) return { labelKey: "workspace.ai_not_analyzed", tone: "", action: "none", helpKey: "workspace.analysis_source_only_help" };
-    if (runStatus === "partial") {
-      return { ...known, action: newCandidates > 0 ? "review" : "open", helpKey: newCandidates > 0 ? "workspace.analysis_review_help" : "" };
-    }
-    return { ...known, helpKey: DOCUMENT_RUN_HELP[known.action] || "" };
-  }
   function openDocument(doc, trigger) {
     state.selectedDocument = doc;
     state.selectedPage = null;
@@ -230,25 +192,7 @@
     renderDocumentViewer();
     void loadDocumentPage(doc, 1, trigger);
   }
-  function documentRunActions(doc, presentation) {
-    const actions = [];
-    const canWrite = Boolean(state.capabilities.document_write && state.capabilities.source_write);
-    if (["analyze", "continue"].includes(presentation.action)) {
-      if (!canWrite) return actions;
-      const labelKey = presentation.action === "analyze" ? "workspace.analyze_document" : "workspace.continue_analysis";
-      const button = makeButton(t(labelKey), "primary");
-      button.addEventListener("click", () => { void analyzeDocumentFromCard(doc, button); });
-      actions.push(button);
-    } else if (presentation.action === "review") {
-      actions.push(makeLink("#review", t("workspace.section_review")));
-    } else if (presentation.action === "open") {
-      const button = makeButton(t("workspace.open_document"), "secondary");
-      button.addEventListener("click", () => { openDocument(doc, button); });
-      actions.push(button);
-    }
-    return actions;
-  }
-  function documentProvenance(doc, presentation) {
+  function documentProvenance(doc) {
     const details = document.createElement("details");
     details.className = "ui-disclosure workspace-provenance";
     details.append(make("summary", t("workspace.source_provenance", "Source & provenance")));
@@ -260,48 +204,20 @@
       make("p", `${t("workspace.registered", "Registered")}: ${doc.created_at}`, "workspace-meta"),
       make("p", `${t("workspace.text_extraction", "Text extraction")}: ${doc.extraction.extraction_id} · ${doc.extraction.extractor_version} · ${doc.extraction.status}`, "workspace-technical"),
     );
-    const run = doc.fact_extraction;
-    if (run) {
-      details.append(make("p", `${t("workspace.review_state", "Review state")}: ${t(presentation.labelKey)}`, "workspace-meta"));
-      const technical = [];
-      if (run.provider_id) technical.push(`${t("workspace.document_provider", "Provider")}: ${run.provider_id}`);
-      if (run.model_id) technical.push(`${t("workspace.document_model", "Model")}: ${run.model_id}`);
-      if (run.contract_version) technical.push(`${t("workspace.analysis_contract", "Contract")}: ${run.contract_version}`);
-      if (run.reason_code) technical.push(`${t("workspace.analysis_reason", "Reason code")}: ${run.reason_code}`);
-      if (technical.length) details.append(make("p", technical.join(" · "), "workspace-technical"));
-    }
     return details;
   }
   function documentRow(doc) {
-    const run = doc.fact_extraction, presentation = documentRunPresentation(run);
     const { row, main } = rowShell("");
-    main.append(make("h4", doc.original_filename || t("workspace.page_text", "Untitled document"), "ui-row__title"));
+    main.append(make("h4", doc.title || doc.original_filename || t("workspace.page_text", "Untitled document"), "ui-row__title"));
     const statusLine = make("p", "", "ui-row__status");
-    statusLine.append(makeStatusBadge(t(presentation.labelKey), presentation.tone));
-    statusLine.append(makeStatusBadge(`${t("workspace.text_extraction", "Text extraction")}: ${t("workspace.text_ready", "Text ready")}`));
     statusLine.append(make("span", doc.document_kind === "pdf" ? "PDF" : t("workspace.text", "Text"), "ui-row__meta"));
     statusLine.append(make("span", `${t("workspace.page", "Page")}: ${doc.extraction.page_count}`, "ui-row__meta"));
+    statusLine.append(make("span", `${t("workspace.document_date", "Document date")}: ${doc.document_date || t("workspace.date_unknown", "Unknown")}`, "ui-row__meta"));
     statusLine.append(make("span", `${t("workspace.registered", "Registered")}: ${doc.created_at}`, "ui-row__meta"));
     main.append(statusLine);
-    if (presentation.helpKey) main.append(make("p", t(presentation.helpKey), "ui-row__detail"));
-    if (run) {
-      const counters = [
-        Number.isInteger(run.valid_facts) ? `${t("workspace.valid", "Valid")}: ${run.valid_facts}` : "",
-        Number.isInteger(run.invalid_facts) ? `${t("workspace.invalid", "Invalid")}: ${run.invalid_facts}` : "",
-        Number.isInteger(run.new_candidates) ? `${t("workspace.new", "New")}: ${run.new_candidates}` : "",
-        Number.isInteger(run.reused_candidates) ? `${t("workspace.reused", "Reused")}: ${run.reused_candidates}` : "",
-      ].filter(Boolean);
-      if (counters.length) main.append(make("p", counters.join(" · "), "ui-row__detail"));
-    }
-    const staleRun = run?.contract_version === "opencare-document-facts/1" && (run.status === "completed" || run.status === "partial");
-    if (staleRun) main.append(make("p", t("workspace.previous_version_notice", "Analyzed with previous extraction version"), "ui-row__meta"));
-    main.append(documentProvenance(doc, presentation));
-    const actions = documentRunActions(doc, presentation);
-    if (staleRun && state.capabilities.document_write && state.capabilities.source_write) {
-      const more = makeButton(t("workspace.analyze_more_categories", "Analyze additional categories"), "secondary");
-      more.addEventListener("click", () => { void analyzeDocumentFromCard(doc, more); });
-      actions.unshift(more);
-    }
+    main.append(documentProvenance(doc));
+    const actions = [makeButton(t("workspace.open_document", "Open document"), "primary")];
+    actions[0].addEventListener("click", () => { openDocument(doc, actions[0]); });
     if (actions.length) { const group = make("div", "", "ui-row__actions"); group.append(...actions); row.append(group); }
     return row;
   }
@@ -316,24 +232,7 @@
     if (!state.capabilities.document_read) { state.documents = []; return []; }
     const response = await request(`/people/${encodeURIComponent(personIdContext)}/documents`, {}, documentContext());
     if (response.documents.some((doc) => doc.person_id !== personIdContext)) return [];
-    return Promise.all(response.documents.map(async (doc) => { try { doc.fact_extraction = await request(`/people/${encodeURIComponent(personIdContext)}/documents/${encodeURIComponent(doc.source_id)}/fact-extraction`, {}, documentContext()); } catch (_) { doc.fact_extraction = { status: "not_analyzed" }; } return doc; }));
-  }
-  function documentDisclosureMessage(prepared) {
-    const disclosure = prepared?.preview || prepared || {};
-    const categories = Array.isArray(disclosure.enabled_categories)
-      ? disclosure.enabled_categories.map((category) => factLabel(category)).join(", ")
-      : "";
-    return [
-      t("workspace.document_external_disclosure", "Analyze this document with the external provider?"),
-      `${t("workspace.document_filename", "Filename")}: ${disclosure.safe_filename || disclosure.filename || t("workspace.document", "Document")}`,
-      `${t("workspace.document_provider", "Provider")}: ${disclosure.provider_id || t("workspace.value_configured", "Configured")}`,
-      `${t("workspace.document_model", "Model")}: ${disclosure.model_id || t("workspace.value_configured", "Configured")}`,
-      `${t("workspace.document_external", "External provider")}: ${disclosure.external === true ? t("workspace.value_yes", "Yes") : t("workspace.value_no", "No")}`,
-      `${t("workspace.document_pages", "Pages")}: ${Number.isInteger(disclosure.page_count) ? disclosure.page_count : t("workspace.value_none", "None")}`,
-      `${t("workspace.document_characters", "Characters")}: ${Number.isInteger(disclosure.character_count) ? disclosure.character_count : t("workspace.value_none", "None")}`,
-      `${t("workspace.document_categories", "Enabled categories")}: ${categories || t("workspace.value_none", "None")}`,
-      `${t("workspace.document_retention", "Retention")}: ${disclosure.retention === "request_only" ? t("workspace.retention_request_only", "Request only") : t("workspace.retention_provider_policy", "Provider policy")}`,
-    ].join("\n");
+    return response.documents;
   }
   async function uploadDocument(event) {
     event.preventDefault();
@@ -345,30 +244,8 @@
       const body = await file.arrayBuffer();
       const filename = OpenCareWorkspaceState.sanitizeDocumentFilename(file.name);
       const uploaded = await personRequest(`/people/${encodeURIComponent(state.person.person_id)}/documents`, { method: "POST", body, headers: { "Content-Type": file.type === "application/pdf" ? "application/pdf" : "text/plain", "X-OpenCare-Filename": filename } });
-      const analyzed = await analyzeDocument(uploaded.document.source_id);
-      if (!analyzed) { event.target.reset(); await loadWorkspace(); status(t("workspace.document_analysis_declined", "Document stored; analysis was declined."), "success"); return; }
       event.target.reset(); await loadWorkspace(); status(t("workspace.document_uploaded", "Document uploaded."), "success");
     } catch (error) { if (error.name !== "AbortError") status(error.message, "error"); } finally { setButtonBusy(submit, false); }
-  }
-  async function analyzeDocumentFromCard(doc, button) {
-    if (!state.person || !state.capabilities.document_write || !state.capabilities.source_write) return;
-    setButtonBusy(button, true);
-    try {
-      const analyzed = await analyzeDocument(doc.source_id);
-      await loadWorkspace();
-      if (!analyzed) status(t("workspace.document_analysis_declined", "Document stored; analysis was declined."), "success");
-    } catch (error) { if (error.name !== "AbortError") status(error.message, "error"); setButtonBusy(button, false); }
-  }
-  async function analyzeDocument(sourceId) {
-    const base = `/people/${encodeURIComponent(state.person.person_id)}/documents/${encodeURIComponent(sourceId)}/fact-extractions`;
-    const prepared = await personRequest(`${base}/prepare`, { method: "POST", body: "{}" });
-    if (prepared.status === "consent_required") {
-      const approved = window.confirm(documentDisclosureMessage(prepared));
-      await personRequest(`${base}/${encodeURIComponent(prepared.run_id)}/consent`, { method: "POST", body: JSON.stringify({ decision: approved ? "approve" : "decline" }) });
-      if (!approved) return false;
-    }
-    if (!["unavailable", "declined"].includes(prepared.status)) await personRequest(`${base}/${encodeURIComponent(prepared.run_id)}/execute`, { method: "POST", body: "{}" });
-    return true;
   }
   async function submitDocumentCandidate(event) {
     event.preventDefault();
@@ -444,7 +321,8 @@
 
   function enableWorkspace(enabled) {
     byId("workspace-content").hidden = !enabled;
-    byId("section-navigation").hidden = !enabled;
+    byId("section-navigation").hidden = true;
+    byId("health-section-control").hidden = !enabled;
     byId("workspace-content").setAttribute("aria-disabled", String(!enabled));
     byId("workspace-content").setAttribute("aria-busy", "false");
     byId("workspace-content").querySelectorAll("input, textarea, select, button").forEach((item) => { item.disabled = !enabled; });
@@ -957,7 +835,21 @@
     const chatNavigation = byId("chat-navigation"); if (chatNavigation) chatNavigation.hidden = !state.capabilities.chat_use;
     byId("timeline").hidden = !state.capabilities.timeline_read; byId("visits-brief").hidden = !state.capabilities.visit_read; byId("persisted-visit-brief").hidden = !(state.capabilities.visit_read && state.capabilities.brief_read); byId("export").hidden = !state.capabilities.vault_export; byId("edit-profile").hidden = !state.capabilities.person_update;
     renderVisitPlanning(); renderPersistedBrief();
+    applyHealthSection();
   }
+
+  function applyHealthSection() {
+    const sections = ["records", "overview", "review", "timeline", "visits-brief", "export"];
+    const requested = document.body.dataset.healthSection || "records";
+    const selected = sections.includes(requested) ? requested : "records";
+    sections.concat("documents").forEach((id) => {
+      byId(id)?.classList.toggle("sano-health-inactive", id !== selected);
+    });
+    byId("health-section-selector").value = selected;
+  }
+
+  document.addEventListener("sano-health-navigation", applyHealthSection);
+  applyHealthSection();
 
   function renderOverview() {
     const attentionList = byId("overview-attention-list"), counts = byId("overview-counts"), latest = byId("overview-latest"), empty = byId("overview-empty"), actionLinks = byId("overview-action-links"), activity = byId("overview-activity-list");
@@ -966,7 +858,6 @@
     const readableTypes = FACT_ORDER.filter((type) => state.capabilities[`${type}_read`]);
     const records = [...state.medications, ...state.conditions, ...state.labs, ...state.procedures, ...state.recommendations, ...state.followUps].filter((item) => item.is_active);
     const pending = visibleCandidates().filter((item) => item.status === "pending").length;
-    const canAddDocuments = Boolean(state.capabilities.document_write && state.capabilities.source_write);
 
     // Attention first: only states the API actually reports, with the
     // recovery action the service actually supports.
@@ -978,22 +869,8 @@
       attentionList.append(row);
     };
     if (pending) attentionRow(t("workspace.metric_pending"), `${pending} ${t("workspace.pending_count", "waiting for review")}`, "#review", t("workspace.section_review"));
-    state.documents.forEach((doc) => {
-      const run = doc.fact_extraction, runStatus = documentRunStatus(run);
-      if (!DOCUMENT_ATTENTION_STATES.includes(runStatus)) return;
-      if (runStatus === "not_analyzed" && !canAddDocuments) return;
-      const presentation = documentRunPresentation(run);
-      const { row, main } = rowShell("");
-      main.append(make("h4", doc.original_filename || t("workspace.page_text", "Untitled document"), "ui-row__title"));
-      const statusLine = make("p", "", "ui-row__status");
-      statusLine.append(makeStatusBadge(t(presentation.labelKey), presentation.tone));
-      main.append(statusLine);
-      if (presentation.helpKey) main.append(make("p", t(presentation.helpKey), "ui-row__detail"));
-      row.append(main);
-      const actions = documentRunActions(doc, presentation);
-      if (actions.length) { const group = make("div", "", "ui-row__actions"); group.append(...actions); row.append(group); }
-      attentionList.append(row);
-    });
+    // Document archive entries are opened from the Documents section. Upload
+    // never prepares a fact extraction run or contacts a provider.
     if (!attentionList.childElementCount) attentionRow(t("workspace.attention_clear"), "", "", "");
 
     const summaryRow = (label, value, href) => {

@@ -40,7 +40,7 @@ opencare-trust = "app.agent_trust.cli:main"
 include = ["app*", "evals*"]
 
 [tool.setuptools.package-data]
-app = ["static/*.css", "static/*.js", "templates/*.html", "assets/**/*"]
+app = ["static/*.css", "static/*.js", "static/**/*", "templates/*.html", "assets/**/*"]
 
 [tool.ruff]
 line-length = 100

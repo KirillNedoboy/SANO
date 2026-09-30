@@ -599,6 +599,9 @@ class DocumentResponse(APIModel):
     size_bytes: int
     original_filename: str | None
     document_kind: Literal["pdf", "text"]
+    title: str
+    document_date: date | None
+    document_date_source: Literal["extracted", "user", "unknown"]
     created_at: datetime
     extraction: DocumentExtractionResponse
 
@@ -610,6 +613,18 @@ class DocumentRegistrationResponse(APIModel):
 
 class DocumentListResponse(APIModel):
     documents: list[DocumentResponse]
+
+
+class DocumentMetadataUpdateRequest(APIModel):
+    title: str | None = Field(default=None, max_length=200)
+    document_date: date | None = None
+
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        return _validate_display_name(value)
 
 
 class DocumentPageResponse(APIModel):

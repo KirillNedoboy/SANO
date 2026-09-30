@@ -1,0 +1,714 @@
+/* SANO public landing. Scope every rule to keep the authenticated product shell unchanged. */
+body.sano-site {
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  background: var(--sano-canvas);
+  color: var(--sano-ink);
+  font: 1rem/1.55 var(--sano-font);
+  text-rendering: optimizeLegibility;
+}
+
+.sano-site *,
+.sano-site *::before,
+.sano-site *::after {
+  box-sizing: border-box;
+}
+
+.sano-site a {
+  color: inherit;
+  text-underline-offset: .18em;
+}
+
+.sano-site img {
+  max-width: 100%;
+  display: block;
+}
+
+.sano-site h1,
+.sano-site h2,
+.sano-site h3,
+.sano-site p,
+.sano-site figure,
+.sano-site ul,
+.sano-site ol {
+  margin-block-start: 0;
+}
+
+.sano-site h1,
+.sano-site h2,
+.sano-site h3 {
+  color: var(--sano-ink);
+  text-wrap: balance;
+}
+
+.sano-site p {
+  max-width: 65ch;
+  text-wrap: pretty;
+}
+
+.sano-site :where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid var(--sano-focus);
+  outline-offset: 3px;
+}
+
+.sano-container {
+  width: min(100% - 2rem, 78rem);
+  margin-inline: auto;
+}
+
+.sano-site :where(#why, #how, #privacy) {
+  scroll-margin-top: 6rem;
+}
+
+.sano-skip-link {
+  position: fixed;
+  z-index: 10;
+  top: .75rem;
+  left: .75rem;
+  padding: .65rem .85rem;
+  border-radius: var(--sano-radius-small);
+  background: var(--sano-accent-hover);
+  color: #fff;
+  font-weight: 750;
+  text-decoration: none;
+  transform: translateY(-180%);
+}
+
+.sano-skip-link:focus {
+  transform: translateY(0);
+}
+
+.sano-header {
+  position: sticky;
+  z-index: 5;
+  top: 0;
+  border-bottom: 1px solid var(--sano-line);
+  background: rgb(245 248 244 / 94%);
+}
+
+.sano-header__inner {
+  min-height: 5.25rem;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.sano-wordmark {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  text-decoration: none;
+}
+
+.sano-wordmark img {
+  width: 9.25rem;
+  height: auto;
+}
+
+.sano-nav,
+.sano-header__actions,
+.sano-footer nav {
+  display: flex;
+  align-items: center;
+}
+
+.sano-nav {
+  justify-content: center;
+  gap: clamp(1rem, 3vw, 2.4rem);
+  color: var(--sano-ink-soft);
+  font-size: .9rem;
+  font-weight: 650;
+}
+
+.sano-nav a,
+.sano-text-link,
+.sano-footer nav a {
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.sano-nav a:hover,
+.sano-text-link:hover,
+.sano-footer nav a:hover {
+  color: var(--sano-accent-hover);
+}
+
+.sano-header__actions {
+  justify-content: flex-end;
+  gap: .8rem;
+  white-space: nowrap;
+}
+
+.sano-locale {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  color: var(--sano-ink-soft);
+  font-size: .8rem;
+  font-weight: 700;
+}
+
+.sano-locale select {
+  min-height: 2.75rem;
+  padding: .4rem 1.7rem .4rem .6rem;
+  border: 1px solid var(--sano-line);
+  border-radius: var(--sano-radius-small);
+  background: var(--sano-surface);
+  color: var(--sano-ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.sano-button {
+  min-height: 2.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: .68rem 1.15rem;
+  border: 1px solid var(--sano-accent);
+  border-radius: var(--sano-radius-small);
+  background: var(--sano-accent);
+  color: #fff !important;
+  font-weight: 750;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.sano-button:hover {
+  border-color: var(--sano-accent-hover);
+  background: var(--sano-accent-hover);
+}
+
+.sano-button:active {
+  transform: translateY(1px);
+}
+
+.sano-button--small {
+  min-height: 2.75rem;
+  padding-inline: .9rem;
+  font-size: .88rem;
+}
+
+.sano-button--quiet {
+  border-color: var(--sano-line);
+  background: transparent;
+  color: var(--sano-accent-hover) !important;
+}
+
+.sano-button--quiet:hover {
+  border-color: var(--sano-accent);
+  background: var(--sano-accent-soft);
+}
+
+.sano-hero {
+  padding: clamp(1.5rem, 3vw, 2.75rem) 0 clamp(3.5rem, 6vw, 5.6rem);
+  overflow: hidden;
+}
+
+.sano-hero__stage {
+  position: relative;
+  display: grid;
+  min-height: clamp(30rem, 47vw, 42rem);
+  overflow: hidden;
+  border-radius: var(--sano-radius);
+  background: var(--sano-surface-soft);
+  box-shadow: 0 18px 54px rgb(23 49 43 / 12%);
+}
+
+.sano-hero__copy {
+  z-index: 1;
+  grid-area: 1 / 1;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: min(63%, 42rem);
+  max-width: 42rem;
+  padding: clamp(2rem, 5vw, 5.5rem);
+  background: linear-gradient(90deg, var(--sano-canvas) 0%, rgb(245 248 244 / 98%) 58%, rgb(245 248 244 / 72%) 78%, transparent 100%);
+}
+
+.sano-kicker {
+  margin-bottom: 1rem;
+  color: var(--sano-accent-hover);
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.sano-hero h1 {
+  max-width: 14ch;
+  margin-bottom: 1rem;
+  font-size: clamp(3rem, 5.1vw, 4.5rem);
+  letter-spacing: -.055em;
+  line-height: .98;
+}
+
+.sano-hero__body {
+  max-width: 31rem;
+  margin-bottom: 1.45rem;
+  color: var(--sano-ink-soft);
+  font-size: clamp(1rem, 1.6vw, 1.18rem);
+  line-height: 1.65;
+}
+
+.sano-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .7rem;
+}
+
+.sano-hero__figure,
+.sano-privacy__figure {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: var(--sano-radius);
+  background: var(--sano-surface-soft);
+}
+
+.sano-hero__figure {
+  grid-area: 1 / 1;
+  min-height: 100%;
+}
+
+.sano-hero__figure img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sano-section {
+  padding: clamp(3.75rem, 6.5vw, 6rem) 0;
+}
+
+.sano-section--capabilities {
+  border-top: 1px solid var(--sano-line);
+  background: var(--sano-surface);
+}
+
+.sano-section__intro {
+  max-width: 40rem;
+}
+
+.sano-section__intro h2,
+.sano-privacy__copy h2 {
+  margin-bottom: .9rem;
+  font-size: clamp(2.15rem, 4vw, 3.6rem);
+  letter-spacing: -.045em;
+  line-height: 1.02;
+}
+
+.sano-section__intro > p:last-child,
+.sano-privacy__copy > p {
+  color: var(--sano-ink-soft);
+  font-size: 1.08rem;
+}
+
+.sano-scenarios {
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(0, .91fr) minmax(0, .91fr);
+  margin-top: clamp(2.25rem, 4vw, 3.75rem);
+  border-top: 1px solid var(--sano-line);
+  border-bottom: 1px solid var(--sano-line);
+}
+
+.sano-scenario {
+  min-height: 14rem;
+  padding: 1.85rem clamp(1.25rem, 3.5vw, 3.25rem) 2rem;
+  border-right: 1px solid var(--sano-line);
+}
+
+.sano-scenario--lead {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2rem;
+  padding-left: 0;
+  background: var(--sano-surface-soft);
+}
+
+.sano-scenario__meta {
+  margin-bottom: 0;
+  color: var(--sano-accent-hover);
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  line-height: 1.2;
+}
+
+.sano-scenario--lead h3 {
+  font-size: clamp(1.45rem, 2.4vw, 2rem);
+}
+
+.sano-scenario:last-child {
+  border-right: 0;
+}
+
+.sano-scenario h3,
+.sano-record-path h3,
+.sano-privacy-points h3 {
+  margin-bottom: .55rem;
+  font-size: 1.25rem;
+  letter-spacing: -.02em;
+}
+
+.sano-scenario p,
+.sano-record-path p,
+.sano-privacy-points p {
+  margin-bottom: 0;
+  color: var(--sano-ink-soft);
+}
+
+.sano-section--how {
+  background: var(--sano-surface-soft);
+}
+
+.sano-how__grid,
+.sano-privacy__grid {
+  display: grid;
+  grid-template-columns: minmax(0, .78fr) minmax(0, 1.22fr);
+  align-items: start;
+  gap: clamp(2.5rem, 8vw, 8rem);
+}
+
+.sano-record-path {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+
+.sano-record-path li {
+  display: grid;
+  grid-template-columns: 3.4rem minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1.35rem 0 1.6rem;
+  border-top: 1px solid rgb(23 49 43 / 22%);
+}
+
+.sano-record-path li:last-child {
+  border-bottom: 1px solid rgb(23 49 43 / 22%);
+}
+
+.sano-step__number {
+  color: var(--sano-saffron);
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.sano-section--boundaries {
+  background: var(--sano-canvas);
+}
+
+.sano-boundaries-story {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
+  gap: 1px;
+  margin-top: clamp(2.5rem, 5vw, 4.5rem);
+  overflow: hidden;
+  border-radius: var(--sano-radius);
+  background: var(--sano-line);
+}
+
+.sano-boundary {
+  min-height: 18rem;
+  padding: clamp(1.75rem, 4vw, 3.5rem);
+}
+
+.sano-boundary h3 {
+  max-width: 15ch;
+  margin-bottom: 1rem;
+  font-size: clamp(1.45rem, 2.7vw, 2.2rem);
+  letter-spacing: -.035em;
+  line-height: 1.05;
+}
+
+.sano-boundary p {
+  max-width: 34rem;
+  margin-bottom: 0;
+}
+
+.sano-boundary--ai {
+  background: var(--sano-accent-hover);
+  color: #fff;
+}
+
+.sano-boundary--ai h3 {
+  color: #fff;
+}
+
+.sano-boundary--ai p {
+  color: rgb(255 255 255 / 88%);
+}
+
+.sano-boundary--genetics {
+  background: var(--sano-surface-soft);
+}
+
+.sano-boundary__note {
+  margin-top: 2.4rem;
+  padding-top: 1rem;
+  border-top: 1px solid currentColor;
+  font-weight: 750;
+}
+
+.sano-section--privacy {
+  background: var(--sano-surface);
+}
+
+.sano-privacy__figure {
+  max-width: 29rem;
+  aspect-ratio: 4 / 5;
+}
+
+.sano-privacy__figure img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sano-privacy__copy {
+  padding-top: clamp(0rem, 3vw, 2.5rem);
+}
+
+.sano-privacy-points {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.4rem 2rem;
+  margin: 2.3rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sano-privacy-points li {
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--sano-line);
+}
+
+.sano-privacy-points h3 {
+  font-size: 1.05rem;
+}
+
+.sano-privacy-points p {
+  font-size: .92rem;
+}
+
+.sano-closing {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 2rem;
+  margin-top: clamp(4rem, 8vw, 7rem);
+  padding-top: clamp(2rem, 4vw, 3.5rem);
+  border-top: 1px solid var(--sano-line);
+}
+
+.sano-closing h2 {
+  max-width: 15ch;
+  margin-bottom: .75rem;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  letter-spacing: -.045em;
+  line-height: 1.02;
+}
+
+.sano-closing p {
+  margin-bottom: 0;
+  color: var(--sano-ink-soft);
+}
+
+.sano-footer {
+  border-top: 1px solid var(--sano-line);
+  background: var(--sano-canvas);
+}
+
+.sano-footer__inner {
+  min-height: 8rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 2rem;
+  padding: 2.2rem 0;
+}
+
+.sano-footer__inner > div img {
+  width: 7rem;
+  height: auto;
+}
+
+.sano-footer p {
+  margin: .55rem 0 0;
+  color: var(--sano-ink-soft);
+  font-size: .82rem;
+}
+
+.sano-footer__address {
+  color: var(--sano-ink) !important;
+  font-weight: 750;
+  letter-spacing: .04em;
+}
+
+.sano-footer nav {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .9rem 1.4rem;
+  color: var(--sano-ink-soft);
+  font-size: .86rem;
+  font-weight: 650;
+}
+
+@media (max-width: 62rem) {
+  .sano-site :where(#why, #how, #privacy) {
+    scroll-margin-top: 8.5rem;
+  }
+
+  .sano-header__inner {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "brand actions"
+      "nav nav";
+    gap: .55rem 1rem;
+    padding-block: .8rem;
+  }
+
+  .sano-wordmark { grid-area: brand; }
+  .sano-header__actions { grid-area: actions; }
+  .sano-nav {
+    grid-area: nav;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding: .35rem 0 .1rem;
+  }
+
+  .sano-footer__inner {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    align-items: start;
+  }
+
+  .sano-footer nav {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 48rem) {
+  .sano-container {
+    width: min(100% - 1.5rem, 40rem);
+  }
+
+  .sano-hero {
+    padding-top: 3.25rem;
+  }
+
+  .sano-hero__stage,
+  .sano-how__grid,
+  .sano-privacy__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sano-hero__stage {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: visible;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .sano-hero__copy {
+    width: auto;
+    max-width: 40rem;
+    padding: 0 0 2.25rem;
+    background: none;
+  }
+
+  .sano-hero h1 { max-width: 17ch; }
+  .sano-hero__figure {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    min-height: 0;
+    border-radius: var(--sano-radius);
+    order: 2;
+  }
+
+  .sano-scenarios,
+  .sano-boundaries-story {
+    grid-template-columns: 1fr;
+  }
+
+  .sano-scenario,
+  .sano-scenario--lead {
+    min-height: 0;
+    padding: 1.5rem 0;
+    border-right: 0;
+  }
+
+  .sano-scenario--lead { gap: 1.5rem; }
+  .sano-scenario--lead h3 { font-size: 1.45rem; }
+
+  .sano-boundary {
+    min-height: 0;
+  }
+
+  .sano-privacy__figure {
+    max-width: none;
+    width: min(100%, 31rem);
+  }
+}
+
+@media (max-width: 30rem) {
+  .sano-header__actions {
+    min-width: 0;
+    gap: .25rem;
+  }
+
+  .sano-locale > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .sano-locale select {
+    width: 3.5rem;
+    min-width: 3.5rem;
+    padding-inline: .3rem;
+    font-size: .82rem;
+  }
+
+  .sano-wordmark img { width: 7.5rem; }
+  .sano-text-link { padding-inline: .2rem; font-size: .85rem; }
+  .sano-button--small { padding-inline: .65rem; font-size: .82rem; }
+  .sano-actions > .sano-button { width: 100%; }
+  .sano-privacy-points { grid-template-columns: 1fr; }
+  .sano-closing {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+  .sano-closing .sano-actions > .sano-button { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sano-site *,
+  .sano-site *::before,
+  .sano-site *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

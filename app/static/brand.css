@@ -1,0 +1,40 @@
+/* SANO public brand foundation. Authenticated product surfaces keep their own tokens. */
+:root {
+  --sano-canvas: #f5f8f4;
+  --sano-surface: #ffffff;
+  --sano-surface-soft: #e9f1ec;
+  --sano-ink: #17312b;
+  --sano-ink-soft: #536b64;
+  --sano-line: #d3e0da;
+  --sano-accent: #13685f;
+  --sano-accent-hover: #0d514a;
+  --sano-accent-soft: #dcece5;
+  --sano-saffron: #c8913f;
+  --sano-focus: #0a5fc1;
+  --sano-radius: 14px;
+  --sano-radius-small: 9px;
+  --sano-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
+
+.public-auth-shell,
+.sano-site {
+  --ui-canvas: var(--sano-canvas);
+  --ui-surface: var(--sano-surface);
+  --ui-surface-raised: var(--sano-surface);
+  --ui-surface-muted: var(--sano-surface-soft);
+  --ui-text: var(--sano-ink);
+  --ui-text-secondary: var(--sano-ink-soft);
+  --ui-text-quiet: var(--sano-ink-soft);
+  --ui-divider: var(--sano-line);
+  --ui-divider-strong: #7f9a90;
+  --ui-accent: var(--sano-accent);
+  --ui-accent-hover: var(--sano-accent-hover);
+  --ui-accent-active: #093e38;
+  --ui-accent-soft: var(--sano-accent-soft);
+  --ui-focus: var(--sano-focus);
+  --ui-font-sans: var(--sano-font);
+  --ui-radius-control: var(--sano-radius-small);
+  --ui-radius-surface: var(--sano-radius);
+  --ui-radius-notice: var(--sano-radius-small);
+}

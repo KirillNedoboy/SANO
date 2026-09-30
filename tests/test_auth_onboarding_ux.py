@@ -81,7 +81,7 @@ def test_login_exposes_invitation_as_secondary_and_keeps_safe_next(
     assert 'id="bootstrap-link"' in login.text
 
     unsafe = product_core_client.get("/login?next=https%3A%2F%2Fevil.example%2Fsteal")
-    assert 'value="/workspace"' in unsafe.text
+    assert 'value="/documents"' in unsafe.text
 
 def test_registration_prebootstrap_state_is_unavailable_without_usable_form(
     uninitialized_client: TestClient,

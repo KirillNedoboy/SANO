@@ -45,7 +45,7 @@ def test_d2_migration_creates_durable_runs_items_and_fingerprint_registry(
             ).fetchall()
         }
 
-    assert versions == list(range(1, 12))
+    assert versions == list(range(1, 13))
     assert {
         "document_fact_extraction_runs",
         "document_fact_extraction_items",

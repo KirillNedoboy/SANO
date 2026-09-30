@@ -26,6 +26,7 @@ def test_workspace_uses_localized_shared_shell_in_english_and_russian(
     assert "Пользователь не выбран" in russian.text
     assert 'id="product-shell-person"' in russian.text
 
+
 def test_genetics_uses_application_shell_and_preserves_local_navigation(
     product_core_client: TestClient,
 ) -> None:
@@ -64,7 +65,7 @@ def test_shared_shell_person_slot_truthfully_represents_empty_and_selected_state
 def test_invalid_locale_cannot_change_auth_or_inject_markup(
     product_core_client: TestClient,
 ) -> None:
-    product_core_client.cookies.set("opencare_locale", "ru\"><script>alert(1)</script>", path="/")
+    product_core_client.cookies.set("opencare_locale", 'ru"><script>alert(1)</script>', path="/")
     rendered = product_core_client.get("/workspace")
     assert rendered.status_code == 200
     assert '<html lang="en">' in rendered.text
@@ -134,11 +135,9 @@ def test_public_auth_uses_canonical_ui_tokens_without_legacy_aliases() -> None:
 def test_primary_navigation_exposes_stable_keys_and_existing_destinations() -> None:
     shell = (Path("app") / "templates" / "product_shell.html").read_text(encoding="utf-8")
     expected = {
-        "overview": "/workspace#overview",
+        "documents": "/documents",
+        "assistant": "/chat",
         "health": "/workspace#records",
-        "documents": "/workspace#documents",
-        "activity": "/workspace#timeline",
-        "chat": "/chat",
         "genetics": "/genetics",
         "family": "/family-access",
         "settings": "/family-access#account-settings",
@@ -148,31 +147,29 @@ def test_primary_navigation_exposes_stable_keys_and_existing_destinations() -> N
         assert f'href="{href}"' in shell
 
 
-def test_genetics_belongs_to_workspace_group_while_chat_stays_in_tools() -> None:
+def test_primary_navigation_keeps_optional_sections_after_health() -> None:
     shell = (Path("app") / "templates" / "product_shell.html").read_text(encoding="utf-8")
-    workspace_group = shell[
-        shell.index('id="product-nav-group-workspace"')
-        : shell.index('id="product-nav-group-tools"')
-    ]
-    tools_group = shell[
-        shell.index('id="product-nav-group-tools"') : shell.index('id="product-nav-group-family"')
-    ]
+    import re
 
-    assert 'data-nav-key="genetics"' in workspace_group
-    assert 'href="/genetics"' in workspace_group
-    assert 'data-nav-key="genetics"' not in tools_group
-    assert 'data-nav-key="chat"' in tools_group
-    assert 'href="/chat"' in tools_group
+    assert re.findall(r'data-nav-key="([^"]+)"', shell) == [
+        "documents",
+        "assistant",
+        "health",
+        "genetics",
+        "family",
+        "settings",
+    ]
+    assert shell.index('data-nav-key="health"') < shell.index('role="separator"')
+    assert shell.index('role="separator"') < shell.index('data-nav-key="genetics"')
 
 
 def test_product_shell_hash_navigation_is_exclusive_and_non_persistent() -> None:
     script = (Path("app") / "static" / "product_shell.js").read_text(encoding="utf-8")
     for fragment in (
         '"/workspace"',
-        '"#overview"',
-        '"#records"',
-        '"#documents"',
-        '"#timeline"',
+        '"/documents"',
+        '"/chat"',
+        '"/genetics"',
         '"/family-access"',
         '"#account-settings"',
         '"hashchange"',
@@ -188,9 +185,7 @@ def test_account_password_form_has_hidden_username_autocomplete_field() -> None:
     template = (Path("app") / "templates" / "family_access_workspace.html").read_text(
         encoding="utf-8"
     )
-    styles = (Path("app") / "static" / "family_access_workspace.css").read_text(
-        encoding="utf-8"
-    )
+    styles = (Path("app") / "static" / "family_access_workspace.css").read_text(encoding="utf-8")
     form_start = template.index('<form id="change-password-form">')
     form_end = template.index("</form>", form_start)
     form = template[form_start:form_end]

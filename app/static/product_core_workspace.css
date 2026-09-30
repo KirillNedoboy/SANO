@@ -546,3 +546,8 @@
   [data-workspace-page="true"] .ui-row--interactive,
   [data-workspace-page="true"] .ui-row--interactive:hover { transition: none; }
 }
+/* Sano keeps one health view visible; legacy anchors remain link-compatible. */
+[data-workspace-page="true"] #section-navigation,
+[data-workspace-page="true"] .sano-health-inactive { display: none !important; }
+[data-workspace-page="true"] #health-section-control { max-width: 28rem; margin-bottom: 1.5rem; }
+[data-workspace-page="true"] #health-section-control[hidden] { display: none !important; }

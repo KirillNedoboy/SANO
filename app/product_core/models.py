@@ -7,6 +7,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 SourceType = Literal["manual_entry", "plain_text", "document", "genetics"]
+DocumentDateSource = Literal["extracted", "user", "unknown"]
 FactType = Literal["medication", "condition", "lab", "procedure", "recommendation", "follow_up"]
 CandidateStatus = Literal["pending", "confirmed", "corrected", "rejected", "unsupported"]
 DocumentFactRunStatus = Literal[
@@ -66,6 +67,12 @@ class Source(BaseModel):
     provenance: dict[str, str] = Field(default_factory=dict)
     original_filename: str | None = None
     document_kind: Literal["pdf", "text"] | None = None
+    # Document archive metadata is stored in a sidecar table. These optional
+    # fields are joined onto Source reads so existing source consumers keep
+    # their tuple/API contracts.
+    document_title: str | None = None
+    document_date: date | None = None
+    document_date_source: DocumentDateSource | None = None
 
     @field_validator("created_at")
     @classmethod

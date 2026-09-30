@@ -71,6 +71,11 @@ body.public-auth-shell {
   letter-spacing: -.025em;
   text-decoration: none;
 }
+.public-auth-shell__identity-wordmark {
+  display: block;
+  width: 8.5rem;
+  height: auto;
+}
 
 .public-auth-shell__identity-mark {
   width: 2rem;

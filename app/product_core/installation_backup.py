@@ -11,7 +11,7 @@ import tempfile
 from collections.abc import Callable
 from contextlib import suppress
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 from app.family_access.policy import valid_role_scopes
@@ -28,6 +28,9 @@ from app.product_core.persisted_visit_briefs import verify_persisted_visit_brief
 
 BACKUP_FORMAT_VERSION = 1
 PRODUCT_CORE_SCHEMA_VERSION = PRODUCT_MIGRATIONS[-1].version
+SUPPORTED_BACKUP_SCHEMA_VERSIONS = frozenset(
+    {PRODUCT_CORE_SCHEMA_VERSION - 1, PRODUCT_CORE_SCHEMA_VERSION}
+)
 SOURCE_ID_PATTERN = re.compile(r"[A-Za-z0-9_-]+")
 MANIFEST_SHA256_PATTERN = re.compile(rb"[0-9a-f]{64}\n")
 Clock = Callable[[], datetime]
@@ -157,6 +160,8 @@ def verify_installation_backup(
         snapshot = _read_snapshot(artifact / "database.sqlite3")
         try:
             schema_version = _validate_snapshot(snapshot.connection)
+            if manifest["product_core_schema_version"] != schema_version:
+                raise InstallationBackupError("unsupported_schema_version")
             sources = _snapshot_sources(snapshot.connection)
             _verify_source_inventory(manifest, sources)
         finally:
@@ -234,13 +239,15 @@ def _validate_snapshot(connection: sqlite3.Connection) -> int:
         for row in connection.execute("SELECT version FROM schema_migrations ORDER BY version ASC")
     ]
     expected_versions = [migration.version for migration in PRODUCT_MIGRATIONS]
-    if versions != expected_versions:
-        raise InstallationBackupError("unsupported_schema_version")
-    if versions[-1] != PRODUCT_CORE_SCHEMA_VERSION:
+    if (
+        not versions
+        or versions != expected_versions[: len(versions)]
+        or versions[-1] not in SUPPORTED_BACKUP_SCHEMA_VERSIONS
+    ):
         raise InstallationBackupError("unsupported_schema_version")
     _validate_lifecycle(connection)
     _validate_brief_revisions(connection)
-    _validate_documents(connection)
+    _validate_documents(connection, schema_version=versions[-1])
     _validate_document_fact_extractions(connection)
     _validate_family_access(connection)
     _validate_security_evidence(connection)
@@ -299,6 +306,11 @@ def _active_source_payload_path(source_dir: Path, source: Source) -> Path:
         raise InstallationBackupError("source_path_unsafe")
     path = source_dir.joinpath(relative)
     _reject_symlink_components(path)
+    # Recovery retains immutable Source paths but stores payloads in fixed ID directories.
+    # Only an absent original permits fallback; unsafe or corrupt originals fail closed.
+    if not _path_exists(path):
+        path = source_dir / source.id / "payload.bin"
+        _reject_symlink_components(path)
     if not path.is_file() or path.is_symlink():
         raise InstallationBackupError("source_not_regular_file")
     try:
@@ -360,7 +372,8 @@ def _parse_canonical_manifest(raw: bytes) -> dict[str, object]:
 def _validate_manifest_shape(manifest: dict[str, object]) -> None:
     if manifest.get("format_version") != BACKUP_FORMAT_VERSION:
         raise InstallationBackupError("backup_format_unsupported")
-    if manifest.get("product_core_schema_version") != PRODUCT_CORE_SCHEMA_VERSION:
+    schema_version = manifest.get("product_core_schema_version")
+    if type(schema_version) is not int or schema_version not in SUPPORTED_BACKUP_SCHEMA_VERSIONS:
         raise InstallationBackupError("unsupported_schema_version")
     if manifest.get("snapshot") != {"method": "sqlite3.Connection.backup"}:
         raise InstallationBackupError("snapshot_metadata_invalid")
@@ -590,7 +603,7 @@ def _validate_brief_revisions(connection: sqlite3.Connection) -> None:
             raise InstallationBackupError("visit_brief_integrity_failed") from exc
 
 
-def _validate_documents(connection: sqlite3.Connection) -> None:
+def _validate_documents(connection: sqlite3.Connection, *, schema_version: int) -> None:
     invalid_identity = connection.execute(
         """
         SELECT 1
@@ -617,6 +630,9 @@ def _validate_documents(connection: sqlite3.Connection) -> None:
     ).fetchone()
     if invalid_identity is not None or missing_extraction is not None:
         raise InstallationBackupError("document_extraction_consistency_failed")
+
+    if schema_version == PRODUCT_CORE_SCHEMA_VERSION:
+        _validate_document_metadata(connection)
 
     extractions = connection.execute(
         "SELECT * FROM document_extractions ORDER BY extraction_id"
@@ -703,6 +719,70 @@ def _validate_documents(connection: sqlite3.Connection) -> None:
             raise InstallationBackupError(
                 "document_provenance_integrity_failed"
             ) from exc
+
+
+def _validate_document_metadata(connection: sqlite3.Connection) -> None:
+    missing_metadata = connection.execute(
+        """
+        SELECT 1
+        FROM sources AS source
+        WHERE source.source_type = 'document'
+          AND NOT EXISTS (
+              SELECT 1 FROM document_metadata AS metadata
+              WHERE metadata.source_id = source.id
+                AND metadata.person_id = source.person_id
+          )
+        LIMIT 1
+        """
+    ).fetchone()
+    if missing_metadata is not None:
+        raise InstallationBackupError("document_metadata_consistency_failed")
+
+    rows = connection.execute(
+        """
+        SELECT metadata.source_id AS metadata_source_id,
+               metadata.person_id,
+               metadata.title,
+               metadata.document_date,
+               metadata.document_date_source,
+               source.id AS source_row_id,
+               source.person_id AS source_person_id,
+               source.source_type
+        FROM document_metadata AS metadata
+        LEFT JOIN sources AS source
+          ON source.id = metadata.source_id
+         AND source.person_id = metadata.person_id
+        ORDER BY metadata.source_id
+        """
+    ).fetchall()
+    for row in rows:
+        if (
+            row["source_row_id"] is None
+            or row["source_type"] != "document"
+            or row["source_person_id"] != row["person_id"]
+        ):
+            raise InstallationBackupError("document_metadata_consistency_failed")
+
+        title = row["title"]
+        if not isinstance(title, str) or not title.strip() or len(title) > 200:
+            raise InstallationBackupError("document_metadata_consistency_failed")
+
+        date_source = row["document_date_source"]
+        if date_source not in {"extracted", "user", "unknown"}:
+            raise InstallationBackupError("document_metadata_consistency_failed")
+        raw_date = row["document_date"]
+        if raw_date is None:
+            if date_source != "unknown":
+                raise InstallationBackupError("document_metadata_consistency_failed")
+            continue
+        if date_source == "unknown" or not isinstance(raw_date, str):
+            raise InstallationBackupError("document_metadata_consistency_failed")
+        try:
+            parsed_date = date.fromisoformat(raw_date)
+        except ValueError as exc:
+            raise InstallationBackupError("document_metadata_consistency_failed") from exc
+        if parsed_date.isoformat() != raw_date:
+            raise InstallationBackupError("document_metadata_consistency_failed")
 
 
 def _validate_document_fact_extractions(connection: sqlite3.Connection) -> None:

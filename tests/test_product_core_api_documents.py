@@ -50,12 +50,12 @@ def test_document_raw_upload_list_page_and_dedup(product_core_client: TestClient
     )
     assert wrong_person.status_code == 404
     assert page.json()["normalized_text"] == "Aspirin evidence"
-    assert (
-        product_core_client.get(
-            f"/api/product-core/v1/people/person-1/documents/{document['source_id']}/download"
-        ).status_code
-        == 404
+    downloaded = product_core_client.get(
+        f"/api/product-core/v1/people/person-1/documents/{document['source_id']}/download"
     )
+    assert downloaded.status_code == 200
+    assert downloaded.content == b"Aspirin evidence"
+    assert "attachment" in downloaded.headers["content-disposition"]
 
 
 def test_document_content_type_and_body_limits_are_narrow(product_core_client: TestClient) -> None:
