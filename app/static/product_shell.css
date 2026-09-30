@@ -1,87 +1,4 @@
-/* ============================================================
-   OpenCare authenticated app shell + shared UI foundation (UI-R1).
-
-   Direction: "Private Evidence Workspace" — calm, trustworthy,
-   document-aware, privacy-sensitive. Light theme only.
-
-   This file is the single canonical source of design tokens for
-   authenticated and public-auth surfaces. Consumers use the --ui-*
-   vocabulary.
-   ============================================================ */
-
-:root {
-  color-scheme: light;
-
-  /* ---- Color: surfaces ------------------------------------ */
-  --ui-canvas: #f3f6f4;
-  --ui-surface: #ffffff;
-  --ui-surface-raised: #ffffff;
-  --ui-surface-muted: #e9f0ed;
-
-  /* ---- Color: text (tinted deep green, never pure black) -- */
-  --ui-text: #18302b;            /* 14.0:1 on surface, 12.9:1 on canvas */
-  --ui-text-secondary: #556b66;  /* 5.7:1 on surface, 5.2:1 on canvas   */
-  --ui-text-quiet: #5f746e;      /* 5.0:1 on surface, 4.6:1 on canvas   */
-
-  /* ---- Color: boundaries ----------------------------------- */
-  --ui-divider: #d5e0dc;                    /* routine row/section separation */
-  --ui-divider-strong: #7e938c;             /* 3.3:1 surface / 3.0:1 canvas  */
-
-  /* ---- Color: action / selection (restrained petrol-green) -- */
-  --ui-accent: #14675c;           /* white on it: 6.7:1 */
-  --ui-accent-hover: #0f544a;
-  --ui-accent-active: #0b423a;
-  --ui-accent-soft: #dbeae5;      /* selected-state background; text on it: --ui-accent-hover */
-
-  /* ---- Color: focus ---------------------------------------- */
-  --ui-focus: #095fc1;            /* 6.5:1 on surface, 5.7:1 on canvas */
-
-  /* ---- Color: semantic state (always paired with text or icon) */
-  --ui-success: #1d6b4f;          /* 6.4:1 on surface  */
-  --ui-success-soft: #e2efe9;
-  --ui-warning: #76520f;          /* 7.0:1 on surface  */
-  --ui-warning-soft: #f8eeda;
-  --ui-danger: #8f3b33;           /* 7.4:1 on surface  */
-  --ui-danger-soft: #f7e8e5;
-  --ui-info: #245f7a;             /* 7.0:1 on surface  */
-  --ui-info-soft: #e2edf2;
-
-  /* ---- Typography (local/system only; EN + RU; no web fonts) */
-  --ui-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-    Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-  --ui-font-mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas,
-    "Liberation Mono", monospace;
-  --ui-text-xs: .75rem;
-  --ui-text-sm: .8125rem;
-  --ui-text-md: .9375rem;         /* shell body size */
-  --ui-text-lg: 1.125rem;
-  --ui-text-xl: 1.375rem;
-  --ui-text-2xl: 1.75rem;
-
-  /* ---- Spacing (one compact scale) -------------------------- */
-  --ui-space-1: .25rem;
-  --ui-space-2: .5rem;
-  --ui-space-3: .75rem;
-  --ui-space-4: 1rem;
-  --ui-space-5: 1.5rem;
-  --ui-space-6: 2rem;
-
-  /* ---- Shape ------------------------------------------------ */
-  --ui-radius-control: 8px;
-  --ui-radius-surface: 12px;
-  --ui-radius-notice: 10px;
-
-  /* ---- Depth (used only for overlays / genuine elevation) --- */
-  --ui-shadow-raised: 0 1px 2px rgb(21 51 43 / .05), 0 6px 18px rgb(21 51 43 / .08);
-  --ui-shadow-overlay: 0 16px 44px rgb(21 51 43 / .20);
-
-  /* ---- Motion (nav open/close, selection, state change only) */
-  --ui-motion-fast: 150ms;
-  --ui-motion-normal: 220ms;
-  --ui-ease-standard: cubic-bezier(.2, 0, 0, 1);
-
-}
-
+/* Tokens are supplied by the shared SANO brand.css loaded by each shell. */
 
 * { box-sizing: border-box; }
 html { background: var(--ui-canvas); }
@@ -217,11 +134,15 @@ body.product-shell {
 }
 .product-shell__nav-link::before {
   content: "";
-  width: .2rem;
-  align-self: stretch;
+  width: .4rem;
+  height: .4rem;
+  flex: 0 0 auto;
+  align-self: center;
   margin-right: .65rem;
-  border-radius: 999px;
+  border-radius: 50%;
   background: transparent;
+  transition: background-color var(--ui-motion-fast) var(--ui-ease-standard),
+    transform var(--ui-motion-fast) var(--ui-ease-standard);
 }
 .product-shell__nav-link:hover { background: var(--ui-surface-muted); color: var(--ui-text); }
 .product-shell__nav-link:active { background: var(--ui-accent-soft); color: var(--ui-accent-active); }
@@ -230,7 +151,7 @@ body.product-shell {
   color: var(--ui-accent-hover);
   font-weight: 700;
 }
-.product-shell__nav-link.is-active::before { background: var(--ui-accent); }
+.product-shell__nav-link.is-active::before { background: var(--ui-accent); transform: scale(1.2); }
 
 /* ============================ Header ========================== */
 
@@ -250,6 +171,7 @@ body.product-shell {
 }
 .product-shell__header-start { min-width: 0; display: flex; align-items: center; gap: var(--ui-space-3); }
 .product-shell__menu-button, .product-shell__mobile-identity { display: none; }
+.product-shell__mobile-identity img { display: block; width: 7.1rem; height: auto; }
 
 /* ---- Person context rail: "Who am I viewing?" -------------- */
 

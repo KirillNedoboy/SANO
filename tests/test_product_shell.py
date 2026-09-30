@@ -163,6 +163,53 @@ def test_primary_navigation_keeps_optional_sections_after_health() -> None:
     assert shell.index('role="separator"') < shell.index('data-nav-key="genetics"')
 
 
+def test_sano_brand_and_common_palette_cover_public_and_product_surfaces(
+    product_core_client: TestClient,
+) -> None:
+    from pathlib import Path
+
+    selected = product_core_client.put(
+        "/api/family-access/v1/active-person", json={"person_id": "person-1"}
+    )
+    assert selected.status_code == 204
+    for path in (
+        "/",
+        "/login",
+        "/register",
+        "/invite",
+        "/documents",
+        "/chat",
+        "/workspace",
+        "/genetics",
+        "/family-access",
+    ):
+        response = product_core_client.get(path)
+        assert response.status_code == 200, path
+        assert "OpenCare" not in response.text, path
+
+    shell = (Path("app") / "templates" / "product_shell.html").read_text(encoding="utf-8")
+    auth = (Path("app") / "templates" / "public_auth_shell.html").read_text(encoding="utf-8")
+    tokens = (Path("app") / "static" / "brand.css").read_text(encoding="utf-8")
+    assert "path='/brand.css'" in shell
+    assert "path='/brand.css'" in auth
+    for color in ("#EDF2ED", "#F8FAF7", "#15231E", "#176B59", "#C66B4F"):
+        assert color.lower() in tokens.lower()
+
+
+def test_public_landing_localizes_archive_first_message_and_generated_hero(
+    product_core_client: TestClient,
+) -> None:
+    product_core_client.cookies.clear()
+    english = product_core_client.get("/", follow_redirects=False)
+    assert english.status_code == 200
+    assert "Your health story. Finally in one place." in english.text
+    assert "/brand/sano-hero-x1.webp" in english.text
+
+    product_core_client.cookies.set("opencare_locale", "ru", path="/")
+    russian = product_core_client.get("/", follow_redirects=False)
+    assert "Ваша история здоровья. Наконец в одном месте." in russian.text
+
+
 def test_product_shell_hash_navigation_is_exclusive_and_non_persistent() -> None:
     script = (Path("app") / "static" / "product_shell.js").read_text(encoding="utf-8")
     for fragment in (

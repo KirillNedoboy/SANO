@@ -2425,6 +2425,210 @@ TRANSLATIONS["ru"].update(
 )
 
 
+# SANO-X1 public story: begin with documents; genetics and AI remain optional.
+TRANSLATIONS["en"].update(
+    {
+        "nav.family_access": "Family",
+        "landing.nav.why": "Your records",
+        "landing.nav.how": "How it works",
+        "landing.nav.privacy": "Privacy",
+        "landing.hero.eyebrow": "A calmer place for your health history",
+        "landing.hero.title": "Your health story. Finally in one place.",
+        "landing.hero.body": (
+            "Keep your health documents together, find them when you need them, and "
+            "decide what happens next. Start with the files you already have."
+        ),
+        "landing.hero.primary_cta": "Create your SANO space",
+        "landing.hero.secondary_cta": "See how it works",
+        "landing.hero.alt": "A person reviews health papers at home in daylight.",
+        "landing.why.title": "Start with your documents. No DNA test needed.",
+        "landing.why.intro": (
+            "SANO gives your health records a clear place to live. Genetics is an "
+            "optional deeper layer you can explore later."
+        ),
+        "landing.why.records_title": "Keep the original close",
+        "landing.why.records_formats": "PDF / TXT",
+        "landing.why.records_body": (
+            "Upload a PDF or text file, find it by year, open the original, and "
+            "update its title or date whenever you need."
+        ),
+        "landing.why.visit_title": "Feel ready for a visit",
+        "landing.why.visit_body": (
+            "Bring together questions and source-backed notes to review before you "
+            "talk with a clinician."
+        ),
+        "landing.why.family_title": "Make room for family",
+        "landing.why.family_body": (
+            "Share access with people you trust, one health profile at a time. "
+            "Genetics always has its own permission."
+        ),
+        "landing.why.ai_title": "Choose when AI helps",
+        "landing.why.ai_body": (
+            "Ask for help with selected information only when you approve the "
+            "request. AI cannot edit your health history."
+        ),
+        "landing.why.genetics_title": "Explore genetics when you are ready",
+        "landing.why.genetics_body": (
+            "Genetics is optional and permission is separate. Your raw genome is "
+            "never sent to an AI provider."
+        ),
+        "landing.how.title": "Your records stay connected to their source.",
+        "landing.how.intro": (
+            "Keep the original, review anything suggested, and choose what belongs "
+            "in your health history."
+        ),
+        "landing.how.step_one_title": "Save the document",
+        "landing.how.step_one_body": "Keep the original PDF or text file in your archive.",
+        "landing.how.step_two_title": "Find it again",
+        "landing.how.step_two_body": "Browse your documents by year or search their names.",
+        "landing.how.step_three_title": "Review before adding",
+        "landing.how.step_three_body": (
+            "Suggested facts stay separate until you choose to confirm them."
+        ),
+        "landing.how.step_four_title": "Prepare for a visit",
+        "landing.how.step_four_body": (
+            "Use the history you reviewed to prepare questions and notes."
+        ),
+        "landing.boundaries.title": "AI helps you explore. You stay in control.",
+        "landing.boundaries.intro": (
+            "SANO keeps the source visible and asks before selected information is "
+            "shared with an external service."
+        ),
+        "landing.boundaries.ai_title": "Evidence comes first",
+        "landing.boundaries.ai_body": (
+            "The assistant can explain selected, authorized information when you "
+            "choose to ask. External processing needs your consent."
+        ),
+        "landing.boundaries.ai_note": "SANO does not diagnose or prescribe treatment.",
+        "landing.boundaries.genetics_title": "Genetics is a choice",
+        "landing.boundaries.genetics_body": (
+            "Explore consumer-genetics evidence only when you choose. Its access "
+            "and research permissions are separate."
+        ),
+        "landing.boundaries.genetics_note": "Raw genome data never enters provider context.",
+        "landing.privacy.title": "Private by design, clear by default.",
+        "landing.privacy.intro": (
+            "SANO is open source and self-hostable. Your installation and explicit "
+            "access choices shape who can see each health profile."
+        ),
+        "landing.privacy.local_title": "Your own installation",
+        "landing.privacy.local_body": "Keep the workspace on infrastructure you control.",
+        "landing.privacy.person_title": "Clear access for each person",
+        "landing.privacy.person_body": "Sharing one profile does not share another.",
+        "landing.privacy.limits_title": "Honest limits",
+        "landing.privacy.limits_body": "SANO helps organize information; it is not a doctor.",
+        "landing.privacy.genetics_title": "Genetics stays separate",
+        "landing.privacy.genetics_body": "Genetics access requires its own permission.",
+        "landing.privacy.alt": "A quiet home table with personal papers in natural light.",
+        "landing.closing.title": "Your story, in a place you can return to.",
+        "landing.closing.body": "Start with the health documents you already have.",
+        "landing.footer.note": "A private health archive for you and the people you trust.",
+    }
+)
+
+TRANSLATIONS["ru"].update(
+    {
+        "nav.family_access": "Семья",
+        "landing.nav.why": "Ваши документы",
+        "landing.nav.how": "Как это работает",
+        "landing.nav.privacy": "Приватность",
+        "landing.hero.eyebrow": "Спокойное место для истории вашего здоровья",
+        "landing.hero.title": "Ваша история здоровья. Наконец в одном месте.",
+        "landing.hero.body": (
+            "Соберите медицинские документы, легко находите их, когда нужно, и "
+            "решайте, что делать дальше. Начните с файлов, которые уже есть."
+        ),
+        "landing.hero.primary_cta": "Создать пространство SANO",
+        "landing.hero.secondary_cta": "Как это работает",
+        "landing.hero.alt": "Человек рассматривает медицинские документы дома при дневном свете.",
+        "landing.why.title": "Начните с документов. Анализ ДНК не нужен.",
+        "landing.why.intro": (
+            "В SANO у документов о здоровье есть своё понятное место. Генетика — "
+            "необязательный дополнительный раздел, к которому можно вернуться позже."
+        ),
+        "landing.why.records_title": "Оригинал всегда рядом",
+        "landing.why.records_formats": "PDF / TXT",
+        "landing.why.records_body": (
+            "Загрузите PDF или текстовый файл, найдите его по году, откройте оригинал "
+            "и при необходимости измените название или дату."
+        ),
+        "landing.why.visit_title": "Подготовьтесь к визиту",
+        "landing.why.visit_body": (
+            "Соберите вопросы и записи с указанием источников, чтобы перечитать их "
+            "перед разговором с врачом."
+        ),
+        "landing.why.family_title": "Подключите близких",
+        "landing.why.family_body": (
+            "Делитесь доступом с теми, кому доверяете, отдельно для каждого профиля. "
+            "Для генетики требуется отдельное разрешение."
+        ),
+        "landing.why.ai_title": "Решайте, когда нужен ИИ",
+        "landing.why.ai_body": (
+            "Запрашивайте помощь только с выбранными данными и после вашего согласия. "
+            "ИИ не может менять историю здоровья."
+        ),
+        "landing.why.genetics_title": "К генетике можно вернуться позже",
+        "landing.why.genetics_body": (
+            "Генетика необязательна и требует отдельного разрешения. Сырые данные "
+            "генома никогда не передаются ИИ-провайдеру."
+        ),
+        "landing.how.title": "У каждого документа остаётся источник.",
+        "landing.how.intro": (
+            "Храните оригинал, проверяйте всё предложенное и сами выбирайте, что "
+            "добавить в историю здоровья."
+        ),
+        "landing.how.step_one_title": "Сохраните документ",
+        "landing.how.step_one_body": "Добавьте оригинал PDF или текстовый файл в архив.",
+        "landing.how.step_two_title": "Найдите его снова",
+        "landing.how.step_two_body": "Просматривайте документы по годам или ищите по названию.",
+        "landing.how.step_three_title": "Проверьте перед добавлением",
+        "landing.how.step_three_body": (
+            "Предложенные факты остаются отдельно, пока вы не решите их подтвердить."
+        ),
+        "landing.how.step_four_title": "Подготовьтесь к визиту",
+        "landing.how.step_four_body": "Подготовьте вопросы и заметки по проверенной истории.",
+        "landing.boundaries.title": "ИИ помогает разобраться. Решаете вы.",
+        "landing.boundaries.intro": (
+            "В SANO виден источник информации. Перед передачей выбранных данных "
+            "внешнему сервису потребуется ваше согласие."
+        ),
+        "landing.boundaries.ai_title": "Сначала источники",
+        "landing.boundaries.ai_body": (
+            "Помощник может объяснить выбранные разрешённые данные, если вы решите "
+            "обратиться к нему. Для внешней обработки нужно ваше согласие."
+        ),
+        "landing.boundaries.ai_note": "SANO не ставит диагнозы и не назначает лечение.",
+        "landing.boundaries.genetics_title": "Генетика — по вашему выбору",
+        "landing.boundaries.genetics_body": (
+            "Исследуйте данные генетического теста только если захотите. Доступ и "
+            "разрешения для исследований настраиваются отдельно."
+        ),
+        "landing.boundaries.genetics_note": (
+            "Сырые данные генома не попадают в контекст провайдера."
+        ),
+        "landing.privacy.title": "Приватность заложена в основу.",
+        "landing.privacy.intro": (
+            "SANO — проект с открытым кодом, который можно разместить у себя. "
+            "Вы сами управляете установкой и доступом к каждому профилю."
+        ),
+        "landing.privacy.local_title": "Ваша установка",
+        "landing.privacy.local_body": (
+            "Храните рабочую область на инфраструктуре под вашим контролем."
+        ),
+        "landing.privacy.person_title": "Права для каждого профиля",
+        "landing.privacy.person_body": "Доступ к одному профилю не открывает другой.",
+        "landing.privacy.limits_title": "Понятные ограничения",
+        "landing.privacy.limits_body": "SANO помогает организовать данные, но не заменяет врача.",
+        "landing.privacy.genetics_title": "Генетика отдельно",
+        "landing.privacy.genetics_body": "Для доступа к генетике нужно отдельное разрешение.",
+        "landing.privacy.alt": "Личные документы на домашнем столе при мягком дневном свете.",
+        "landing.closing.title": "История здоровья, к которой легко вернуться.",
+        "landing.closing.body": "Начните с медицинских документов, которые у вас уже есть.",
+        "landing.footer.note": "Личный архив здоровья для вас и тех, кому вы доверяете.",
+    }
+)
+
+
 def _normalize_locale(locale: str | None) -> Locale:
     if locale == "ru":
         return "ru"

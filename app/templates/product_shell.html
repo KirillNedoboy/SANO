@@ -4,8 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#f3f6f4">
+  <meta name="theme-color" content="#EDF2ED">
   <title>{% block title %}{{ t('app.name') }}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='/brand.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', path='/product_shell.css') }}">
   <link rel="icon" href="{{ url_for('static', path='/brand/sano-favicon.svg') }}" type="image/svg+xml">
   {% block page_styles %}{% endblock %}
@@ -17,7 +18,7 @@
 
   <aside class="product-shell__sidebar" id="product-sidebar" aria-label="{{ t('shell.primary_navigation') }}">
     <a class="product-shell__identity" href="/documents" aria-label="{{ t('app.name') }}">
-      <img class="product-shell__identity-wordmark" src="{{ url_for('static', path='/brand/sano-wordmark.svg') }}" alt="Sano" translate="no">
+      <img class="product-shell__identity-wordmark" src="{{ url_for('static', path='/brand/sano-wordmark.svg') }}" alt="SANO" translate="no">
     </a>
 
     <nav class="product-shell__nav" aria-label="{{ t('shell.primary_navigation') }}">
@@ -40,7 +41,7 @@
         <span aria-hidden="true"></span>
         <span aria-hidden="true"></span>
       </button>
-      <a class="product-shell__mobile-identity" href="/documents" translate="no">Sano</a>
+      <a class="product-shell__mobile-identity" href="/documents" aria-label="SANO" translate="no"><img src="{{ url_for('static', path='/brand/sano-wordmark.svg') }}" alt="" width="128" height="25"></a>
       <div class="product-shell__person" id="product-shell-person" data-active-person-id="{{ active_person_id|default('', true)|e }}">
         <span class="product-shell__person-label">{{ t('shell.person') }}</span>
         <span id="product-shell-person-status" class="product-shell__person-status" aria-live="polite">{% if active_person_id %}{{ t('person.selected') }}{% else %}{{ t('person.no_selection') }}{% endif %}</span>

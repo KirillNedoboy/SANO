@@ -4,9 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#f3f6f4">
+  <meta name="theme-color" content="#EDF2ED">
   <meta name="referrer" content="no-referrer">
   <title>{% block title %}{{ t('app.name') }}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='/brand.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', path='/product_shell.css') }}">
   <link rel="icon" href="{{ url_for('static', path='/brand/sano-favicon.svg') }}" type="image/svg+xml">
   <link rel="stylesheet" href="{{ url_for('static', path='/public_auth.css') }}">

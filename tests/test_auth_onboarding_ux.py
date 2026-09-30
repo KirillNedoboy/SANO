@@ -83,6 +83,14 @@ def test_login_exposes_invitation_as_secondary_and_keeps_safe_next(
     unsafe = product_core_client.get("/login?next=https%3A%2F%2Fevil.example%2Fsteal")
     assert 'value="/documents"' in unsafe.text
 
+
+def test_successful_registration_opens_the_document_archive() -> None:
+    script = Path(__file__).parents[1] / "app" / "static" / "account_registration.js"
+    source = script.read_text(encoding="utf-8")
+
+    assert 'window.location.assign("/documents")' in source
+    assert 'window.location.assign("/workspace")' not in source
+
 def test_registration_prebootstrap_state_is_unavailable_without_usable_form(
     uninitialized_client: TestClient,
 ) -> None:

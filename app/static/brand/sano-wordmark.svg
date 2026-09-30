@@ -1,4 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 296 68" role="img" aria-labelledby="sano-wordmark-title">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 68" role="img" aria-labelledby="sano-wordmark-title">
   <title id="sano-wordmark-title">SANO</title>
-  <text x="0" y="52" fill="#17312b" font-family="Arial, Helvetica, sans-serif" font-size="58" font-weight="700" letter-spacing="8">SANO</text>
+  <g fill="none" stroke="#176B59" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M30 9a25 25 0 1 0 22 13" stroke-width="4"/>
+    <path d="M11 43c7-10 12 2 18-7s11 1 19-12" stroke-width="3.5"/>
+  </g>
+  <g fill="#176B59">
+    <circle cx="11" cy="43" r="4.5"/>
+    <circle cx="29" cy="36" r="4.5"/>
+    <circle cx="48" cy="24" r="4.5"/>
+  </g>
+  <text x="72" y="51" fill="#15231E" font-family="Arial, Helvetica, sans-serif" font-size="47" font-weight="700" letter-spacing="6">SANO</text>
 </svg>

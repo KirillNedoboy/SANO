@@ -56,7 +56,7 @@
       if (!response.ok) throw new Error(translate("status.account_could_not_created"));
       password.value = "";
       confirmation.value = "";
-      window.location.assign("/workspace");
+      window.location.assign("/documents");
     } catch (error) {
       showStatus(error.message, "error");
     } finally {

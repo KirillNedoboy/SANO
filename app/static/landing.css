@@ -3,9 +3,9 @@ body.sano-site {
   min-height: 100vh;
   min-height: 100dvh;
   margin: 0;
-  background: var(--sano-canvas);
-  color: var(--sano-ink);
-  font: 1rem/1.55 var(--sano-font);
+  background: var(--ui-canvas);
+  color: var(--ui-text);
+  font: 1rem/1.55 var(--ui-font-sans);
   text-rendering: optimizeLegibility;
 }
 
@@ -38,7 +38,7 @@ body.sano-site {
 .sano-site h1,
 .sano-site h2,
 .sano-site h3 {
-  color: var(--sano-ink);
+  color: var(--ui-text);
   text-wrap: balance;
 }
 
@@ -48,7 +48,7 @@ body.sano-site {
 }
 
 .sano-site :where(a, button, input, select, textarea, summary):focus-visible {
-  outline: 3px solid var(--sano-focus);
+  outline: 3px solid var(--ui-focus);
   outline-offset: 3px;
 }
 
@@ -67,8 +67,8 @@ body.sano-site {
   top: .75rem;
   left: .75rem;
   padding: .65rem .85rem;
-  border-radius: var(--sano-radius-small);
-  background: var(--sano-accent-hover);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-accent-hover);
   color: #fff;
   font-weight: 750;
   text-decoration: none;
@@ -83,8 +83,8 @@ body.sano-site {
   position: sticky;
   z-index: 5;
   top: 0;
-  border-bottom: 1px solid var(--sano-line);
-  background: rgb(245 248 244 / 94%);
+  border-bottom: 1px solid var(--ui-divider);
+  background: rgb(237 242 237 / 94%);
 }
 
 .sano-header__inner {
@@ -117,7 +117,7 @@ body.sano-site {
 .sano-nav {
   justify-content: center;
   gap: clamp(1rem, 3vw, 2.4rem);
-  color: var(--sano-ink-soft);
+  color: var(--ui-text-secondary);
   font-size: .9rem;
   font-weight: 650;
 }
@@ -134,7 +134,7 @@ body.sano-site {
 .sano-nav a:hover,
 .sano-text-link:hover,
 .sano-footer nav a:hover {
-  color: var(--sano-accent-hover);
+  color: var(--ui-accent-hover);
 }
 
 .sano-header__actions {
@@ -147,7 +147,7 @@ body.sano-site {
   display: inline-flex;
   align-items: center;
   gap: .4rem;
-  color: var(--sano-ink-soft);
+  color: var(--ui-text-secondary);
   font-size: .8rem;
   font-weight: 700;
 }
@@ -155,10 +155,10 @@ body.sano-site {
 .sano-locale select {
   min-height: 2.75rem;
   padding: .4rem 1.7rem .4rem .6rem;
-  border: 1px solid var(--sano-line);
-  border-radius: var(--sano-radius-small);
-  background: var(--sano-surface);
-  color: var(--sano-ink);
+  border: 1px solid var(--ui-divider);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-surface-raised);
+  color: var(--ui-text);
   font: inherit;
   cursor: pointer;
 }
@@ -169,9 +169,9 @@ body.sano-site {
   align-items: center;
   justify-content: center;
   padding: .68rem 1.15rem;
-  border: 1px solid var(--sano-accent);
-  border-radius: var(--sano-radius-small);
-  background: var(--sano-accent);
+  border: 1px solid var(--ui-accent);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-accent);
   color: #fff !important;
   font-weight: 750;
   line-height: 1.2;
@@ -181,8 +181,8 @@ body.sano-site {
 }
 
 .sano-button:hover {
-  border-color: var(--sano-accent-hover);
-  background: var(--sano-accent-hover);
+  border-color: var(--ui-accent-hover);
+  background: var(--ui-accent-hover);
 }
 
 .sano-button:active {
@@ -196,14 +196,14 @@ body.sano-site {
 }
 
 .sano-button--quiet {
-  border-color: var(--sano-line);
+  border-color: var(--ui-divider);
   background: transparent;
-  color: var(--sano-accent-hover) !important;
+  color: var(--ui-accent-hover) !important;
 }
 
 .sano-button--quiet:hover {
-  border-color: var(--sano-accent);
-  background: var(--sano-accent-soft);
+  border-color: var(--ui-accent);
+  background: var(--ui-accent-soft);
 }
 
 .sano-hero {
@@ -212,31 +212,25 @@ body.sano-site {
 }
 
 .sano-hero__stage {
-  position: relative;
   display: grid;
-  min-height: clamp(30rem, 47vw, 42rem);
-  overflow: hidden;
-  border-radius: var(--sano-radius);
-  background: var(--sano-surface-soft);
-  box-shadow: 0 18px 54px rgb(23 49 43 / 12%);
+  grid-template-columns: minmax(0, .88fr) minmax(0, 1.12fr);
+  align-items: center;
+  gap: clamp(1.5rem, 4vw, 4.25rem);
 }
 
 .sano-hero__copy {
-  z-index: 1;
-  grid-area: 1 / 1;
   align-self: stretch;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: min(63%, 42rem);
+  width: 100%;
   max-width: 42rem;
-  padding: clamp(2rem, 5vw, 5.5rem);
-  background: linear-gradient(90deg, var(--sano-canvas) 0%, rgb(245 248 244 / 98%) 58%, rgb(245 248 244 / 72%) 78%, transparent 100%);
+  padding: clamp(1.25rem, 2.5vw, 2.4rem) 0;
 }
 
 .sano-kicker {
   margin-bottom: 1rem;
-  color: var(--sano-accent-hover);
+  color: var(--ui-accent-hover);
   font-size: .78rem;
   font-weight: 800;
   letter-spacing: .09em;
@@ -244,17 +238,17 @@ body.sano-site {
 }
 
 .sano-hero h1 {
-  max-width: 14ch;
+  max-width: 13ch;
   margin-bottom: 1rem;
-  font-size: clamp(3rem, 5.1vw, 4.5rem);
-  letter-spacing: -.055em;
-  line-height: .98;
+  font-size: clamp(2.8rem, 4.3vw, 4.15rem);
+  letter-spacing: -.04em;
+  line-height: 1.02;
 }
 
 .sano-hero__body {
   max-width: 31rem;
   margin-bottom: 1.45rem;
-  color: var(--sano-ink-soft);
+  color: var(--ui-text-secondary);
   font-size: clamp(1rem, 1.6vw, 1.18rem);
   line-height: 1.65;
 }
@@ -270,13 +264,15 @@ body.sano-site {
   position: relative;
   margin: 0;
   overflow: hidden;
-  border-radius: var(--sano-radius);
-  background: var(--sano-surface-soft);
+  border-radius: var(--ui-radius-surface);
+  background: var(--ui-surface-muted);
 }
 
 .sano-hero__figure {
-  grid-area: 1 / 1;
-  min-height: 100%;
+  width: 100%;
+  aspect-ratio: 1.08 / 1;
+  max-height: 35rem;
+  border-radius: 12px;
 }
 
 .sano-hero__figure img {
@@ -290,8 +286,8 @@ body.sano-site {
 }
 
 .sano-section--capabilities {
-  border-top: 1px solid var(--sano-line);
-  background: var(--sano-surface);
+  border-top: 1px solid var(--ui-divider);
+  background: var(--ui-surface);
 }
 
 .sano-section__intro {
@@ -308,7 +304,7 @@ body.sano-site {
 
 .sano-section__intro > p:last-child,
 .sano-privacy__copy > p {
-  color: var(--sano-ink-soft);
+  color: var(--ui-text-secondary);
   font-size: 1.08rem;
 }
 
@@ -316,14 +312,14 @@ body.sano-site {
   display: grid;
   grid-template-columns: minmax(0, 1.18fr) minmax(0, .91fr) minmax(0, .91fr);
   margin-top: clamp(2.25rem, 4vw, 3.75rem);
-  border-top: 1px solid var(--sano-line);
-  border-bottom: 1px solid var(--sano-line);
+  border-top: 1px solid var(--ui-divider);
+  border-bottom: 1px solid var(--ui-divider);
 }
 
 .sano-scenario {
   min-height: 14rem;
   padding: 1.85rem clamp(1.25rem, 3.5vw, 3.25rem) 2rem;
-  border-right: 1px solid var(--sano-line);
+  border-right: 1px solid var(--ui-divider);
 }
 
 .sano-scenario--lead {
@@ -332,12 +328,12 @@ body.sano-site {
   justify-content: space-between;
   gap: 2rem;
   padding-left: 0;
-  background: var(--sano-surface-soft);
+  background: var(--ui-accent-soft);
 }
 
 .sano-scenario__meta {
   margin-bottom: 0;
-  color: var(--sano-accent-hover);
+  color: var(--ui-accent-hover);
   font-size: .78rem;
   font-weight: 800;
   letter-spacing: .12em;
@@ -364,11 +360,12 @@ body.sano-site {
 .sano-record-path p,
 .sano-privacy-points p {
   margin-bottom: 0;
-  color: var(--sano-ink-soft);
+  color: var(--ui-text-secondary);
 }
 
 .sano-section--how {
-  background: var(--sano-surface-soft);
+  background: var(--ui-surface);
+  border-block: 1px solid var(--ui-divider);
 }
 
 .sano-how__grid,
@@ -401,14 +398,14 @@ body.sano-site {
 }
 
 .sano-step__number {
-  color: var(--sano-saffron);
+  color: var(--ui-warm);
   font-size: 1.45rem;
   font-weight: 800;
   line-height: 1.15;
 }
 
 .sano-section--boundaries {
-  background: var(--sano-canvas);
+  background: var(--ui-canvas);
 }
 
 .sano-boundaries-story {
@@ -417,8 +414,8 @@ body.sano-site {
   gap: 1px;
   margin-top: clamp(2.5rem, 5vw, 4.5rem);
   overflow: hidden;
-  border-radius: var(--sano-radius);
-  background: var(--sano-line);
+  border-radius: var(--ui-radius-surface);
+  background: var(--ui-divider);
 }
 
 .sano-boundary {
@@ -440,7 +437,7 @@ body.sano-site {
 }
 
 .sano-boundary--ai {
-  background: var(--sano-accent-hover);
+  background: var(--ui-accent);
   color: #fff;
 }
 
@@ -453,7 +450,7 @@ body.sano-site {
 }
 
 .sano-boundary--genetics {
-  background: var(--sano-surface-soft);
+  background: var(--ui-surface-muted);
 }
 
 .sano-boundary__note {
@@ -464,7 +461,7 @@ body.sano-site {
 }
 
 .sano-section--privacy {
-  background: var(--sano-surface);
+  background: var(--ui-surface-raised);
 }
 
 .sano-privacy__figure {
@@ -493,7 +490,7 @@ body.sano-site {
 
 .sano-privacy-points li {
   padding-top: 1.1rem;
-  border-top: 1px solid var(--sano-line);
+  border-top: 1px solid var(--ui-divider);
 }
 
 .sano-privacy-points h3 {
@@ -511,7 +508,7 @@ body.sano-site {
   gap: 2rem;
   margin-top: clamp(4rem, 8vw, 7rem);
   padding-top: clamp(2rem, 4vw, 3.5rem);
-  border-top: 1px solid var(--sano-line);
+  border-top: 1px solid var(--ui-divider);
 }
 
 .sano-closing h2 {
@@ -524,12 +521,12 @@ body.sano-site {
 
 .sano-closing p {
   margin-bottom: 0;
-  color: var(--sano-ink-soft);
+  color: var(--ui-text-secondary);
 }
 
 .sano-footer {
-  border-top: 1px solid var(--sano-line);
-  background: var(--sano-canvas);
+  border-top: 1px solid var(--ui-divider);
+  background: var(--ui-canvas);
 }
 
 .sano-footer__inner {
@@ -548,12 +545,12 @@ body.sano-site {
 
 .sano-footer p {
   margin: .55rem 0 0;
-  color: var(--sano-ink-soft);
+  color: var(--ui-text-secondary);
   font-size: .82rem;
 }
 
 .sano-footer__address {
-  color: var(--sano-ink) !important;
+  color: var(--ui-text) !important;
   font-weight: 750;
   letter-spacing: .04em;
 }
@@ -562,7 +559,7 @@ body.sano-site {
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: .9rem 1.4rem;
-  color: var(--sano-ink-soft);
+  color: var(--ui-text-secondary);
   font-size: .86rem;
   font-weight: 650;
 }
@@ -607,7 +604,7 @@ body.sano-site {
   }
 
   .sano-hero {
-    padding-top: 3.25rem;
+    padding-top: 2.1rem;
   }
 
   .sano-hero__stage,
@@ -629,7 +626,7 @@ body.sano-site {
   .sano-hero__copy {
     width: auto;
     max-width: 40rem;
-    padding: 0 0 2.25rem;
+    padding: 0 0 1.75rem;
     background: none;
   }
 
@@ -638,7 +635,7 @@ body.sano-site {
     width: 100%;
     aspect-ratio: 4 / 3;
     min-height: 0;
-    border-radius: var(--sano-radius);
+    border-radius: var(--ui-radius-surface);
     order: 2;
   }
 

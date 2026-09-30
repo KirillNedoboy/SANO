@@ -1,40 +1,53 @@
-/* SANO public brand foundation. Authenticated product surfaces keep their own tokens. */
+/* Shared SANO design tokens for public, authentication, and product surfaces. */
 :root {
-  --sano-canvas: #f5f8f4;
-  --sano-surface: #ffffff;
-  --sano-surface-soft: #e9f1ec;
-  --sano-ink: #17312b;
-  --sano-ink-soft: #536b64;
-  --sano-line: #d3e0da;
-  --sano-accent: #13685f;
-  --sano-accent-hover: #0d514a;
-  --sano-accent-soft: #dcece5;
-  --sano-saffron: #c8913f;
-  --sano-focus: #0a5fc1;
-  --sano-radius: 14px;
-  --sano-radius-small: 9px;
-  --sano-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-}
+  color-scheme: light;
+  --ui-canvas: #edf2ed;
+  --ui-surface: #f8faf7;
+  --ui-surface-raised: #ffffff;
+  --ui-surface-muted: #e5ece6;
+  --ui-text: #15231e;
+  --ui-text-secondary: #53635b;
+  --ui-text-quiet: #53635b;
+  --ui-text-faint: #637069;
+  --ui-divider: #d3ddd6;
+  --ui-divider-strong: #b7c6bd;
+  --ui-accent: #176b59;
+  --ui-accent-hover: #0e5748;
+  --ui-accent-active: #0a463a;
+  --ui-accent-soft: #dcebe4;
+  --ui-warm: #c66b4f;
+  --ui-focus: #095fc1;
+  --ui-success: #176b59;
+  --ui-success-soft: #dcebe4;
+  --ui-warning: #83551d;
+  --ui-warning-soft: #f4ead7;
+  --ui-danger: #95453e;
+  --ui-danger-soft: #f5e5e2;
+  --ui-info: #245f7a;
+  --ui-info-soft: #e2edf2;
 
-.public-auth-shell,
-.sano-site {
-  --ui-canvas: var(--sano-canvas);
-  --ui-surface: var(--sano-surface);
-  --ui-surface-raised: var(--sano-surface);
-  --ui-surface-muted: var(--sano-surface-soft);
-  --ui-text: var(--sano-ink);
-  --ui-text-secondary: var(--sano-ink-soft);
-  --ui-text-quiet: var(--sano-ink-soft);
-  --ui-divider: var(--sano-line);
-  --ui-divider-strong: #7f9a90;
-  --ui-accent: var(--sano-accent);
-  --ui-accent-hover: var(--sano-accent-hover);
-  --ui-accent-active: #093e38;
-  --ui-accent-soft: var(--sano-accent-soft);
-  --ui-focus: var(--sano-focus);
-  --ui-font-sans: var(--sano-font);
-  --ui-radius-control: var(--sano-radius-small);
-  --ui-radius-surface: var(--sano-radius);
-  --ui-radius-notice: var(--sano-radius-small);
+  --ui-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --ui-font-mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+  --ui-text-xs: .75rem;
+  --ui-text-sm: .8125rem;
+  --ui-text-md: .9375rem;
+  --ui-text-lg: 1.125rem;
+  --ui-text-xl: 1.375rem;
+  --ui-text-2xl: 1.75rem;
+  --ui-space-1: .25rem;
+  --ui-space-2: .5rem;
+  --ui-space-3: .75rem;
+  --ui-space-4: 1rem;
+  --ui-space-5: 1.5rem;
+  --ui-space-6: 2rem;
+  --ui-radius-control: 8px;
+  --ui-radius-surface: 12px;
+  --ui-radius-notice: 10px;
+  --ui-shadow-raised: 0 8px 28px rgb(21 35 30 / .08);
+  --ui-shadow-overlay: 0 16px 44px rgb(21 35 30 / .2);
+  --ui-motion-fast: 150ms;
+  --ui-motion-normal: 220ms;
+  --ui-ease-standard: cubic-bezier(.2, 0, 0, 1);
 }

@@ -87,7 +87,8 @@ def test_index_renders_landing_page() -> None:
 
     assert response.status_code == 200
     assert "SANO" in response.text
-    assert "Your records, under control." in response.text
+    assert "Your health story. Finally in one place." in response.text
+    assert "/brand/sano-hero-x1.webp" in response.text
 
 
 def test_demo_page_renders_synthetic_demo_patient() -> None:
