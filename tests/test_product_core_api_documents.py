@@ -647,6 +647,38 @@ def _document_projection(action_id: str) -> EnvelopeProjection:
             },
         ),
         (
+            "document.answer_question",
+            {
+                "answer": "Я рекомендую увеличить дозировку препарата.",
+                "page_numbers": [1],
+                "unknowns": [],
+            },
+        ),
+        (
+            "document.answer_question",
+            {
+                "answer": "В выписке указано принимать X 10 мг, а у вас диабет.",
+                "page_numbers": [1],
+                "unknowns": [],
+            },
+        ),
+        (
+            "document.answer_question",
+            {
+                "answer": "В документе указан диагноз: диабет, и у вас диабет.",
+                "page_numbers": [1],
+                "unknowns": [],
+            },
+        ),
+        (
+            "document.answer_question",
+            {
+                "answer": "В документе указан диагноз: диабет и у вас диабет.",
+                "page_numbers": [1],
+                "unknowns": [],
+            },
+        ),
+        (
             "document.summarize",
             {
                 "summary": "Вам следует увеличить дозу препарата.",
@@ -726,6 +758,14 @@ def test_document_validator_rejects_russian_unsafe_answers_and_summaries(
             "document.answer_question",
             {
                 "answer": "В документе указано, что пациент принимал препарат в дозировке 10 мг.",
+                "page_numbers": [1],
+                "unknowns": [],
+            },
+        ),
+        (
+            "document.answer_question",
+            {
+                "answer": "В выписке указано принимать X 10 мг.",
                 "page_numbers": [1],
                 "unknowns": [],
             },

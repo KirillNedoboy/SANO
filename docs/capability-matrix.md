@@ -7,6 +7,8 @@ SANO-X2 and schema v13; X2 is complete locally and its merge blocker is closed,
 but it is not yet published on remote `main`. The published `v0.1.0` and
 `v0.2.0` tags remain the only release tags.
 
+P3 is part of the published baseline.
+
 | Capability | Status | Repository evidence or boundary |
 |---|---|---|
 | People | `PARTIAL` | Actor-scoped Product Core People are persisted and explicitly owner-created; broader health entities remain demo-only. |

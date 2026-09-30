@@ -19,6 +19,9 @@ BLOCKED_PATTERNS = (
 )
 
 RUSSIAN_REQUEST_PATTERNS = (
+    r"\bкак\s+(?:мне\s+)?леч\w*\b",
+    r"\b(?:назнач\w*|подбер\w*|выбер\w*)\s+(?:мне\s+)?"
+    r"(?:препарат\w*|лекарств\w*|медикамент\w*)\b",
     r"\b(?:какой|какая|какое|какие)\s+(?:у\s+меня|мне)\s+диагноз\w*\b",
     r"\b(?:постав\w*|определ\w*|диагностир\w*)\s+(?:мне\s+)?диагноз\w*\b",
     r"\b(?:какое|какую|какой)\s+\w*\s*лечени\w*\b.*\b(?:мне\s+)?(?:начать|выбрать|назначить|применять|принимать)\w*\b",
@@ -86,6 +89,9 @@ RUSSIAN_PRESCRIPTIVE_OUTPUT_PATTERNS = (
     r"\b(?:следует|необходимо|рекомендуется|рекомендовано)\b.*\b(?:принимать|"
     r"начать|прекратить|увелич\w*|уменьш\w*|измен\w*|замен\w*|отмен\w*|"
     r"доз\w*|лечени\w*|терапи\w*)\b",
+    r"\b(?:рекомендую|советую)\b.*\b(?:принимать|начать|прекратить|"
+    r"увелич\w*|уменьш\w*|измен\w*|замен\w*|отмен\w*|подобрать\w*|"
+    r"выбрать\w*|доз\w*|препарат\w*|лекарств\w*|лечени\w*|терапи\w*)\b",
 )
 
 SOURCE_ATTRIBUTION_PATTERN = (
@@ -104,17 +110,25 @@ def _normalize_safety_text(value: str) -> str:
 
 def has_unsafe_russian_output(text: str) -> bool:
     for sentence in re.split(r"[.!?;\n]+", text):
-        normalized = _normalize_safety_text(sentence)
-        if not normalized:
-            continue
-        if any(
-            re.search(pattern, normalized) for pattern in RUSSIAN_PRESCRIPTIVE_OUTPUT_PATTERNS
-        ):
-            return True
-        if not re.search(SOURCE_ATTRIBUTION_PATTERN, normalized) and any(
-            re.search(pattern, normalized) for pattern in RUSSIAN_DIAGNOSTIC_OUTPUT_PATTERNS
-        ):
-            return True
+        clauses = re.split(
+            r"(?:,\s*(?:(?:а|и|но|однако)\s+)?|\s+(?:а|и|но|однако)\s+)"
+            r"(?=(?:у\s+вас|у\s+тебя|вам|тебе|вы|ты)\b)",
+            sentence,
+            flags=re.IGNORECASE,
+        )
+        for clause in clauses:
+            normalized = _normalize_safety_text(clause)
+            if not normalized:
+                continue
+            if any(
+                re.search(pattern, normalized)
+                for pattern in RUSSIAN_PRESCRIPTIVE_OUTPUT_PATTERNS
+            ):
+                return True
+            if not re.search(SOURCE_ATTRIBUTION_PATTERN, normalized) and any(
+                re.search(pattern, normalized) for pattern in RUSSIAN_DIAGNOSTIC_OUTPUT_PATTERNS
+            ):
+                return True
     return False
 
 

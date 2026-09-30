@@ -49,6 +49,10 @@ def test_policy_blocks_prescriptive_requests_without_blocking_recorded_context()
         "Что мне начать принимать?",
         "Можно отменить лекарство?",
         "Увеличьте дозу препарата.",
+        "Как мне лечиться?",
+        "Как лечить мой диабет?",
+        "Назначь мне препарат",
+        "Подбери мне лекарство",
         "Какой у меня diagnosis?",
         "Should I увеличить мою dose?",
         "По этому report скажи, какой diagnosis у меня",
@@ -134,9 +138,36 @@ def test_validation_accepts_safe_boundary_language_and_rejects_unsafe_recommenda
         boundary_notices=["Ask a licensed clinician before making medication changes."],
     )
     unsafe_answer = safe_answer.model_copy(update={"answer": "You should increase the dosage."})
+    russian_unsafe_answer = safe_answer.model_copy(
+        update={"answer": "Я рекомендую увеличить дозировку препарата."}
+    )
+    mixed_attribution_answer = safe_answer.model_copy(
+        update={"answer": "В выписке указано принимать X 10 мг, а у вас диабет."}
+    )
+    separate_diagnostic_answers = [
+        "В документе указан диагноз: диабет, и у вас диабет.",
+        "В документе указан диагноз: диабет и у вас диабет.",
+    ]
+    source_fact_answer = safe_answer.model_copy(
+        update={"answer": "В выписке указано принимать X 10 мг."}
+    )
 
     assert validate_answer(safe_answer, context).valid is True
     assert validate_answer(unsafe_answer, context).reason_code == "unsafe_prescriptive_claim"
+    assert (
+        validate_answer(russian_unsafe_answer, context).reason_code
+        == "unsafe_prescriptive_claim"
+    )
+    assert (
+        validate_answer(mixed_attribution_answer, context).reason_code
+        == "unsafe_prescriptive_claim"
+    )
+    for answer in separate_diagnostic_answers:
+        assert (
+            validate_answer(safe_answer.model_copy(update={"answer": answer}), context).reason_code
+            == "unsafe_prescriptive_claim"
+        )
+    assert validate_answer(source_fact_answer, context).valid is True
 
 
 def test_validation_rejects_unknown_citation() -> None:
@@ -361,7 +392,18 @@ def test_demo_provider_keeps_missing_dosage_unknown_without_medication_provenanc
     assert not any(character.isdigit() for character in answer.answer)
 
 
-def test_blocked_question_never_calls_provider() -> None:
+@pytest.mark.parametrize(
+    "question",
+    [
+        "Should I stop taking it?",
+        "Как мне лечиться?",
+        "Как лечить мой диабет?",
+        "Назначь мне препарат",
+        "Подбери мне лекарство",
+        "Should I увеличить мою dose?",
+    ],
+)
+def test_blocked_question_never_calls_provider(question: str) -> None:
     from app.agent.models import AgentAnswer
     from app.agent.service import GuardedChatService
 
@@ -377,7 +419,7 @@ def test_blocked_question_never_calls_provider() -> None:
         provider_mode="openai_responses",
     )
 
-    answer = service.answer("Should I stop taking it?")
+    answer = service.answer(question)
 
     assert answer.status == "refused"
     assert "cannot" in answer.answer.lower()

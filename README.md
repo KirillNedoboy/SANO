@@ -10,6 +10,8 @@ SANO is an open-source, self-hosted workspace for personal and family health inf
 
 > **Candidate status:** This checkout includes SANO-X2. The currently published `main` remains at the X1 document boundary until a later publication; this README describes the candidate represented by this branch.
 
+The published baseline contains the completed G1-G5, P1, P2, D1, and P3 implementation. Public `main` is mutable, so consult [project status](docs/project-status.md) for the published boundary. This checkout uses the unreleased development version `0.3.0.dev0`; it does not imply a `v0.3.0` release.
+
 ## What makes SANO different
 
 A generic document chat can send a file to a model and return an answer. SANO centers the source and the path from evidence to a reviewed health record:
@@ -60,7 +62,7 @@ Repository fixtures, screenshots, and reviewer examples use synthetic or de-iden
 - Live OpenRouter consent and receipt flow has been verified for the general guarded runtime. A live OpenAI X2 document-summary call is unverified; Ollama live smoke is deferred/unverified.
 - G5 machine state remains exactly `READY_FOR_SECOND_CLIENT_SMOKE`; the root Agent Plugins two-client gate awaits external evidence.
 - AlphaGenome is paused after C.1.
-- SANO is not clinically validated software, an AI doctor, diagnostic authority, treatment planner, medication or dosage authority, or clinical decision-support system.
+- SANO is not clinically validated software, an AI doctor, diagnostic authority, treatment planner, medication or dosage authority, or clinical decision-support system. This self-hosted candidate is not a claim of public SaaS readiness.
 
 See [current candidate status](docs/project-status.md), the [capability matrix](docs/capability-matrix.md), and the [judge guide](docs/judge-guide.md) for an accurate tour of this checkout. Historical validation reports describe their recorded runs, not a guarantee about the current environment.
 
@@ -70,6 +72,6 @@ See [current candidate status](docs/project-status.md), the [capability matrix](
 - [Privacy and safety threat model](docs/privacy_safety_threat_model.md) · [Family authorization matrix](docs/security/family-access-authorization-matrix.md)
 - [Evidence provenance](docs/provenance_semantics.md) · [Visit Brief lifecycle](docs/architecture/visit-brief-lifecycle.md)
 - [Genetics Research Studio boundaries](docs/architecture/p3-genetics-research-studio.md) · [Trust runtime threat model](docs/security/agent-trust-threat-model.md)
-- [Deployment](docs/deployment.md) · [Security reporting](SECURITY.md)
+- [Deployment](docs/deployment.md) · [Changelog](CHANGELOG.md) · [Private-alpha release notes](docs/releases/v0.1.0-private-alpha.md) · [Private-alpha operator checklist](docs/private-alpha-operator-checklist.md) · [Security reporting](SECURITY.md)
 
 The repository retains historical OpenCare and Sentient names where they identify internal modules, APIs, and engineering history. SANO is the product name.

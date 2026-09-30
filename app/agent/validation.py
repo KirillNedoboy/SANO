@@ -1,6 +1,7 @@
 import re
 
 from app.agent.models import AgentAnswer, AgentContext
+from app.agent.policy import has_unsafe_russian_output
 
 
 class ValidationResult:
@@ -34,6 +35,6 @@ def validate_answer(answer: AgentAnswer, context: AgentContext) -> ValidationRes
     if any(
         re.search(pattern, content, flags=re.IGNORECASE)
         for pattern in UNSAFE_PRESCRIPTIVE_PATTERNS
-    ):
+    ) or has_unsafe_russian_output(content):
         return ValidationResult(False, "unsafe_prescriptive_claim")
     return ValidationResult(True)

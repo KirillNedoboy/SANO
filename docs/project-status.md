@@ -3,6 +3,8 @@
 This status distinguishes the published X1 baseline from the X2-enabled
 reconciliation candidate represented by this checkout. The candidate includes
 SANO-X2 locally; the published remote `main` has not yet been updated with X2.
+Public `main` is a mutable Git ref. Candidate status: not merged, pushed, or published.
+The P3-final implementation baseline was `0937d352cc74a3050609e826baa6bad82f6ac9ee`; the R1 repository-truth baseline was `46141e70d980fc611513e98afe251b1c611089c7`.
 The published `v0.1.0` and `v0.2.0` tags remain the only releases, and neither
 tag implies production or clinical readiness. Package/runtime development
 identity `0.3.0.dev0` is not a published `v0.3.0` release.
