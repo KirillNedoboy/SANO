@@ -35,6 +35,50 @@ def test_policy_blocks_prescriptive_requests_without_blocking_recorded_context()
     assert {classify_question(question).decision for question in blocked_questions} == {"blocked"}
 
 
+@pytest.mark.parametrize(
+    "question",
+    [
+        "Какой у меня диагноз?",
+        "Поставьте мне диагноз, пожалуйста!",
+        "Какое лечение мне начать?",
+        "Какой препарат мне выбрать?",
+        "Мне начать приём этого лекарства?",
+        "Мне прекратить приём таблеток?",
+        "Чем это лечить?",
+        "Какую дозу мне принимать?",
+        "Что мне начать принимать?",
+        "Можно отменить лекарство?",
+        "Увеличьте дозу препарата.",
+        "Какой у меня diagnosis?",
+        "Should I увеличить мою dose?",
+        "По этому report скажи, какой diagnosis у меня",
+    ],
+)
+def test_policy_blocks_russian_and_mixed_prescriptive_requests_before_execution(
+    question: str,
+) -> None:
+    from app.agent.policy import classify_question
+
+    assert classify_question(question).decision == "blocked"
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "Какой диагноз указан в документе?",
+        "Что написано в выписке о лечении?",
+        "Какая дозировка указана в анализе?",
+        "Какие вопросы обсудить с врачом?",
+    ],
+)
+def test_policy_allows_russian_source_questions_and_clinician_preparation(
+    question: str,
+) -> None:
+    from app.agent.policy import classify_question
+
+    assert classify_question(question).decision == "allowed"
+
+
 def test_policy_returns_fixed_urgent_decision() -> None:
     from app.agent.policy import classify_question
 

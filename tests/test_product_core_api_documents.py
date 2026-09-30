@@ -3,9 +3,12 @@ from __future__ import annotations
 import hashlib
 import json
 
+import pytest
 from fastapi.testclient import TestClient
 
 import app.main as main_module
+from app.agent.document_summary_trust import DocumentSummaryTrustAdapter
+from app.agent.g2_runtime import EnvelopeProjection
 from app.agent.providers.contract import ProviderDescriptor, ProviderExecutionResult
 from app.family_access.policy import OWNER_SCOPES_V2
 from app.product_core.installation_backup import InstallationBackupService
@@ -376,3 +379,375 @@ def test_document_question_uses_only_selected_document_and_requires_consent(
         runtime.database.path, runtime.sources.store.source_dir
     ).backup(tmp_path / "synthetic-backup")
     assert backup.valid is True
+
+
+def test_document_question_refuses_russian_prescriptive_request_before_provider_call(
+    product_core_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class CountingProvider:
+        calls = 0
+        descriptor = ProviderDescriptor(
+            provider_id="synthetic.external",
+            provider_kind="external_http",
+            provider_mode="external_provider",
+            endpoint_class="non_loopback",
+            external=True,
+            model_id="synthetic-model",
+        )
+
+        def execute(self, request):
+            self.calls += 1
+            raise AssertionError(f"provider must not be called: {request}")
+
+    provider = CountingProvider()
+    monkeypatch.setattr(main_module.app.state, "agent_provider", provider)
+    upload = _upload(product_core_client)
+    assert upload.status_code == 201, upload.text
+    source_id = upload.json()["document"]["source_id"]
+    active = product_core_client.put(
+        "/api/family-access/v1/active-person", json={"person_id": "person-1"}
+    )
+    assert active.status_code == 204, active.text
+
+    response = product_core_client.post(
+        f"/api/product-core/v1/people/person-1/documents/{source_id}/questions/prepare",
+        json={"question": "Какое лечение мне начать?"},
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json()["status"] == "refused"
+    assert response.json()["reason_code"] == "clinical_or_genetics_request"
+    assert provider.calls == 0
+
+
+def test_document_question_rejects_unsafe_russian_provider_output_without_exposing_it(
+    product_core_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class UnsafeQuestionProvider:
+        calls = 0
+        descriptor = ProviderDescriptor(
+            provider_id="synthetic.external",
+            provider_kind="external_http",
+            provider_mode="external_provider",
+            endpoint_class="non_loopback",
+            external=True,
+            model_id="synthetic-model",
+        )
+
+        def execute(self, request):
+            self.calls += 1
+            return ProviderExecutionResult(
+                answer={
+                    "answer": "Вам следует увеличить дозу препарата.",
+                    "page_numbers": [1],
+                    "unknowns": [],
+                },
+                provider_id=self.descriptor.provider_id,
+                model_id=self.descriptor.model_id,
+                tool_calls=(),
+                failure=None,
+            )
+
+    provider = UnsafeQuestionProvider()
+    monkeypatch.setattr(main_module.app.state, "agent_provider", provider)
+    upload = _upload(product_core_client)
+    assert upload.status_code == 201, upload.text
+    source_id = upload.json()["document"]["source_id"]
+    active = product_core_client.put(
+        "/api/family-access/v1/active-person", json={"person_id": "person-1"}
+    )
+    assert active.status_code == 204, active.text
+    root = f"/api/product-core/v1/people/person-1/documents/{source_id}/questions"
+    payload = {"question": "Что указано в документе?"}
+
+    prepared = product_core_client.post(root + "/prepare", json=payload)
+    assert prepared.status_code == 200, prepared.text
+    consent = product_core_client.post(
+        root + f"/{prepared.json()['execution_id']}/consent",
+        json={"question": payload["question"], "fields": prepared.json()["preview"]["fields"]},
+    )
+    assert consent.status_code == 200, consent.text
+    answered = product_core_client.post(
+        root + f"/{prepared.json()['execution_id']}/execute", json=payload
+    )
+
+    assert answered.status_code == 200, answered.text
+    assert answered.json()["status"] == "refused"
+    assert answered.json()["reason_code"] == "summary_safety_validation_failed"
+    assert answered.json()["answer"]["answer"] == ""
+    assert "Вам следует увеличить дозу препарата." not in answered.text
+    receipt = product_core_client.get(
+        root + f"/{prepared.json()['execution_id']}/receipt"
+    )
+    assert receipt.status_code == 200, receipt.text
+    assert "Вам следует увеличить дозу препарата." not in receipt.text
+    assert provider.calls == 1
+
+
+def test_document_summary_rejects_unsafe_russian_output_without_persisting_result(
+    product_core_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class UnsafeSummaryProvider:
+        calls = 0
+        descriptor = ProviderDescriptor(
+            provider_id="synthetic.external",
+            provider_kind="external_http",
+            provider_mode="external_provider",
+            endpoint_class="non_loopback",
+            external=True,
+            model_id="synthetic-model",
+        )
+
+        def execute(self, request):
+            self.calls += 1
+            return ProviderExecutionResult(
+                answer={
+                    "summary": "Вам следует увеличить дозу препарата.",
+                    "key_points": [],
+                    "discussion_questions": [],
+                    "page_numbers": [1],
+                    "coverage_complete": True,
+                    "coverage_note": None,
+                },
+                provider_id=self.descriptor.provider_id,
+                model_id=self.descriptor.model_id,
+                tool_calls=(),
+                failure=None,
+            )
+
+    provider = UnsafeSummaryProvider()
+    monkeypatch.setattr(main_module.app.state, "agent_provider", provider)
+    upload = _upload(product_core_client)
+    assert upload.status_code == 201, upload.text
+    source_id = upload.json()["document"]["source_id"]
+    active = product_core_client.put(
+        "/api/family-access/v1/active-person", json={"person_id": "person-1"}
+    )
+    assert active.status_code == 204, active.text
+    root = f"/api/product-core/v1/people/person-1/documents/{source_id}/summary"
+
+    prepared = product_core_client.post(root + "/prepare", json={})
+    assert prepared.status_code == 200, prepared.text
+    completed = product_core_client.post(
+        root + f"/runs/{prepared.json()['run_id']}/consent", json={}
+    )
+
+    assert completed.status_code == 200, completed.text
+    assert completed.json()["status"] == "failed"
+    assert completed.json()["result"] is None
+    assert completed.json()["reason_code"] == "summary_safety_validation_failed"
+    assert "Вам следует увеличить дозу препарата." not in completed.text
+    latest = product_core_client.get(root)
+    assert latest.status_code == 200, latest.text
+    assert latest.json()["status"] == "failed"
+    assert latest.json()["result"] is None
+    assert "Вам следует увеличить дозу препарата." not in latest.text
+    assert provider.calls == 1
+
+
+def _document_projection(action_id: str) -> EnvelopeProjection:
+    return EnvelopeProjection(
+        envelope_id="envelope-1",
+        person_id="person-1",
+        purpose_id=(
+            "document_question"
+            if action_id == "document.answer_question"
+            else "document_summary"
+        ),
+        action_id=action_id,
+        requested_action="document-only synthetic request",
+        evidence=(
+            {
+                "evidence_id": "document-summary:source-1:extraction-1",
+                "content_sha256": "a" * 64,
+                "selected_fields": ("page:1",),
+                "source_ids": ("source-1",),
+            },
+        ),
+        allowed_tools=(),
+        allowed_fields=(),
+        disclosure_constraints=(),
+        prohibited_operations=(),
+    )
+
+
+@pytest.mark.parametrize(
+    ("action_id", "answer"),
+    [
+        (
+            "document.answer_question",
+            {
+                "answer": "У вас диабет, вам следует увеличить дозу препарата.",
+                "page_numbers": [1],
+                "unknowns": [],
+            },
+        ),
+        (
+            "document.answer_question",
+            {
+                "answer": "У вас диагноз: гипертония.",
+                "page_numbers": [1],
+                "unknowns": [],
+            },
+        ),
+        (
+            "document.answer_question",
+            {
+                "answer": "У вас диабет.",
+                "page_numbers": [1],
+                "unknowns": [],
+            },
+        ),
+        (
+            "document.answer_question",
+            {
+                "answer": "Вы больны диабетом.",
+                "page_numbers": [1],
+                "unknowns": [],
+            },
+        ),
+        (
+            "document.answer_question",
+            {
+                "answer": "Результаты указывают на гипертонию.",
+                "page_numbers": [1],
+                "unknowns": [],
+            },
+        ),
+        (
+            "document.answer_question",
+            {
+                "answer": "Вам нужно начать принимать препарат.",
+                "page_numbers": [1],
+                "unknowns": [],
+            },
+        ),
+        (
+            "document.answer_question",
+            {
+                "answer": "Прекратите принимать препарат.",
+                "page_numbers": [1],
+                "unknowns": [],
+            },
+        ),
+        (
+            "document.answer_question",
+            {
+                "answer": "Замените препарат на другой.",
+                "page_numbers": [1],
+                "unknowns": [],
+            },
+        ),
+        (
+            "document.answer_question",
+            {
+                "answer": "Увеличьте дозу препарата.",
+                "page_numbers": [1],
+                "unknowns": [],
+            },
+        ),
+        (
+            "document.summarize",
+            {
+                "summary": "Вам следует увеличить дозу препарата.",
+                "key_points": [],
+                "discussion_questions": [],
+                "page_numbers": [1],
+                "coverage_complete": True,
+                "coverage_note": None,
+            },
+        ),
+        (
+            "document.summarize",
+            {
+                "summary": (
+                    "В документе указан диагноз: диабет. "
+                    "Вам следует увеличить дозу препарата."
+                ),
+                "key_points": [],
+                "discussion_questions": [],
+                "page_numbers": [1],
+                "coverage_complete": True,
+                "coverage_note": None,
+            },
+        ),
+    ],
+)
+def test_document_validator_rejects_russian_unsafe_answers_and_summaries(
+    action_id: str, answer: dict[str, object]
+) -> None:
+    result = DocumentSummaryTrustAdapter.answer_validator(
+        answer, _document_projection(action_id)
+    )
+
+    assert result.valid is False
+    assert result.reason_code == "summary_safety_validation_failed"
+
+
+@pytest.mark.parametrize(
+    ("action_id", "answer"),
+    [
+        (
+            "document.answer_question",
+            {
+                "answer": "В документе указан диагноз: сахарный диабет 2 типа.",
+                "page_numbers": [1],
+                "unknowns": [],
+            },
+        ),
+        (
+            "document.answer_question",
+            {
+                "answer": "В документе указано: у вас диабет.",
+                "page_numbers": [1],
+                "unknowns": [],
+            },
+        ),
+        (
+            "document.answer_question",
+            {
+                "answer": "В документе написано, что вы больны диабетом.",
+                "page_numbers": [1],
+                "unknowns": [],
+            },
+        ),
+        (
+            "document.summarize",
+            {
+                "summary": "В выписке указан диагноз: сахарный диабет 2 типа.",
+                "key_points": [],
+                "discussion_questions": [],
+                "page_numbers": [1],
+                "coverage_complete": True,
+                "coverage_note": None,
+            },
+        ),
+        (
+            "document.answer_question",
+            {
+                "answer": "В документе указано, что пациент принимал препарат в дозировке 10 мг.",
+                "page_numbers": [1],
+                "unknowns": [],
+            },
+        ),
+        (
+            "document.summarize",
+            {
+                "summary": "В выписке указан препарат в дозировке 10 мг.",
+                "key_points": [],
+                "discussion_questions": [],
+                "page_numbers": [1],
+                "coverage_complete": True,
+                "coverage_note": None,
+            },
+        ),
+    ],
+)
+def test_document_validator_allows_explicitly_source_attributed_russian_reporting(
+    action_id: str, answer: dict[str, object]
+) -> None:
+    result = DocumentSummaryTrustAdapter.answer_validator(
+        answer, _document_projection(action_id)
+    )
+
+    assert result.valid is True

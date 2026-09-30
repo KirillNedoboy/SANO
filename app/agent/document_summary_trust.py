@@ -12,6 +12,7 @@ from typing import Any, Literal, cast
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from app.agent.g2_runtime import EnvelopeProjection
+from app.agent.policy import has_unsafe_russian_output
 from app.agent.providers.contract import AgentProvider, ProviderExecutionRequest
 from app.agent.trust_adapter import OpenCareAuthorizationAdapter
 from app.agent_trust.builders import (
@@ -465,6 +466,7 @@ class DocumentSummaryTrustAdapter:
             re.search(r"(?:[A-Za-z]:\\|/(?:home|tmp|var|Users|private)/)", content)
             or re.search(r"(?:api[_ -]?key|authorization|bearer\s+[A-Za-z0-9])", content, re.I)
             or any(re.search(pattern, content, re.I) for pattern in unsafe)
+            or has_unsafe_russian_output(content)
         ):
             from app.agent.validation import ValidationResult
 
