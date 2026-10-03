@@ -1,0 +1,11 @@
+services:
+  # The VPS already runs Caddy as a system service. Keep the containerized
+  # reverse proxy available only when the explicit container-caddy profile is
+  # selected; the default SANO command starts the app service alone.
+  caddy:
+    profiles:
+      - container-caddy
+
+  opencare:
+    ports:
+      - "127.0.0.1:18000:8000"

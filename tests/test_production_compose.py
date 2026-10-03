@@ -5,6 +5,8 @@ PRODUCTION_COMPOSE = PROJECT_ROOT / "docker-compose.prod.yml"
 DEVELOPMENT_COMPOSE = PROJECT_ROOT / "docker-compose.yml"
 DOCKERFILE = PROJECT_ROOT / "Dockerfile"
 PRODUCTION_ENV_EXAMPLE = PROJECT_ROOT / "deploy" / "env.production.example"
+SYSTEM_CADDY_COMPOSE = PROJECT_ROOT / "deploy" / "docker-compose.system-caddy.yml"
+SANO_CADDYFILE = PROJECT_ROOT / "deploy" / "Caddyfile.sano.example"
 DOCKERIGNORE = PROJECT_ROOT / ".dockerignore"
 PRODUCT_DATA_BIND_SOURCE = (
     'source: "${OPENCARE_PRODUCT_DATA_DIR:?OPENCARE_PRODUCT_DATA_DIR is required}"'
@@ -135,6 +137,17 @@ def test_production_compose_keeps_app_non_root_private_and_egress_capable() -> N
     assert "      - app_internal\n      - provider_egress" in app_service
     assert "  app_internal:\n    internal: true" in compose
     assert "  provider_egress:\n" in compose
+
+
+def test_system_caddy_overlay_binds_only_loopback_and_profiles_container_caddy() -> None:
+    overlay = SYSTEM_CADDY_COMPOSE.read_text(encoding="utf-8")
+    caddyfile = SANO_CADDYFILE.read_text(encoding="utf-8")
+
+    assert '"127.0.0.1:18000:8000"' in overlay
+    assert "profiles:" in overlay
+    assert "- container-caddy" in overlay
+    assert "sanobot.art" in caddyfile
+    assert "reverse_proxy 127.0.0.1:18000" in caddyfile
 
 
 def test_production_compose_uses_readyz_healthcheck_and_owned_session_tmpfs() -> None:

@@ -154,6 +154,43 @@ The example Caddy file:
 - forwards requests to `opencare:8000`;
 - keeps app-level TLS out of scope for this MVP.
 
+### VPS path with a system Caddy
+
+When the host already owns ports `80` and `443` with a system Caddy service,
+use the SANO overlay and keep the app bound to loopback:
+
+```bash
+docker compose --env-file /opt/sano/secrets/env.production \
+  -f docker-compose.prod.yml \
+  -f deploy/docker-compose.system-caddy.yml \
+  up -d --build --no-deps opencare
+```
+
+The overlay places the app at `127.0.0.1:18000` and assigns the containerized
+Caddy service to an opt-in profile. It does not start or replace a system
+Caddy. Install the site block from `deploy/Caddyfile.sano.example` as the
+system Caddy configuration for `sanobot.art`, validate it, and reload Caddy
+only after the app health and readiness checks pass. Keep the previous Caddy
+file and the legacy container image/configuration in an operator-only rollback
+directory before changing the live route.
+
+The SANO-X2 candidate image includes local Tesseract OCR with both `eng` and
+`rus` data packs. Its bounded document path accepts PDF, TXT, JPG, and PNG
+originals; an external document description or document question remains a
+separate explicit consent action. Configure OpenRouter only through the
+operator env file, with `OPENCARE_AGENT_MODE=openrouter`,
+`OPENCARE_AGENT_ALLOW_EXTERNAL_LLM=true`,
+`OPENCARE_ALLOW_CLOUD_LLM=true`, and an explicit model such as
+`openai/gpt-4.1-mini`. Never put the provider key in source, an image, a
+document, or a validation report.
+
+For an existing deployment, reserve rollback material before stopping the old
+service. Record the old container ID, image ID, image archive, restart policy,
+non-secret mounts/ports, and an export of its writable filesystem. Stop the
+legacy container only after the new app is healthy, then set its restart policy
+to `no` so a host reboot cannot bring it back unexpectedly. Do not delete the
+legacy container, image, or data.
+
 ## Compose Stack
 
 The production stack:
