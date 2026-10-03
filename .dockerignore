@@ -1,6 +1,7 @@
 .git
 .codex
 graft
+.playwright-cli
 .github
 .venv
 __pycache__
