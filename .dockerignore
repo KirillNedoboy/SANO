@@ -20,6 +20,7 @@ vault.local.json
 !.env.example
 deploy/env.production
 deploy/Caddyfile
+ключ openrouter.txt
 
 # Runtime state and operator data must never enter an image build context.
 *.sqlite3

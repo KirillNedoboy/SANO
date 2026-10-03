@@ -15,11 +15,11 @@ Docker Compose, Caddy, and local persistent Product Core storage.
 
 This is not clinical software. It does not provide diagnosis, treatment
 recommendation, dosage guidance, medication selection advice, or start/stop
-medication advice. D1/D2 supports authenticated PDF/TXT document ingest with
-bounded embedded-text extraction; P3 supports bounded local consumer-genotype
-import and selective research projections. OCR, raw-genome provider disclosure,
-VCF/FASTQ/BAM/WGS pipelines, and clinical genetics authority remain out of
-scope.
+medication advice. D1/D2 supports authenticated PDF/TXT/JPG/PNG document ingest
+with bounded embedded-text extraction and local Tesseract OCR (`rus+eng`); P3
+supports bounded local consumer-genotype import and selective research
+projections. Raw-genome provider disclosure, VCF/FASTQ/BAM/WGS pipelines, and
+clinical genetics authority remain out of scope.
 
 This document covers:
 
@@ -292,8 +292,8 @@ If any of these are missing, readiness fails closed.
 - TLS is strongly recommended for any remote deployment and handled at the reverse proxy.
 - Bounded local consumer-genotype import and selective Genetics Research are
   supported; raw genome bytes never enter provider context.
-- Authenticated PDF/TXT document upload is supported within D1/D2 limits; OCR
-  and image interpretation are not.
+- Authenticated PDF/TXT/JPG/PNG document upload is supported within D1/D2
+  limits, with bounded local OCR through Tesseract (`rus+eng`).
 - No medical advice.
 - No clinical decision support.
 - Local username/password Actor accounts are available after operator bootstrap.

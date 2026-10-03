@@ -12,10 +12,11 @@ OpenCare documents one bounded remote deployment path:
 This is a controlled self-hosted private-alpha path, not a production-readiness
 claim or clinical software. It does not provide diagnosis, treatment
 recommendation, dosage guidance, medication selection advice, or start/stop
-medication advice. The supported ingest boundary is authenticated PDF/TXT
-document ingest with bounded embedded-text extraction (D1/D2) and local
-consumer-genotype import with selective projections (P3); OCR and raw-genome
-provider disclosure remain out of scope.
+medication advice. The supported ingest boundary includes authenticated
+PDF/TXT/JPG/PNG document ingest, bounded embedded-text extraction (D1/D2), and
+local OCR using Tesseract with `rus` and `eng`; local consumer-genotype import
+uses selective projections (P3). Raw-genome provider disclosure remains out
+of scope.
 
 ## Supported Production Path
 
@@ -294,7 +295,7 @@ docker compose --env-file deploy/env.production -f docker-compose.prod.yml exec 
   --backup /var/backups/opencare/<new-backup-directory>
 ```
 
-Backups contain schema v11 durable Product Core and identity/access state, including credential
+Backups contain the current Product Core schema and durable identity/access state, including credential
 verifiers and invitation hashes. They exclude plaintext passwords, invitation
 codes, `.env`, `OPENCARE_SECRET_KEY`, provider credentials, cookies, sessions,
 TLS material, deployment configuration, and generated reports. Store the
@@ -330,14 +331,15 @@ owners, caregivers, and outstanding invitations in the restored snapshot.
 - Not clinical software.
 - No medical advice.
 - No clinical decision support.
-- Authenticated PDF/TXT document uploads are supported within D1/D2 bounds;
-  OCR and image interpretation are not.
+- Authenticated PDF/TXT/JPG/PNG uploads are supported within D1/D2 bounds.
+  Scanned PDF and image text uses bounded local Tesseract OCR with `rus+eng`;
+  OCR is not cloud extraction or clinical interpretation.
 - Product Core persistence depends on the two required host bind mounts.
 - Local Actor username/password accounts only. Public self-registration is
   disabled by default and, when explicitly enabled after bootstrap, is a
   controlled self-hosted capability rather than public SaaS identity. There is
   no email verification or self-service account recovery.
-- No OCR, FASTQ/BAM/CRAM/WGS pipeline, cloud synchronization, or deployment
-  automation. Bounded D1/D2 document ingest and P3 consumer-genotype import are
-  supported as described above.
+- No FASTQ/BAM/CRAM/WGS pipeline, cloud synchronization, or deployment
+  automation. Bounded D1/D2 document ingest, local OCR, and P3
+  consumer-genotype import are supported as described above.
 

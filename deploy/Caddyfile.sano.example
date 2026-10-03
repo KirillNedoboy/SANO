@@ -2,3 +2,7 @@ sanobot.art {
     encode zstd gzip
     reverse_proxy 127.0.0.1:18000
 }
+
+www.sanobot.art {
+    redir https://sanobot.art{uri} permanent
+}
