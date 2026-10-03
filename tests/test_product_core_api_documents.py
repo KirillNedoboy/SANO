@@ -463,6 +463,45 @@ def test_document_question_refuses_russian_prescriptive_request_before_provider_
     assert provider.calls == 0
 
 
+def test_document_question_refuses_english_dose_change_before_provider_call(
+    product_core_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class CountingProvider:
+        calls = 0
+        descriptor = ProviderDescriptor(
+            provider_id="synthetic.external",
+            provider_kind="external_http",
+            provider_mode="external_provider",
+            endpoint_class="non_loopback",
+            external=True,
+            model_id="synthetic-model",
+        )
+
+        def execute(self, request):
+            self.calls += 1
+            raise AssertionError(f"provider must not be called: {request}")
+
+    provider = CountingProvider()
+    monkeypatch.setattr(main_module.app.state, "agent_provider", provider)
+    upload = _upload(product_core_client)
+    assert upload.status_code == 201, upload.text
+    source_id = upload.json()["document"]["source_id"]
+    active = product_core_client.put(
+        "/api/family-access/v1/active-person", json={"person_id": "person-1"}
+    )
+    assert active.status_code == 204, active.text
+
+    response = product_core_client.post(
+        f"/api/product-core/v1/people/person-1/documents/{source_id}/questions/prepare",
+        json={"question": "What dose of this medication should I increase?"},
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json()["status"] == "refused"
+    assert response.json()["reason_code"] == "clinical_or_genetics_request"
+    assert provider.calls == 0
+
+
 def test_document_question_rejects_unsafe_russian_provider_output_without_exposing_it(
     product_core_client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:

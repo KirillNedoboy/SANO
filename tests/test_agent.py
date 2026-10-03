@@ -26,6 +26,7 @@ def test_policy_blocks_prescriptive_requests_without_blocking_recorded_context()
         "Should I take this medication?",
         "Which medication should I choose?",
         "Increase my dosage?",
+        "What dose of this medication should I increase?",
         "Should I stop taking it?",
         "What diagnosis do I have?",
         "What treatment should I start?",

@@ -13,6 +13,7 @@ BLOCKED_PATTERNS = (
     r"what diagnosis do i have|diagnose me|do i have .*diagnos",
     r"which medication should i choose|should i take .*medication|recommend .*medication",
     r"increase (my |the )?(dose|dosage)|decrease (my |the )?(dose|dosage)",
+    r"(?:what|which) (?:dose|dosage) of .* should i (?:increase|decrease|change)",
     r"should i stop taking|should i start taking|change (my |the )?medication",
     r"what treatment should i start|recommend .*treatment",
     r"genetic variant|genotype|pgx|pharmacogen|dna result",
