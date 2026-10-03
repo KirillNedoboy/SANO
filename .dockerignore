@@ -1,4 +1,6 @@
 .git
+.codex
+graft
 .github
 .venv
 __pycache__

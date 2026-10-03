@@ -305,11 +305,16 @@ async def _check_request_safety(request: Request, operation_id: str) -> JSONResp
     if request.method in {"POST", "PUT", "PATCH"}:
         media_type = request.headers.get("content-type", "").split(";", 1)[0].strip().lower()
         if operation_id == "product_core_register_document":
-            if media_type not in {"application/pdf", "text/plain"}:
+            if media_type not in {
+                "application/pdf",
+                "text/plain",
+                "image/jpeg",
+                "image/png",
+            }:
                 return _error_response(
                     415,
                     "unsupported_document_media_type",
-                    "Only PDF and plain-text documents are supported.",
+                    "Only PDF, plain-text, PNG, and JPEG documents are supported.",
                 )
         elif operation_id == "product_core_import_genetics":
             raw_length = request.headers.get("content-length")

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 
 import pytest
 from fastapi.testclient import TestClient
+from PIL import Image
 
 import app.main as main_module
 from app.agent.document_summary_trust import DocumentSummaryTrustAdapter
@@ -106,6 +108,47 @@ def test_document_content_type_and_body_limits_are_narrow(product_core_client: T
         headers={"content-type": "application/pdf"},
     )
     assert pdf.status_code == 201, pdf.text
+
+
+@pytest.mark.parametrize(
+    ("media_type", "image_format", "filename"),
+    (
+        ("image/png", "PNG", "synthetic.png"),
+        ("image/jpeg", "JPEG", "synthetic.jpg"),
+    ),
+)
+def test_document_image_upload_preserves_media_type_and_original_bytes(
+    product_core_client: TestClient,
+    media_type: str,
+    image_format: str,
+    filename: str,
+) -> None:
+    image = Image.new("RGB", (2, 2), color="white")
+    output = io.BytesIO()
+    image.save(output, format=image_format)
+    payload = output.getvalue()
+
+    uploaded = product_core_client.post(
+        "/api/product-core/v1/people/person-1/documents",
+        content=payload,
+        headers={
+            "content-type": media_type,
+            "x-opencare-filename": filename,
+        },
+    )
+
+    assert uploaded.status_code == 201, uploaded.text
+    document = uploaded.json()["document"]
+    assert document["media_type"] == media_type
+    assert document["size_bytes"] == len(payload)
+
+    original = product_core_client.get(
+        "/api/product-core/v1/people/person-1/documents/"
+        f"{document['source_id']}/original"
+    )
+    assert original.status_code == 200
+    assert original.headers["content-type"].split(";", 1)[0] == media_type
+    assert original.content == payload
 
 
 def test_document_locator_creates_candidate_with_exact_span(
