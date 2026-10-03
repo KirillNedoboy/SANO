@@ -8,8 +8,10 @@ from datetime import UTC, datetime
 from typing import Any, Protocol, cast
 
 from app.agent.providers.contract import (
+    SANITIZED_PROVIDER_FAILURE_CODES,
     AgentProvider,
     ProviderExecutionRequest,
+    ProviderFailureError,
     ProviderUnavailableError,
     build_provider_execution_request,
 )
@@ -29,6 +31,12 @@ from app.family_access.sessions import SessionStore
 
 def _hash(value: str) -> str:
     return hashlib.sha256(value.encode()).hexdigest()
+
+
+def _safe_provider_failure_reason(reason_code: str) -> str:
+    if reason_code in SANITIZED_PROVIDER_FAILURE_CODES:
+        return reason_code
+    return "provider_failed"
 
 
 def _bound_provider_identity(disclosure: object) -> tuple[str | None, str | None]:
@@ -506,7 +514,10 @@ class G2Runtime:
             )
             result = self.provider.execute(request)
             if result.failure is not None:
-                raise ProviderUnavailableError(result.failure.message)
+                raise ProviderFailureError(
+                    reason_code=_safe_provider_failure_reason(result.failure.reason_code),
+                    message="Provider execution failed.",
+                )
             if result.answer is None:
                 raise ProviderUnavailableError("Provider returned no answer.")
             descriptor = self.provider.descriptor
@@ -534,6 +545,25 @@ class G2Runtime:
                 )
             return ExecuteResult(execution_id, "refused", None,
                                  reason_code=reasons[0], receipt_id=receipt.receipt_id)
+        except ProviderFailureError as failure:
+            completed_at = self.clock()
+            reason_code = _safe_provider_failure_reason(failure.reason_code)
+            receipt = build_execution_receipt(
+                envelope=envelope, started_at=started_at, completed_at=completed_at,
+                status="failed", provider_id=provider_id, model_id=model_id,
+                provider_kind=provider_kind, external=external,
+                used_evidence_ids=[item["evidence_id"] for item in projection.evidence],
+                used_tools=[], output=None, reason_codes=[reason_code],
+            )
+            self._receipts[execution_id] = receipt
+            if self.repository is not None:
+                self.repository.save_execution_receipt(
+                    receipt, execution_id=execution_id, consent_id=str(consent["consent_id"]),
+                    actor_id=session.actor_id, person_id=pending.person_id,
+                    mutation_attempted=False,
+                )
+            return ExecuteResult(execution_id, "refused", None,
+                                 reason_code=reason_code, receipt_id=receipt.receipt_id)
         except Exception:
             completed_at = self.clock()
             receipt = build_execution_receipt(

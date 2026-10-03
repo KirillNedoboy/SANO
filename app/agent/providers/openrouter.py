@@ -15,6 +15,8 @@ from app.agent.providers.contract import (
     ProviderDescriptor,
     ProviderExecutionRequest,
     ProviderExecutionResult,
+    ProviderFailure,
+    ProviderFailureError,
     ProviderUnavailableError,
     answer_conforms_to_schema,
 )
@@ -71,9 +73,11 @@ def _post_json_no_redirect(
                 body=response.read(max_response_bytes + 1),
             )
     except HTTPError as exc:
+        status_code = exc.code
+        exc.close()
         return HttpResponse(
-            status_code=exc.code,
-            body=exc.read(max_response_bytes + 1),
+            status_code=status_code,
+            body=b"",
         )
     except TimeoutError:
         raise
@@ -165,7 +169,11 @@ class OpenRouterProvider(AgentProvider):
         except (OSError, URLError) as exc:
             raise ProviderUnavailableError("OpenRouter provider connection failed.") from exc
         if response.status_code < 200 or response.status_code >= 300:
-            raise ProviderUnavailableError("OpenRouter provider request failed.")
+            failure = _classify_http_failure(response.status_code)
+            raise ProviderFailureError(
+                reason_code=failure.reason_code,
+                message=failure.message,
+            )
         if len(response.body) > self._config.max_response_bytes:
             raise ProviderUnavailableError("OpenRouter provider response was too large.")
         try:
@@ -204,3 +212,22 @@ class OpenRouterProvider(AgentProvider):
             failure=None,
             runtime_metadata={},
         )
+
+
+def _classify_http_failure(status_code: int) -> ProviderFailure:
+    """Return a status-only failure classification with no upstream content."""
+    if status_code == 401:
+        return ProviderFailure(
+            reason_code="provider_http_401",
+            message="OpenRouter provider returned HTTP 401 authentication failure.",
+        )
+    if 400 <= status_code < 500:
+        category = "4xx"
+    elif 500 <= status_code < 600:
+        category = "5xx"
+    else:
+        category = "unexpected"
+    return ProviderFailure(
+        reason_code=f"provider_http_{category}",
+        message=f"OpenRouter provider returned HTTP {status_code}.",
+    )

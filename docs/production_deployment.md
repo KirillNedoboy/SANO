@@ -182,7 +182,7 @@ separate explicit consent action. Configure OpenRouter only through the
 operator env file, with `OPENCARE_AGENT_MODE=openrouter`,
 `OPENCARE_AGENT_ALLOW_EXTERNAL_LLM=true`,
 `OPENCARE_ALLOW_CLOUD_LLM=true`, and an explicit model such as
-`openai/gpt-4.1-mini`. Never put the provider key in source, an image, a
+`deepseek/deepseek-v4.1-flash`. Never put the provider key in source, an image, a
 document, or a validation report.
 
 For an existing deployment, reserve rollback material before stopping the old

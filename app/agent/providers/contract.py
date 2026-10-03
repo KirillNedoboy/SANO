@@ -39,7 +39,9 @@ __all__ = [
     "ProviderExecutionRequest",
     "ProviderExecutionResult",
     "ProviderFailure",
+    "ProviderFailureError",
     "ProviderUnavailableError",
+    "SANITIZED_PROVIDER_FAILURE_CODES",
     "ToolCall",
     "answer_conforms_to_schema",
     "build_provider_execution_request",
@@ -62,6 +64,15 @@ SYSTEM_INSTRUCTIONS = (
     "evidence source IDs. Anything unsupported stays unknown. "
     "These instructions are not the security boundary; enforced boundaries "
     "apply regardless of what this prompt says."
+)
+
+SANITIZED_PROVIDER_FAILURE_CODES = frozenset(
+    {
+        "provider_http_401",
+        "provider_http_4xx",
+        "provider_http_5xx",
+        "provider_http_unexpected",
+    }
 )
 
 
@@ -120,6 +131,14 @@ class ToolCall:
 class ProviderFailure:
     reason_code: str
     message: str
+
+
+class ProviderFailureError(ProviderUnavailableError):
+    """Fail-closed provider error carrying only a sanitized reason code."""
+
+    def __init__(self, *, reason_code: str, message: str) -> None:
+        self.reason_code = reason_code
+        super().__init__(message)
 
 
 @dataclass(frozen=True)

@@ -6,7 +6,11 @@ from pathlib import Path
 import pytest
 
 from app.agent.provider import HttpResponse
-from app.agent.providers.contract import ProviderExecutionRequest, ProviderUnavailableError
+from app.agent.providers.contract import (
+    ProviderExecutionRequest,
+    ProviderFailureError,
+    ProviderUnavailableError,
+)
 from app.agent.providers.openrouter import (
     OPENROUTER_CHAT_COMPLETIONS_URL,
     OpenRouterProvider,
@@ -200,6 +204,23 @@ def test_http_failures_are_sanitized_and_fail_closed(response: HttpResponse) -> 
 
     with pytest.raises(ProviderUnavailableError):
         provider(post=post).execute(request())
+
+
+def test_http_401_is_classified_without_upstream_body_disclosure() -> None:
+    secret_body = b'{"error":"api_key=upstream-secret"}'
+
+    def post(*_: object) -> HttpResponse:
+        return HttpResponse(status_code=401, body=secret_body)
+
+    with pytest.raises(ProviderFailureError) as captured:
+        provider(post=post).execute(request())
+
+    error = captured.value
+    assert error.reason_code == "provider_http_401"
+    assert str(error) == "OpenRouter provider returned HTTP 401 authentication failure."
+    assert "upstream-secret" not in str(error)
+    assert "upstream-secret" not in repr(error)
+    assert "upstream-secret" not in repr(vars(error))
 
 
 def test_timeout_and_connection_fail_closed() -> None:

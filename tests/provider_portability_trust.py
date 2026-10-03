@@ -551,7 +551,7 @@ def test_provider_failure_result_fails_closed_without_fallback(tmp_path: Path) -
                 model_id=None,
                 tool_calls=(),
                 failure=ProviderFailure(
-                    reason_code="provider_failed", message="boom"
+                    reason_code="provider_unavailable", message="boom"
                 ),
                 runtime_metadata={},
             )
@@ -568,6 +568,40 @@ def test_provider_failure_result_fails_closed_without_fallback(tmp_path: Path) -
     receipt = runtime.get_receipt(token, prepared.execution_id)
     assert receipt is not None
     assert receipt.status == "failed"
+    assert receipt.reason_codes == ["provider_failed"]
+
+
+def test_classified_provider_failure_reason_is_preserved_in_receipt(tmp_path: Path) -> None:
+    from app.agent.providers.contract import ProviderFailure
+
+    class FailingProvider(DeterministicProvider):
+        def execute(
+            self, request: ProviderExecutionRequest
+        ) -> ProviderExecutionResult:
+            del request
+            return ProviderExecutionResult(
+                answer=None,
+                provider_id=self.descriptor.provider_id,
+                model_id=None,
+                tool_calls=(),
+                failure=ProviderFailure(
+                    reason_code="provider_http_401",
+                    message="OpenRouter provider returned HTTP 401 authentication failure.",
+                ),
+                runtime_metadata={},
+            )
+
+    failing = CountingProvider(FailingProvider())
+    runtime, token, _authority, _box = build_runtime(tmp_path, provider=failing)
+    prepared = prepare_and_consent(runtime, token)
+    result = runtime.execute(token, prepared.execution_id, QUESTION)
+
+    assert result.status == "refused"
+    assert result.reason_code == "provider_http_401"
+    receipt = runtime.get_receipt(token, prepared.execution_id)
+    assert receipt is not None
+    assert receipt.status == "failed"
+    assert receipt.reason_codes == ["provider_http_401"]
 
 
 def test_external_consent_required_for_non_loopback_endpoint(tmp_path: Path) -> None:
