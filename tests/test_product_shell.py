@@ -202,12 +202,25 @@ def test_public_landing_localizes_archive_first_message_and_generated_hero(
     product_core_client.cookies.clear()
     english = product_core_client.get("/", follow_redirects=False)
     assert english.status_code == 200
-    assert "Your health story. Finally in one place." in english.text
+    assert "Health documents you can find when you need them" in english.text
+    assert "Start with the documents you already have" in english.text
+    assert "PDF / TXT / JPG / PNG" in english.text
+    assert "Genetics is an optional section" in english.text
+    assert "Start with one document" in english.text
+    assert "You can also run SANO on your own server." in english.text
+    assert "No DNA test needed" not in english.text
+    assert "Finally in one place" not in english.text
     assert "/brand/sano-hero-x1.webp" in english.text
 
     product_core_client.cookies.set("opencare_locale", "ru", path="/")
     russian = product_core_client.get("/", follow_redirects=False)
-    assert "Ваша история здоровья. Наконец в одном месте." in russian.text
+    assert "Медицинские документы, к которым легко вернуться" in russian.text
+    assert "Начните с документов, которые у вас уже есть" in russian.text
+    assert "Генетика — дополнительный раздел" in russian.text
+    assert "Начните с одного документа" in russian.text
+    assert "При желании SANO можно разместить на собственном сервере." in russian.text
+    assert "Анализ ДНК не нужен" not in russian.text
+    assert "Наконец в одном месте" not in russian.text
 
 
 def test_product_shell_hash_navigation_is_exclusive_and_non_persistent() -> None:
