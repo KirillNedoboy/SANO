@@ -298,6 +298,9 @@ def test_summary_requires_explicit_consent_and_reuses_completed_result(
             self.calls += 1
             assert request.purpose_id == "document_summary"
             assert request.action_id == "document.summarize"
+            assert "only the supplied page list" in request.system_instructions
+            assert "coverage_complete is true" in request.system_instructions
+            assert "coverage_complete is false" in request.system_instructions
             assert len(request.evidence) == 1
             assert set(request.evidence[0]) == {"page_number", "text"}
             return ProviderExecutionResult(
@@ -567,7 +570,9 @@ def test_document_question_rejects_unsafe_russian_provider_output_without_exposi
 
 
 def test_document_summary_rejects_unsafe_russian_output_without_persisting_result(
-    product_core_client: TestClient, monkeypatch: pytest.MonkeyPatch
+    product_core_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     class UnsafeSummaryProvider:
         calls = 0
@@ -610,9 +615,10 @@ def test_document_summary_rejects_unsafe_russian_output_without_persisting_resul
 
     prepared = product_core_client.post(root + "/prepare", json={})
     assert prepared.status_code == 200, prepared.text
-    completed = product_core_client.post(
-        root + f"/runs/{prepared.json()['run_id']}/consent", json={}
-    )
+    with caplog.at_level("WARNING", logger="opencare.agent.document_summary"):
+        completed = product_core_client.post(
+            root + f"/runs/{prepared.json()['run_id']}/consent", json={}
+        )
 
     assert completed.status_code == 200, completed.text
     assert completed.json()["status"] == "failed"
@@ -625,9 +631,25 @@ def test_document_summary_rejects_unsafe_russian_output_without_persisting_resul
     assert latest.json()["result"] is None
     assert "Вам следует увеличить дозу препарата." not in latest.text
     assert provider.calls == 1
+    runtime = main_module.app.state.product_core_runtime
+    with runtime.database.uow() as uow:
+        assert uow.connection is not None
+        execution_id = str(
+            uow.connection.execute(
+                "SELECT execution_id FROM document_summary_runs WHERE run_id = ?",
+                (prepared.json()["run_id"],),
+            ).fetchone()["execution_id"]
+        )
+    assert execution_id in caplog.text
+    assert "summary_safety_validation_failed" in caplog.text
+    assert "Вам следует увеличить дозу препарата." not in caplog.text
+    assert "evidence.txt" not in caplog.text
+    assert "api_key" not in caplog.text
 
 
-def _document_projection(action_id: str) -> EnvelopeProjection:
+def _document_projection(
+    action_id: str, *, selected_fields: tuple[str, ...] = ("page:1",)
+) -> EnvelopeProjection:
     return EnvelopeProjection(
         envelope_id="envelope-1",
         person_id="person-1",
@@ -642,7 +664,7 @@ def _document_projection(action_id: str) -> EnvelopeProjection:
             {
                 "evidence_id": "document-summary:source-1:extraction-1",
                 "content_sha256": "a" * 64,
-                "selected_fields": ("page:1",),
+                "selected_fields": selected_fields,
                 "source_ids": ("source-1",),
             },
         ),
@@ -651,6 +673,118 @@ def _document_projection(action_id: str) -> EnvelopeProjection:
         disclosure_constraints=(),
         prohibited_operations=(),
     )
+
+
+def _summary_answer(**overrides: object) -> dict[str, object]:
+    answer: dict[str, object] = {
+        "summary": "A source-backed description.",
+        "key_points": [],
+        "discussion_questions": [],
+        "page_numbers": [1],
+        "coverage_complete": True,
+        "coverage_note": None,
+    }
+    answer.update(overrides)
+    return answer
+
+
+@pytest.mark.parametrize(
+    ("answer", "selected_fields", "diagnostic"),
+    [
+        (
+            {"summary": "missing required fields"},
+            ("page:1",),
+            "schema_validation_failed",
+        ),
+        (
+            _summary_answer(),
+            (),
+            "page_numbers_missing",
+        ),
+        (
+            _summary_answer(page_numbers=[1, 1]),
+            ("page:1",),
+            "page_numbers_duplicate",
+        ),
+        (
+            _summary_answer(page_numbers=[2]),
+            ("page:1",),
+            "page_out_of_scope",
+        ),
+        (
+            _summary_answer(coverage_complete=True, coverage_note="pages 1-2"),
+            ("page:1",),
+            "coverage_inconsistent",
+        ),
+        (
+            _summary_answer(summary="safe\x01text"),
+            ("page:1",),
+            "control_character",
+        ),
+    ],
+)
+def test_document_validator_exposes_safe_internal_diagnostic_for_structural_failures(
+    answer: dict[str, object],
+    selected_fields: tuple[str, ...],
+    diagnostic: str,
+) -> None:
+    result = DocumentSummaryTrustAdapter.answer_validator(
+        answer,
+        _document_projection("document.summarize", selected_fields=selected_fields),
+    )
+
+    assert result.valid is False
+    assert result.reason_code == "summary_invalid"
+    assert result.diagnostic.value == diagnostic
+    assert result.internal_diagnostic.value == diagnostic
+
+
+def test_document_validator_schema_diagnostic_keeps_only_safe_metadata() -> None:
+    result = DocumentSummaryTrustAdapter.answer_validator(
+        {"summary": "missing required fields"},
+        _document_projection("document.summarize"),
+    )
+
+    assert result.diagnostic.value == "schema_validation_failed"
+    assert result.diagnostic_field == "key_points"
+    assert result.diagnostic_error_type == "missing"
+
+
+def test_document_validator_classifies_empty_page_numbers_before_schema_validation() -> None:
+    result = DocumentSummaryTrustAdapter.answer_validator(
+        _summary_answer(page_numbers=[]),
+        _document_projection("document.summarize"),
+    )
+
+    assert result.valid is False
+    assert result.reason_code == "summary_invalid"
+    assert result.diagnostic.value == "page_numbers_missing"
+
+
+def test_document_validator_requires_non_empty_coverage_note_when_incomplete() -> None:
+    result = DocumentSummaryTrustAdapter.answer_validator(
+        _summary_answer(coverage_complete=False, coverage_note="   "),
+        _document_projection("document.summarize"),
+    )
+
+    assert result.valid is False
+    assert result.reason_code == "summary_invalid"
+    assert result.diagnostic.value == "coverage_inconsistent"
+
+
+def test_document_validator_keeps_page_allowlist_for_question_answers() -> None:
+    result = DocumentSummaryTrustAdapter.answer_validator(
+        {
+            "answer": "The source reports one result.",
+            "page_numbers": [2],
+            "unknowns": [],
+        },
+        _document_projection("document.answer_question"),
+    )
+
+    assert result.valid is False
+    assert result.reason_code == "summary_invalid"
+    assert result.diagnostic.value == "page_out_of_scope"
 
 
 @pytest.mark.parametrize(

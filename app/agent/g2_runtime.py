@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -15,7 +16,7 @@ from app.agent.providers.contract import (
     ProviderUnavailableError,
     build_provider_execution_request,
 )
-from app.agent.validation import ValidationResult
+from app.agent.validation import ValidationDiagnostic, ValidationResult
 from app.agent_trust.builders import BuildRefused, build_execution_receipt
 from app.agent_trust.canonical import (
     canonical_bytes,
@@ -27,6 +28,47 @@ from app.agent_trust.canonical import (
 from app.agent_trust.models import ExecutionReceipt, TrustEnvelope
 from app.family_access.policy import POLICY_VERSION
 from app.family_access.sessions import SessionStore
+
+logger = logging.getLogger("opencare.agent.document_summary")
+_DOCUMENT_VALIDATION_ACTIONS = frozenset(
+    {
+        ("document_summary", "document.summarize"),
+        ("document_question", "document.answer_question"),
+    }
+)
+_SAFE_DOCUMENT_VALIDATION_REASON_CODES = frozenset(
+    {"summary_invalid", "summary_safety_validation_failed", "validation_failed"}
+)
+_SAFE_DOCUMENT_VALIDATION_DIAGNOSTICS = frozenset(
+    diagnostic.value for diagnostic in ValidationDiagnostic
+)
+_SAFE_DOCUMENT_VALIDATION_FIELDS = frozenset(
+    {
+        "summary",
+        "key_points",
+        "discussion_questions",
+        "page_numbers",
+        "coverage_complete",
+        "coverage_note",
+        "answer",
+        "unknowns",
+    }
+)
+_SAFE_DOCUMENT_VALIDATION_ERROR_TYPES = frozenset(
+    {
+        "bool_type",
+        "dict_type",
+        "extra_forbidden",
+        "int_type",
+        "list_type",
+        "missing",
+        "model_type",
+        "string_too_long",
+        "string_type",
+        "too_long",
+        "too_short",
+    }
+)
 
 
 def _hash(value: str) -> str:
@@ -116,6 +158,41 @@ def _validate_provider_answer(
     except (TypeError, ValueError):
         return ValidationResult(False, "validation_failed")
     return validate_answer(answer_model, context)
+
+
+def _log_document_validation_failure(
+    execution_id: str, projection: EnvelopeProjection, validation: ValidationResult
+) -> None:
+    """Emit only opaque execution identity and bounded validation codes."""
+    if (projection.purpose_id, projection.action_id) not in _DOCUMENT_VALIDATION_ACTIONS:
+        return
+    reason_code = validation.reason_code
+    safe_reason_code = (
+        reason_code
+        if reason_code in _SAFE_DOCUMENT_VALIDATION_REASON_CODES
+        else "validation_failed"
+    )
+    diagnostic = validation.diagnostic
+    diagnostic_value = (
+        diagnostic.value
+        if isinstance(diagnostic, ValidationDiagnostic)
+        and diagnostic.value in _SAFE_DOCUMENT_VALIDATION_DIAGNOSTICS
+        else None
+    )
+    record: dict[str, str] = {
+        "execution_id": execution_id,
+        "reason_code": safe_reason_code,
+    }
+    if diagnostic_value is not None:
+        record["diagnostic"] = diagnostic_value
+    if validation.diagnostic_field in _SAFE_DOCUMENT_VALIDATION_FIELDS:
+        record["field"] = validation.diagnostic_field
+    if validation.diagnostic_error_type in _SAFE_DOCUMENT_VALIDATION_ERROR_TYPES:
+        record["error_type"] = validation.diagnostic_error_type
+    logger.warning(
+        "document_summary_validation=%s",
+        json.dumps(record, sort_keys=True, separators=(",", ":")),
+    )
 
 
 @dataclass(frozen=True)
@@ -607,6 +684,7 @@ class G2Runtime:
         else:
             validation = self.answer_validator(result.answer, projection)
             if not validation.valid:
+                _log_document_validation_failure(execution_id, projection, validation)
                 answer = None
                 status = "refused"
                 reasons = [validation.reason_code or "validation_failed"]

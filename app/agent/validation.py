@@ -1,13 +1,36 @@
 import re
+from enum import StrEnum
 
 from app.agent.models import AgentAnswer, AgentContext
 from app.agent.policy import has_unsafe_russian_output
 
 
+class ValidationDiagnostic(StrEnum):
+    """Bounded internal diagnostics for structural validation failures."""
+
+    SCHEMA_VALIDATION_FAILED = "schema_validation_failed"
+    PAGE_NUMBERS_MISSING = "page_numbers_missing"
+    PAGE_NUMBERS_DUPLICATE = "page_numbers_duplicate"
+    PAGE_OUT_OF_SCOPE = "page_out_of_scope"
+    COVERAGE_INCONSISTENT = "coverage_inconsistent"
+    CONTROL_CHARACTER = "control_character"
+
+
 class ValidationResult:
-    def __init__(self, valid: bool, reason_code: str | None = None) -> None:
+    def __init__(
+        self,
+        valid: bool,
+        reason_code: str | None = None,
+        diagnostic: ValidationDiagnostic | None = None,
+        diagnostic_field: str | None = None,
+        diagnostic_error_type: str | None = None,
+    ) -> None:
         self.valid = valid
         self.reason_code = reason_code
+        self.diagnostic = diagnostic
+        self.internal_diagnostic = diagnostic
+        self.diagnostic_field = diagnostic_field
+        self.diagnostic_error_type = diagnostic_error_type
 
 
 UNSAFE_PRESCRIPTIVE_PATTERNS = (

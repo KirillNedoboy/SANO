@@ -15,6 +15,7 @@ from app.agent.g2_runtime import EnvelopeProjection
 from app.agent.policy import has_unsafe_russian_output
 from app.agent.providers.contract import AgentProvider, ProviderExecutionRequest
 from app.agent.trust_adapter import OpenCareAuthorizationAdapter
+from app.agent.validation import ValidationDiagnostic, ValidationResult
 from app.agent_trust.builders import (
     BuildRefused,
     EnvelopeRequest,
@@ -39,7 +40,50 @@ SUMMARY_ACTION = "document.summarize"
 SUMMARY_CONSENT_BASIS = "document-summary-per-source-v1"
 SUMMARY_REQUEST_PREFIX = "sano-document-summary-v1:"
 MAX_DOCUMENT_AI_TEXT_CHARS = 60_000
-SUMMARY_PROMPT_VERSION = "sano-document-summary-v1"
+SUMMARY_PROMPT_VERSION = "sano-document-summary-v2"
+
+_SUMMARY_DIAGNOSTIC_FIELDS = frozenset(
+    {
+        "summary",
+        "key_points",
+        "discussion_questions",
+        "page_numbers",
+        "coverage_complete",
+        "coverage_note",
+        "answer",
+        "unknowns",
+    }
+)
+_SUMMARY_DIAGNOSTIC_ERROR_TYPES = frozenset(
+    {
+        "bool_type",
+        "dict_type",
+        "extra_forbidden",
+        "int_type",
+        "list_type",
+        "missing",
+        "model_type",
+        "string_too_long",
+        "string_type",
+        "too_long",
+        "too_short",
+    }
+)
+
+
+def _safe_schema_diagnostic(error: ValidationError) -> tuple[str | None, str | None]:
+    """Extract only allowlisted top-level Pydantic diagnostic metadata."""
+    for item in error.errors(include_context=False, include_input=False, include_url=False):
+        location = item.get("loc", ())
+        field = location[0] if location and isinstance(location[0], str) else None
+        error_type = item.get("type")
+        safe_field = field if field in _SUMMARY_DIAGNOSTIC_FIELDS else None
+        safe_error_type = (
+            error_type if error_type in _SUMMARY_DIAGNOSTIC_ERROR_TYPES else None
+        )
+        if safe_field is not None or safe_error_type is not None:
+            return safe_field, safe_error_type
+    return None, None
 
 
 class DocumentSummaryAnswer(BaseModel):
@@ -392,8 +436,9 @@ class DocumentSummaryTrustAdapter:
             system_instructions=(
                 (
                     "Answer the user's question using only the supplied document text. "
-                    "Cite supplied page numbers. State when the document does not "
-                    "answer the question. "
+                    "Use only the supplied page list for page citations; never invent "
+                    "or cite another page. State when the document does not answer "
+                    "the question. "
                     "Do not diagnose, recommend treatment, dosage, or medication changes."
                 )
                 if question_mode
@@ -401,9 +446,11 @@ class DocumentSummaryTrustAdapter:
                     "Write a brief plain-language description of the supplied document. "
                     "Use only its text. Do not diagnose, interpret results, recommend treatment, "
                     "or suggest medication changes. Keep uncertainty explicit. Every "
-                    "page number must refer to supplied evidence. If the supplied pages "
-                    "do not cover the whole "
-                    "document, set coverage_complete false and say which pages are covered."
+                    "page number must refer to supplied evidence. Use only the supplied page "
+                    "list for page citations; never invent or cite another page. If the supplied "
+                    "pages do not cover the whole document, set coverage_complete false and say "
+                    "which pages are covered. When coverage_complete is true, coverage_note must "
+                    "be null. When coverage_complete is false, coverage_note must be non-empty."
                 )
             ),
             disclosure_constraints=tuple(projection.disclosure_constraints),
@@ -413,6 +460,16 @@ class DocumentSummaryTrustAdapter:
     @staticmethod
     def answer_validator(answer: dict[str, Any], projection: EnvelopeProjection) -> Any:
         question_mode = projection.action_id == "document.answer_question"
+        if (
+            isinstance(answer, dict)
+            and isinstance(answer.get("page_numbers"), list)
+            and not answer["page_numbers"]
+        ):
+            return ValidationResult(
+                False,
+                "summary_invalid",
+                diagnostic=ValidationDiagnostic.PAGE_NUMBERS_MISSING,
+            )
         try:
             if question_mode:
                 parsed_question = DocumentQuestionAnswer.model_validate(answer)
@@ -427,11 +484,20 @@ class DocumentSummaryTrustAdapter:
                 ]
                 coverage_valid = (
                     parsed_summary.coverage_complete and parsed_summary.coverage_note is None
-                ) or (not parsed_summary.coverage_complete and bool(parsed_summary.coverage_note))
-        except ValidationError:
-            from app.agent.validation import ValidationResult
-
-            return ValidationResult(False, "summary_invalid")
+                ) or (
+                    not parsed_summary.coverage_complete
+                    and parsed_summary.coverage_note is not None
+                    and bool(parsed_summary.coverage_note.strip())
+                )
+        except ValidationError as error:
+            diagnostic_field, diagnostic_error_type = _safe_schema_diagnostic(error)
+            return ValidationResult(
+                False,
+                "summary_invalid",
+                diagnostic=ValidationDiagnostic.SCHEMA_VALIDATION_FAILED,
+                diagnostic_field=diagnostic_field,
+                diagnostic_error_type=diagnostic_error_type,
+            )
         parsed = parsed_question if question_mode else parsed_summary
         allowed_pages = {
             int(field.removeprefix("page:"))
@@ -441,19 +507,46 @@ class DocumentSummaryTrustAdapter:
             and field.startswith("page:")
             and field.removeprefix("page:").isdigit()
         }
-        if (
-            len(set(parsed.page_numbers)) != len(parsed.page_numbers)
-            or any(page not in allowed_pages for page in parsed.page_numbers)
-            or not parsed.page_numbers
-            or not coverage_valid
-            or any(
-                any(ord(char) < 32 and char not in "\n\t" for char in value)
-                for value in content_values
+        if not allowed_pages:
+            return ValidationResult(
+                False,
+                "summary_invalid",
+                diagnostic=ValidationDiagnostic.PAGE_NUMBERS_MISSING,
+            )
+        if len(set(parsed.page_numbers)) != len(parsed.page_numbers):
+            return ValidationResult(
+                False,
+                "summary_invalid",
+                diagnostic=ValidationDiagnostic.PAGE_NUMBERS_DUPLICATE,
+            )
+        if any(page not in allowed_pages for page in parsed.page_numbers):
+            return ValidationResult(
+                False,
+                "summary_invalid",
+                diagnostic=ValidationDiagnostic.PAGE_OUT_OF_SCOPE,
+            )
+        if not coverage_valid:
+            return ValidationResult(
+                False,
+                "summary_invalid",
+                diagnostic=ValidationDiagnostic.COVERAGE_INCONSISTENT,
+            )
+        if any(
+            any(ord(char) < 32 and char not in "\n\t" for char in value)
+            for value in content_values
+        ) or (
+            not question_mode
+            and parsed_summary.coverage_note is not None
+            and any(
+                ord(char) < 32 and char not in "\n\t"
+                for char in parsed_summary.coverage_note
             )
         ):
-            from app.agent.validation import ValidationResult
-
-            return ValidationResult(False, "summary_invalid")
+            return ValidationResult(
+                False,
+                "summary_invalid",
+                diagnostic=ValidationDiagnostic.CONTROL_CHARACTER,
+            )
         content = "\n".join(content_values)
         unsafe = (
             r"\byou should (take|start|stop|increase|decrease|change|switch)\b",
@@ -468,12 +561,8 @@ class DocumentSummaryTrustAdapter:
             or any(re.search(pattern, content, re.I) for pattern in unsafe)
             or has_unsafe_russian_output(content)
         ):
-            from app.agent.validation import ValidationResult
-
             return ValidationResult(False, "summary_safety_validation_failed")
         del projection
-        from app.agent.validation import ValidationResult
-
         return ValidationResult(True, None)
 
     def project(self, projection: EnvelopeProjection, _question: str) -> dict[str, Any]:
