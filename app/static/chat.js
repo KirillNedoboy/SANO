@@ -33,7 +33,7 @@
     if (!sourcePicker) return;
     sourcePicker.hidden = false;
     sourceToggle?.focus();
-    sourceToggle?.click();
+    if (sourceToggle?.getAttribute("aria-expanded") !== "true") sourceToggle?.click();
   };
   const addRecordContextAction = (card) => {
     if (!sourcePicker || documentSource) return;
@@ -86,6 +86,8 @@
   const localizeRetention = (value) => { const normalized = typeof value === "string" ? value.replace(/[.]$/, "") : value; return normalized === "provider policy; OpenCare does not retain provider payloads" ? t("chat.retention_provider_policy", value) : value; };
   const headers = () => ({ "content-type": "application/json", ...(live ? { "X-OpenCare-CSRF": csrfToken() } : {}) });
   const errorCode = (payload) => payload?.error?.code || payload?.reason_code || payload?.code || "";
+  const safeErrorCodes = new Set(["authentication_required", "origin_rejected", "csrf_rejected", "scope_forbidden", "forbidden_access", "person_access_denied", "person_mismatch", "authorization_expired", "context_changed", "context_limit_exceeded", "evidence_scope_invalid", "provenance_missing", "provider_disclosure_denied", "request_validation_failed", "malformed_request", "provider_runtime_failure"]);
+  const safeErrorMessage = (error) => error instanceof Error && safeErrorCodes.has(error.code) ? error.message : t("chat.request_failed", "Sano could not complete this request. Try again.");
   const errorMessage = (response, payload) => {
     const code = errorCode(payload);
     if (response.status === 401 || code === "authentication_required") return t("chat.authentication_required", "Your session is no longer available. Sign in again.");
@@ -99,7 +101,12 @@
   const request = async (path, body, method = "POST") => {
     const init = { method, credentials: "same-origin", headers: method === "GET" ? { ...(live ? { "X-OpenCare-CSRF": csrfToken() } : {}) } : headers() };
     if (body !== undefined) init.body = JSON.stringify(body);
-    const response = await fetch(path, init);
+    let response;
+    try { response = await fetch(path, init); } catch (_) {
+      const error = new Error(t("chat.request_failed", "Sano could not complete this request. Try again."));
+      error.code = "provider_runtime_failure";
+      throw error;
+    }
     let payload = {};
     let invalidJson = false;
     try { payload = await response.json(); } catch (_) { invalidJson = true; }
@@ -179,7 +186,7 @@
         sourcePicker.hidden = true;
         return;
       }
-      setSourceStatus(error instanceof Error ? error.message : t("chat.request_failed", "Sano could not complete this request. Try again."), "danger");
+      setSourceStatus(safeErrorMessage(error), "danger");
     } finally {
       sourceToggle.disabled = false;
       sourceToggle.removeAttribute("aria-busy");
@@ -272,7 +279,7 @@
     await finishWithReceipt(prepared.execution_id, executed);
   };
   const sendDemo = async (question) => request(endpoint, { question }).then(addAnswer);
-  const send = async (question) => { emptyState?.remove(); const message = document.createElement("article"); message.className = "message message-user"; const bubble = document.createElement("div"); bubble.className = "user-bubble"; const askLabel = documentSource ? "chat.document_ask_label" : "chat.ask_label"; addText(message, "h2", t(askLabel, "Your question")).className = "sr-only"; bubble.textContent = question; message.append(bubble); stream.append(message); revealLatest(); textarea.value = ""; sendButton.disabled = true; if (newChat) newChat.disabled = true; status.textContent = live ? t("chat.status_prepare", "Preparing an exact disclosure…") : t("chat.status_check", "Checking vault context and sources…"); try { if (live) await sendLive(question); else await sendDemo(question); } catch (error) { addAnswer({ status: "error", answer: error instanceof Error ? error.message : t("chat.error", "OpenCare could not process this request."), citations: [], unknowns: [], doctor_questions: [], boundary_notices: [t("chat.no_provider_output", "No provider output was displayed.")] }); } finally { sendButton.disabled = false; if (newChat) newChat.disabled = false; consentPending = false; status.textContent = ""; textarea.focus(); revealLatest(); } };
+  const send = async (question) => { emptyState?.remove(); const message = document.createElement("article"); message.className = "message message-user"; const bubble = document.createElement("div"); bubble.className = "user-bubble"; const askLabel = documentSource ? "chat.document_ask_label" : "chat.ask_label"; addText(message, "h2", t(askLabel, "Your question")).className = "sr-only"; bubble.textContent = question; message.append(bubble); stream.append(message); revealLatest(); textarea.value = ""; sendButton.disabled = true; if (newChat) newChat.disabled = true; status.textContent = live ? t("chat.status_prepare", "Preparing an exact disclosure…") : t("chat.status_check", "Checking vault context and sources…"); try { if (live) await sendLive(question); else await sendDemo(question); } catch (error) { addAnswer({ status: "error", answer: safeErrorMessage(error), citations: [], unknowns: [], doctor_questions: [], boundary_notices: [t("chat.no_provider_output", "No provider output was displayed.")] }); } finally { sendButton.disabled = false; if (newChat) newChat.disabled = false; consentPending = false; status.textContent = ""; textarea.focus(); revealLatest(); } };
   form?.addEventListener("submit", (event) => { event.preventDefault(); const question = textarea.value.trim(); if (question && !sendButton.disabled && !consentPending) send(question); });
   textarea?.addEventListener("keydown", (event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); form.requestSubmit(); } });
   document.querySelectorAll(".prompt-button").forEach((button) => button.addEventListener("click", () => { textarea.value = button.textContent; textarea.focus(); }));
