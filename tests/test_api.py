@@ -264,8 +264,7 @@ def test_reviewer_quickstart_endpoint_returns_markdown() -> None:
     assert response.headers["content-type"].startswith("text/markdown")
     assert "Reviewer Quickstart" in response.text
     assert (
-        "https://github.com/KirillNedoboy/open-care-proof-kit/blob/main/"
-        "docs/adr/0001-opencare-product-direction.md"
+        "https://github.com/KirillNedoboy/open-care-proof-kit/blob/main/docs/judge-guide.md"
     ) in response.text
     assert (
         "https://github.com/KirillNedoboy/open-care-proof-kit/blob/main/docs/project-status.md"

@@ -2816,7 +2816,9 @@ TRANSLATIONS["en"].update(
             "Add a PDF, TXT, JPG, or PNG. SANO keeps the original in your archive."
         ),
         "landing.how.step_two_title": "Find the original",
-        "landing.how.step_two_body": "Search by name or year, then open the original when you need it.",
+        "landing.how.step_two_body": (
+            "Search by name or year, then open the original when you need it."
+        ),
         "landing.how.step_three_title": "Review the details",
         "landing.how.step_three_body": (
             "Extracted details remain suggestions until you choose to confirm them."
@@ -2859,7 +2861,9 @@ TRANSLATIONS["en"].update(
         "landing.privacy.genetics_body": "You can also run SANO on your own server.",
         "landing.privacy.alt": "A quiet home table with personal papers in natural light.",
         "landing.closing.title": "Start with one document",
-        "landing.closing.body": "Create an account and add a report, test result, or another document.",
+        "landing.closing.body": (
+            "Create an account and add a report, test result, or another document."
+        ),
         "landing.footer.note": "A personal space for health documents and records.",
     }
 )
@@ -2920,7 +2924,9 @@ TRANSLATIONS["ru"].update(
             "Добавьте PDF, TXT, JPG или PNG. Оригинал останется в архиве."
         ),
         "landing.how.step_two_title": "Найдите оригинал",
-        "landing.how.step_two_body": "Ищите документ по названию или году и открывайте его, когда нужно.",
+        "landing.how.step_two_body": (
+            "Ищите документ по названию или году и открывайте его, когда нужно."
+        ),
         "landing.how.step_three_title": "Проверьте сведения",
         "landing.how.step_three_body": (
             "Извлечённые сведения остаются предложениями, пока вы их не проверите "
@@ -2957,16 +2963,24 @@ TRANSLATIONS["ru"].update(
             "здоровья с другими."
         ),
         "landing.privacy.local_title": "Ваш аккаунт",
-        "landing.privacy.local_body": "После регистрации вы получаете свой профиль для документов и записей о здоровье.",
+        "landing.privacy.local_body": (
+            "После регистрации вы получаете свой профиль для документов и записей "
+            "о здоровье."
+        ),
         "landing.privacy.person_title": "Отдельные права доступа",
         "landing.privacy.person_body": "Доступ к одному профилю не открывает другой.",
         "landing.privacy.limits_title": "Понятные ограничения",
         "landing.privacy.limits_body": "SANO помогает организовать данные, но не заменяет врача.",
         "landing.privacy.genetics_title": "Открытый код",
-        "landing.privacy.genetics_body": "При желании SANO можно разместить на собственном сервере.",
+        "landing.privacy.genetics_body": (
+            "При желании SANO можно разместить на собственном сервере."
+        ),
         "landing.privacy.alt": "Личные документы на домашнем столе при мягком дневном свете.",
         "landing.closing.title": "Начните с одного документа",
-        "landing.closing.body": "Создайте аккаунт и добавьте выписку, результат анализа или другой документ.",
+        "landing.closing.body": (
+            "Создайте аккаунт и добавьте выписку, результат анализа или другой "
+            "документ."
+        ),
         "landing.footer.note": "Личное пространство для документов и записей о здоровье.",
     }
 )

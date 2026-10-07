@@ -1,9 +1,15 @@
 # AGENTS.md
 
+SANO is the product name; `open-care-proof-kit` and `opencare-*` remain the
+stable repository, package, and protocol identifiers. Current product and
+schema status is documented in `docs/project-status.md` and
+`docs/capability-matrix.md`.
+
 ## Project overview
 
-OpenCare Proof Kit is an open-source, self-hosted Personal and Family Health
-Workspace plus reusable trust infrastructure for sensitive personal AI agents.
+SANO is an open-source, self-hosted personal and family health workspace plus
+reusable trust infrastructure for sensitive personal AI agents. The repository
+and `opencare-*` package/protocol identifiers remain stable.
 
 Public `main` contains the completed implementation sequence:
 
@@ -20,9 +26,15 @@ Public `main` contains the completed implementation sequence:
 
 There is no G6.
 
-Current Product Core schema is v9. The implementation includes Person-scoped
+Public `main` already contains Product Core schema v13 and SANO-X2 document
+understanding, including PDF/TXT/JPG/PNG support, local OCR, and consent-gated
+document summary/Q&A. Seven post-`84fb682` production/product refinements are
+prepared for integration; they do not introduce schema v13 or SANO-X2. This
+branch also corrects an outdated redirect-test expectation. The implementation
+includes Person-scoped
 records, provenance and human review, medications, recorded conditions, labs,
-Visits and Visit Briefs, bounded PDF/TXT document ingest, Family Access v1-v3,
+Visits and Visit Briefs, bounded PDF/TXT/JPG/PNG ingest with local OCR and
+consented document understanding, Family Access v1-v4,
 separate genetics grants, Genetics Workspace, family genetics comparison, and
 bounded Genetics Evidence/Explore Research Mode.
 
@@ -76,13 +88,13 @@ not override current-state documents or current runtime behavior.
 
 ```text
 app/product_core
-    Product Core schema v9, Sources, candidates, canonical records, timeline,
-    Visits, Visit Briefs, document ingest, genetics persistence, export,
-    backup/recovery.
+    Product Core schema v13 on published `main`: Sources, candidates,
+    canonical records, timeline, Visits, Visit Briefs, consented document
+    understanding, genetics persistence, export, backup/recovery.
 
 app/family_access
     Actor sessions, Person authorization, relationships, assignments, consent,
-    Family Access scope generations v1-v3.
+    Family Access scope generations v1-v4.
 
 app/agent_trust
     Trust Envelope, policy-bound context, execution receipt, portable trust
@@ -128,7 +140,9 @@ the sharing/delegation mechanism.
 - Family Access assignments use their frozen scope generation.
 - Family Access v1 and v2 remain frozen.
 - Family Access v3 adds document scopes.
-- Genetics access is separate from ordinary Family Access:
+  - Family Access v4 adds procedure, recommendation, and follow-up scopes;
+    earlier generations remain frozen.
+  - Genetics access is separate from ordinary Family Access:
   - `genetics.read`
   - `genetics.write`
   - `genetics.research`
@@ -155,13 +169,17 @@ Do not weaken these boundaries for convenience, demo behavior, or agent tooling.
 
 ## Document-ingest boundary
 
-D1 supports bounded local ingestion of:
+D1 established bounded local ingestion of:
 
 - TXT
 - text-layer PDF
 
 It does not imply OCR, image interpretation, cloud extraction, clinical NER, or
 LLM extraction.
+
+Published SANO-X2 provides bounded local Tesseract OCR for PDF/TXT/JPG/PNG
+flows and separate consent-gated document descriptions and Q&A. Historical D1
+rules remain the contract for the D1 phase itself.
 
 Document bytes and extracted page text remain source/provenance material. Normal
 agent context must contain only explicitly selected authorized projections, not
@@ -331,7 +349,8 @@ Without a new explicit product decision, do not add:
 - medication start/stop authority;
 - clinical genetics authority;
 - clinical validation claims;
-- OCR;
+- unbounded OCR, cloud/image interpretation, or OCR beyond the documented
+  local Tesseract (`rus+eng`) PDF/image boundary;
 - FASTQ/BAM/CRAM/gVCF/WGS production pipelines;
 - autonomous canonical-record mutation;
 - SaaS multi-tenant product expansion;
@@ -349,7 +368,8 @@ device compliance, or clinical readiness.
 
 The development package version may be ahead of the latest published tag.
 
-Do not infer a release from a development version such as `0.3.0.dev0`.
+Do not infer a public release from untagged local package metadata. The
+prepared `0.3.0` metadata remains unpublished until an explicit release.
 
 Do not create a tag, release, PR, deploy, or mutate GitHub settings unless the
 user explicitly asks for that exact remote action.

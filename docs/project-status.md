@@ -1,62 +1,40 @@
 # SANO current project status
 
-This status distinguishes the published X1 baseline from the X2-enabled
-reconciliation candidate represented by this checkout. The candidate includes
-SANO-X2 locally; the published remote `main` has not yet been updated with X2.
-Public `main` is a mutable Git ref. Candidate status: not merged, pushed, or published.
-The P3-final implementation baseline was `0937d352cc74a3050609e826baa6bad82f6ac9ee`; the R1 repository-truth baseline was `46141e70d980fc611513e98afe251b1c611089c7`.
-The published `v0.1.0` and `v0.2.0` tags remain the only releases, and neither
-tag implies production or clinical readiness. Package/runtime development
-identity `0.3.0.dev0` is not a published `v0.3.0` release.
+Status checked on 7 October 2026. Public `main` is a mutable Git ref. The dated public-main baseline `84fb682429c94f7c589530063c8753d882008d58` already contains Product Core schema v13 and SANO-X2: PDF/TXT/JPG/PNG support, local OCR, and document summary/Q&A. The seven commits from `84fb682` to `089a5eb` are post-main production/product refinements prepared for integration; they do not introduce schema v13 or X2. This local branch starts at `089a5eb` and also corrects an outdated redirect-test expectation. See the dated validation record for exact commit and CI identities.
+
+The two published release tags remain `v0.1.0` and `v0.2.0`. This checkout prepares package version `0.3.0`; there is no `v0.3.0` tag or release. A release does not imply public SaaS readiness or clinical validation.
 
 ## Delivery status
 
-- **Published baseline:** R7, UI-R4.1, SANO-A1, and SANO-X1 are present on
-  published `main`. The document archive supports PDF/TXT originals, metadata,
-  and Person-scoped viewing. Published Product Core schema is v12. OCR and X2
-  document understanding are not part of that published baseline.
-- **SANO-X2 Document Understanding:** `COMPLETE LOCALLY / MERGE BLOCKER CLOSED`
-  in this candidate checkout. The v13 migration adds persisted document
-  text-processing and summary state. It accepts PDF/TXT/JPG/PNG, keeps original
-  bytes, and supports bounded local text recognition with Tesseract
-  `rus+eng`. Optional document descriptions and “Ask about this document” use
-  selected document text and page references after explicit, provider-bound G2
-  consent. Upload does not create a reviewed health record. A live X2 document
-  summary through OpenAI is **UNVERIFIED**. This candidate is not described as
-  already published on remote `main`.
-- **SANO Brand Direction v1:** `FIXED`.
-```text
-R7 = DONE / published
-UI-R4.1 = PUBLISHED
-SANO-A1 = PUBLISHED
-SANO-X1 = PUBLISHED
-SANO-X2 = COMPLETE LOCALLY / MERGE BLOCKER CLOSED
-Product Core schema = v12 published / v13 candidate
-SANO Brand Direction v1 = FIXED
-G5 = READY_FOR_SECOND_CLIENT_SMOKE
-AlphaGenome = PAUSED after C.1
-```
-
-The completed sequence on public `main` is:
+- Public `main` includes Person-scoped PDF, TXT, JPG, and PNG documents; originals are retained, and local Tesseract OCR supports Russian and English (`rus+eng`).
+- Document descriptions and document-scoped Q&A use selected recognized text and page references after explicit, per-action consent. They do not create reviewed health records.
+- Local inference without an external API and the OpenRouter/DeepSeek live provider flow, including document summary/Q&A, are operator-confirmed. Summary attribution, Q&A citations, and execution receipts are also operator-confirmed. OpenAI live X2 is unverified; models and detailed smoke artifacts are recorded only when evidence exists.
+- See [SANO live validation](sano-live-validation.md) for dated GitHub Actions and provider evidence.
+- Package/repository product name: SANO. `open-care-proof-kit` and `opencare-*` remain stable package, protocol, and schema identifiers.
 
 ```text
-G1 -> G2 -> G2.5 -> G3 -> G4 -> G5 -> P1 -> P2 -> D1 -> P3
+Public main baseline: `84fb682`, Product Core schema v13 / SANO-X2
+Post-main refinements: seven production/product commits through `089a5eb`, prepared for integration
+Local branch: post-main refinements plus redirect-test correction
+G5: READY_FOR_SECOND_CLIENT_SMOKE
+AlphaGenome: PAUSED after C.1
+v0.3.0: locally prepared; not released
 ```
 
-There is no G6. G5 machine state remains exactly
-`READY_FOR_SECOND_CLIENT_SMOKE`: Agent Skills interoperability is verified,
-while root Agent Plugins two-independent-client validation remains external
-ecosystem evidence pending.
+The implementation sequence remains G1–G5, P1, P2, D1, and P3. There is no G6. G5 machine status remains exactly `READY_FOR_SECOND_CLIENT_SMOKE`: Agent Skills interoperability is verified, while root Agent Plugins two-client evidence remains pending.
 
-## Implemented boundary
+## Post-main refinement boundary
 
-- Product Core schema v12 on published `main` owns Person-scoped Sources, medications,
-  recorded conditions, labs, procedures, recommendations, follow-ups, Visits,
-  Visit Questions, Visit Briefs, document extractions, genetics datasets,
-  findings, grants, research sessions, export, backup, and recovery. v10 rows
-  are preserved by the migration. Candidate migration v13 adds document
-  text-processing state and consented summary/question state; the published
-  v12 baseline remains unchanged until this candidate is published.
+- Product Core schema v13 owns Person-scoped sources, canonical health records, Visits and Visit Briefs, document text-processing and consented summary state, genetics records, export, backup, and recovery. The migration chain preserves older data.
+- Family Access generations retain their frozen scope behavior; the current candidate includes the explicit v4 scopes for procedures, recommendations, and follow-ups. Genetics permissions remain separate from ordinary Family Access.
+- Document summaries and Q&A use the selected document projection. The original bytes and provenance remain available; human review controls promotion of candidate facts into canonical records.
+- The self-hosted runtime is designed to process user-owned sensitive data locally under explicit authorization. Repository fixtures, screenshots, and reviewer examples remain synthetic or de-identified.
+- Relationships alone are not grants; authorization fails closed and revocation affects the next decision. Raw genome data never enters provider context. Agent output and Research hypotheses cannot mutate canonical health records.
+- SANO does not claim diagnosis, treatment or dosage recommendation, medication start/stop authority, clinical decision support, or clinical validation.
+
+P3 Genetics Research Studio is implemented and published on public `main`. The earlier P3-final implementation baseline was `0937d352cc74a3050609e826baa6bad82f6ac9ee`; the R1 repository-truth baseline was `46141e70d980fc611513e98afe251b1c611089c7`.
+
+## Historical phase notes
 - Visit Brief content schema remains v2; v1 revisions remain readable. The D2.2
   categories are explicitly not part of Brief v2.
 - Family Access v1 and v2 are frozen. v3 adds `document.read` and
@@ -233,10 +211,13 @@ sent no raw genome, and kept `external=true`. Three real inference requests were
 made, including one paid request; OpenRouter reported USD 0.00012204 for the
 paid smoke. No provider/trust defect or credential leak was detected.
 
-R6 Real LLM Provider Productization = COMPLETE. OpenRouter live external
-trust-flow = VERIFIED. Free-model compatibility remains NOT VERIFIED; the two
-bounded candidate failures are recorded above. Ollama live smoke remains
-DEFERRED / UNVERIFIED, and OpenAI Responses live smoke remains UNVERIFIED.
+R6 Real LLM Provider Productization = COMPLETE. The bounded 6 September
+OpenRouter matrix above remains the record of those particular model runs.
+Later operator confirmation (7 October) covers local-model inference without
+an external API and OpenRouter/DeepSeek document summary/Q&A, including
+attribution, citations, and receipts. OpenAI live X2 document summary/Q&A
+remains unverified; generic adapter tests do not establish that workflow. See
+[SANO live validation](sano-live-validation.md).
 
 R7 Docker Distribution is complete and published after the UI redesign. The
 supported path remains controlled self-hosting on a single node; live Engine
@@ -461,9 +442,9 @@ D1 is implemented and published on public `main` at
 `c6ae91e40f02582c0e07c1bca8c95765970c93ff`. It accepts only authenticated
 Person-scoped PDF/TXT uploads, preserves immutable source bytes, performs
 bounded embedded-text extraction, and keeps review human-controlled for
-medication, condition, and lab records. D1's published boundary uses embedded
-PDF text and does not include OCR; the SANO-X2 candidate adds bounded local OCR
-and separate consent-gated document actions. Automated clinical/model
+medication, condition, and lab records. The D1 phase contract uses embedded
+PDF text and does not include OCR; published SANO-X2 later adds bounded local
+OCR and separate consent-gated document actions. Automated clinical/model
 extraction remains out of scope. Family Access v1/v2 remain frozen; v3 adds
 explicit document scopes. Portable export v4 includes authorized document
 payloads and immutable extraction metadata. SANO-A1 extends the published
@@ -488,13 +469,14 @@ Evidence/Explore Research Mode. VCF remains demo-only. See
 - synthetic repository fixtures remain separate from local user-owned runtime
   data;
 - no clinical-authority claim, FHIR/EHR sync, public SaaS identity, or cloud
-  raw-genome upload. OCR is local and available in the SANO-X2 candidate;
+  raw-genome upload. OCR is local and available in published SANO-X2 on public
+  `main`;
 - no diagnosis, treatment, dosage, medication selection, or start/stop advice;
 - no populated-installation import/merge guarantee.
 
 ## Remaining product limits
 
-OpenCare is not a diagnostic system, treatment or dosage recommender, clinical
+SANO is not a diagnostic system, treatment or dosage recommender, clinical
 decision-support system, public identity service, encrypted backup system, or
 populated-installation import/merge tool. Phase 2 does not make the documented
 self-hosted path production-ready or clinically validated.

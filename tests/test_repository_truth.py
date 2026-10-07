@@ -20,17 +20,41 @@ def test_current_repository_truth_is_published_and_versioned() -> None:
     assert "Public `main` is a mutable Git ref." in status
     assert "P3-final implementation" in status
     assert "R1 repository-truth" in status
-    assert "contains the completed G1-G5, P1, P2, D1, and P3 implementation" in readme
-    assert "P3 Genetics Research Studio (implemented and published on public" in status
+    assert "contains the completed G1–G5, P1, P2, D1, and P3 implementation sequence" in readme
+    assert "P3 Genetics Research Studio is implemented and published on public `main`" in status
     assert "P3 is part of the published" in matrix
     assert "P3 branch" not in matrix
     assert "pending integration" not in matrix
+    assert "84fb682429c94f7c589530063c8753d882008d58" in status
+    assert "schema v13" in status and "SANO-X2" in status
+    assert "v13 PUBLISHED" in matrix
+    assert "v13 CANDIDATE / v12 ON PUBLIC MAIN" not in matrix
     assert "Genetics remains a future layer" not in readme
     assert "no document ingestion" not in readme.lower()
-    assert project["version"] == __version__ == "0.3.0.dev0"
+    assert project["version"] == __version__ == "0.3.0"
     assert PRODUCT_MIGRATIONS[-1].version == 13
-    assert "SANO-X2 Document Understanding" in status
-    assert "not merged, pushed, or published" in status
+    assert "SANO-X2" in status
+    assert "Product Core schema v13" in status
+    assert "already contains Product Core schema v13 and SANO-X2" in status
+    assert "post-main production/product refinements" in status
+
+
+def test_public_reviewer_copy_exposes_current_ai_validation_boundary() -> None:
+    readme = _read("README.md")
+    validation = _read("docs/sano-live-validation.md")
+
+    assert "## AI / LLM validation" in readme
+    for required in (
+        "SANO document summary through OpenRouter/DeepSeek",
+        "SANO document Q&A through OpenRouter/DeepSeek",
+        "OpenAI live X2",
+        "UNVERIFIED",
+    ):
+        assert required in readme
+    assert "LIVE PASS / operator-confirmed" in validation
+    assert "Backup / verify / recovery" in validation
+    assert "Q&A source/page citations" in validation
+    assert "G5 machine state remains exactly `READY_FOR_SECOND_CLIENT_SMOKE`" in validation
 
 
 def test_current_authentication_truth_keeps_registration_and_sharing_boundaries() -> None:
@@ -47,7 +71,9 @@ def test_current_authentication_truth_keeps_registration_and_sharing_boundaries(
     assert "not a claim of public SaaS readiness" in readme
     assert "never creates installation-admin status" in agents
     assert "READY_FOR_SECOND_CLIENT_SMOKE" in status
-    assert "0.3.0.dev0" in readme
+    assert "Public `main` contains the completed" in readme
+    assert "OpenAI live X2 is unverified" in readme
+    assert "post-`84fb682` production/product refinements" in readme
 
 
 def test_root_agent_artifacts_are_unmistakably_historical() -> None:

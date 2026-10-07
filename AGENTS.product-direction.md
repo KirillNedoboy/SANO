@@ -7,8 +7,9 @@ override the current runtime.
 
 ## Canonical identity
 
-OpenCare is an open-source, self-hosted Personal and Family Health Workspace plus
-reusable trust infrastructure for sensitive personal AI agents.
+SANO is an open-source, self-hosted personal and family health workspace plus
+reusable trust infrastructure for sensitive personal AI agents. `open-care-proof-kit`
+and `opencare-*` remain stable repository, package, and protocol identifiers.
 
 Its product thesis is:
 
@@ -21,7 +22,7 @@ vault first
 -> genetics research
 ```
 
-OpenCare should remain useful without DNA and without an LLM.
+SANO should remain useful without DNA and without an LLM.
 
 ## Current implementation state
 
@@ -40,7 +41,11 @@ The implemented sequence is complete through:
 
 There is no G6.
 
-Current Product Core schema is v9.
+Public GitHub `main` already contains Product Core schema v13 and SANO-X2:
+PDF/TXT/JPG/PNG document support, local OCR, and consent-gated document
+summary/Q&A. Seven post-`84fb682` production/product refinements are prepared
+for integration and do not introduce those capabilities. See
+`docs/project-status.md` and `docs/capability-matrix.md` for dated evidence.
 
 Family Access v1 and v2 are frozen. Family Access v3 adds document scopes.
 Genetics permissions are separate from ordinary Family Access:

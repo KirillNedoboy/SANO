@@ -290,7 +290,7 @@ async def product_core_lifespan(application: FastAPI) -> AsyncIterator[None]:
             del application.state.document_summary_trust
 
 
-app = FastAPI(title="OpenCare Proof Kit", version=__version__, lifespan=product_core_lifespan)
+app = FastAPI(title="SANO", version=__version__, lifespan=product_core_lifespan)
 APP_DIR = Path(__file__).resolve().parent
 RUNTIME_ASSETS_DIR = APP_DIR / "assets"
 REVIEWER_QUICKSTART_PATH = RUNTIME_ASSETS_DIR / "docs" / "reviewer_quickstart.md"

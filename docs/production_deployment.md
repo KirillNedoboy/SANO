@@ -175,7 +175,7 @@ only after the app health and readiness checks pass. Keep the previous Caddy
 file and the legacy container image/configuration in an operator-only rollback
 directory before changing the live route.
 
-The SANO-X2 candidate image includes local Tesseract OCR with both `eng` and
+The SANO-X2 application image includes local Tesseract OCR with both `eng` and
 `rus` data packs. Its bounded document path accepts PDF, TXT, JPG, and PNG
 originals; an external document description or document question remains a
 separate explicit consent action. Configure OpenRouter only through the

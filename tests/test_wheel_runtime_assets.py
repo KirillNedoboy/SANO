@@ -7,7 +7,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_URL = "https://github.com/KirillNedoboy/open-care-proof-kit"
 REVIEWER_QUICKSTART_URLS = (
-    f"{REPOSITORY_URL}/blob/main/docs/adr/0001-opencare-product-direction.md",
+    f"{REPOSITORY_URL}/blob/main/docs/judge-guide.md",
     f"{REPOSITORY_URL}/blob/main/docs/project-status.md",
 )
 
@@ -34,6 +34,9 @@ def test_wheel_contains_and_uses_runtime_assets_outside_checkout(tmp_path: Path)
     with zipfile.ZipFile(wheel_path) as wheel:
         names = set(wheel.namelist())
         quickstart = wheel.read("app/assets/docs/reviewer_quickstart.md").decode("utf-8")
+        license_paths = {
+            name for name in names if ".dist-info/licenses/" in name
+        }
 
         assert {
             "app/static/actor_auth.js",
@@ -55,6 +58,8 @@ def test_wheel_contains_and_uses_runtime_assets_outside_checkout(tmp_path: Path)
         "app/assets/docs/reviewer_quickstart.md",
         "app/assets/docs/health_vault/family-vault-manifest.json",
     }.issubset(names)
+    assert any(path.endswith("/LICENSE") for path in license_paths)
+    assert any(path.endswith("/NOTICE") for path in license_paths)
     for url in REVIEWER_QUICKSTART_URLS:
         assert url in quickstart
 

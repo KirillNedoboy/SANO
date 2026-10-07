@@ -4,11 +4,12 @@ This document defines intended ownership for the combined OpenCare foundation.
 The implementation sequence through G1-G5, P1, P2, D1, and P3 is complete on
 public `main`. It does not move modules or change imports.
 
-Current runtime ownership on `codex/sano-a1` includes Product Core schema v12,
-the public-main v9/v11 references below being historical baselines, D1 document ingest,
+Current public-main runtime ownership includes Product Core schema v13 and
+SANO-X2 document understanding, as well as D1 document ingest,
 `app/product_core/genetics.py`, separate genetics grants, `/workspace`,
-`/documents`, `/family-access`, and `/genetics`. Historical phase notes below are retained
-for architecture provenance, not as pending work.
+`/documents`, `/family-access`, and `/genetics`. Schema v9/v11/v12 and the
+`codex/sano-a1` references below are historical baselines. Historical phase
+notes are retained for architecture provenance, not as pending work.
 ## Product Core
 
 Product Core owns user-facing health workspace concepts:
@@ -160,8 +161,9 @@ truth.
 
 ## Current ownership mapping
 
-`app/product_core` owns the live SANO-A1 schema v12 workspace, lifecycle, document
-ingest, persisted genetics service, exports, backup, and recovery.
+`app/product_core` owns the live SANO schema v13 workspace, SANO-X2 document
+understanding, lifecycle, persisted genetics service, exports, backup, and
+recovery.
 `app/family_access` owns Actor sessions, consent, and Family Access policy.
 `app/agent_trust` owns reusable Trust Envelope and receipt contracts.
 `app/agent` owns bounded context, provider adapters, validation, and audit.

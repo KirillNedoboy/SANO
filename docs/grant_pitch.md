@@ -1,139 +1,142 @@
-# Grant Pitch (Supporting Grant Artifact)
+# SANO Grant Pitch
 
-> Supporting grant language only. Current product direction and runtime facts
-> are maintained in [ADR 0001](adr/0001-opencare-product-direction.md) and
-> [project status](project-status.md).
+> Supporting grant language for the prepared local baseline. Current runtime
+> truth is maintained in [project status](project-status.md) and the
+> [capability matrix](capability-matrix.md).
 
+## Approved short pitch
 
-## Current Implementation Note
+SANO: private, source-grounded health workspace with auditable AI.
 
-G1-G5, P1, P2, D1, and P3 are implemented on public `main`. The planning
-language below is historical grant context, not a pending product roadmap.
+## Repository and evidence boundary
 
-## One-Liner
+SANO is the product name for an open-source, self-hosted personal and family
+health workspace plus reusable trust infrastructure for agents handling
+sensitive personal context. Historical OpenCare names remain in some code and
+architecture documents; they do not change the product identity.
 
-OpenCare Proof Kit is an open-source, self-hosted personal and family health workspace with local-first provenance, safety, audit, and person-scoped access controls. It is also a reusable trust-infrastructure reference for agents working with sensitive personal context.
+Public GitHub `main` at the dated `84fb682` baseline already contains Product
+Core schema v13 and SANO-X2, including local OCR and bounded document
+understanding. Seven post-`84fb682` production/product refinements through
+`089a5eb` are prepared for integration; they do not introduce X2. See the dated
+[live-validation record](sano-live-validation.md) for exact source identities
+and CI status.
+
+The G5 machine state is exactly `READY_FOR_SECOND_CLIENT_SMOKE`. This records
+verified Agent Skills interoperability for OMP 17.3.5 and Hermes Agent 0.19.0
+while root Agent Plugins two-client evidence remains pending. No production
+Sentient integration or Enclave deployment is claimed.
+
+Local-model inference without an external API and the OpenRouter/DeepSeek live
+provider flow, including document summary/Q&A, are operator-confirmed. Summary
+attribution, Q&A citations, and execution receipts are included in that
+confirmation. OpenAI live X2 is unverified. Model
+identities, deployed SHAs, endpoint details, prompts, outputs, and
+workflow-specific smoke details are included only when recorded in the dated
+[validation report](sano-live-validation.md).
 
 ## Problem
 
-Personal agents are starting to work with sensitive user context before the open-source stack has enough trust primitives around them. In domains like health, finance, legal, and identity, the hard question is not whether an LLM can produce a fluent answer. It is whether a user, reviewer, or downstream builder can inspect what data was used, which evidence supported the output, which policy checks ran, and why the system refused to make unsupported claims.
+Sensitive personal agents need an inspectable path from user-owned context to an
+answer. A fluent model response does not show which source was used, whether
+the actor was authorized for that Person, what data left the installation, or
+why the system refused an unsupported request. Health makes these gaps clear:
+documents, medications, visits, family context, and genetics are private, and
+unsupported language can cause harm.
 
-Health makes the problem visible. Medication, symptoms, labs, family history, and genetics are private, easy to misuse, and easy for a generic chatbot to overstate. A closed cloud-first workflow can also require users to surrender raw sensitive context before they can see whether the system is safe or useful.
+Open-source builders need a small trust substrate that can be tested locally
+before it is connected to a model or another application.
 
 ## Solution
 
-OpenCare Proof Kit provides a small, runnable trust/evidence/audit/safety substrate:
+SANO implements a source-grounded lifecycle:
 
-- synthetic/demo data by default;
-- local-first execution;
-- evidence packs with source, limitation, and coverage fields;
-- deterministic parsers and rule matching before report writing;
-- explicit safety policy with fail-closed behavior;
-- constrained Markdown output plus JSON audit metadata;
-- static-text and pipeline-backed evals for unsafe-output patterns.
-
-The current Phase 2 implementation adds the family identity and access
-boundary: local Actor sessions, explicit consent, person-scoped permissions,
-deny-by-default authorization, invitations, access audit, person export, and
-offline backup/recovery boundaries.
-
-The first reference workflow is Medication-to-Doctor Briefing. It uses a synthetic patient, demo genotype-like data, and a local demo evidence pack to produce a clinician-reviewable briefing about what to discuss with a clinician. It does not diagnose, recommend medication choice, recommend dosage, or instruct start/stop actions.
-
-## Reusable Trust Pattern
-
-The infrastructure pattern is intentionally simple:
-
-```txt
-private input context
-  -> evidence
-  -> deterministic policy
-  -> report/output
-  -> audit
-  -> evals
+```text
+user-owned source
+  -> immutable registration and provenance
+  -> extraction or candidate
+  -> human review
+  -> canonical record
+  -> timeline / visit preparation
+  -> selected authorized context
+  -> validated answer or refusal
+  -> audit / execution receipt
 ```
 
-Health is the reference implementation because it stress-tests the pattern against sensitive data, evidence requirements, safety boundaries, and uncertainty. The repo is not claiming to be a generalized cross-domain platform in production. It is a proof kit that makes the trust layer inspectable and reusable.
+The workspace covers Person-scoped documents, health records, visits and Visit
+Briefs, explicit family access, optional genetics, export, and recovery. The
+prepared SANO-X2 baseline adds bounded local text recognition and consented
+document description and Q&A for selected recognized text and page references.
 
-## Why This Fits Sentient-Style Public-Good AI
+The reusable trust layer composes actor identity, Person scope, delegated access,
+purpose-bound consent, selected evidence, provenance, disclosure preview,
+constrained execution, output validation, and a receipt. It is useful without a
+genetics workflow and without a particular LLM.
 
-Sentient-aligned open-source AI should let users and builders inspect and control the systems that act on private context. OpenCare Proof Kit supports that direction by keeping the workflow local-first, exposing evidence and audit metadata, enforcing deterministic checks before any report-writing layer, and shipping evals that can be run by reviewers.
+## Privacy and external context
 
-The grant case is infrastructure, not another health chatbot. The value is the
-reusable boundary around sensitive-agent behavior: explicit person context,
-deny-by-default access, no source/no claim, unsupported inputs producing safe
-no-claim output, visible limitations, and audit metadata for sensitive actions.
+Self-hosting keeps the installation and its operator in control of storage and
+configuration. Public fixtures and reviewer artifacts are synthetic or
+de-identified. An external provider is optional: when used, the action must
+have explicit per-action consent and a receipt, and the context is a minimized
+authorized projection. Raw genome data is excluded from supported provider
+context. Operator host security, backups, provider terms, and configuration
+remain part of the deployment boundary.
 
-## Private-By-Default
+This framing describes a system boundary; it does not promise absolute privacy,
+zero disclosure, confidential compute, or a secure enclave.
 
-The demo runs locally and uses synthetic/demo data. Audit metadata records that raw health or genetic data was not exported. Cloud raw genotype upload is not enabled by default and is outside the MVP boundary.
+## Reusable trust infrastructure
 
-Privacy is part of the architecture, not a deployment promise added later. Local deterministic handling comes before any explanation or report-writing layer.
+The pattern is intentionally domain-shaped but reusable:
 
-## Empowering, Not Extractive
+```text
+authorized context
+  -> evidence and provenance
+  -> policy and disclosure decision
+  -> constrained provider execution
+  -> validated output or refusal
+  -> receipt and audit
+```
 
-The output helps a person prepare a better clinician conversation. It does not replace a clinician, make a diagnosis, prescribe, recommend dosage, or instruct medication changes.
+Health is the reference stress test because it requires strict access, visible
+sources, uncertainty, and safety limits. The infrastructure can inform other
+sensitive-agent applications without claiming that SANO is already a general
+cross-domain platform.
 
-The report exposes evidence sources, evidence level, limitations, uncertainty, clinician-review language, safety status, and audit metadata. That makes the workflow reviewable instead of opaque.
+## Why this fits an open public-good grant
 
-## Reference Workflow
+The project makes trust behavior reviewable. Builders can inspect the schemas,
+authorization contracts, provenance rules, provider boundary, receipts, evals,
+security models, and synthetic fixtures. The repository can be run locally and
+tested without surrendering raw user context to a hosted service.
 
-Medication-to-Doctor Briefing:
+The public-good contribution is the reusable boundary around sensitive-agent
+behavior: no source, no supported claim; no authorization, no access; no
+consent, no external disclosure; provider failure stays bounded; and every
+supported external action leaves a receipt.
 
-1. Load a synthetic demo health vault.
-2. Parse demo genotype-like data.
-3. Load a local evidence pack.
-4. Match deterministic PGx rules.
-5. Render a clinician-reviewable Markdown report.
-6. Run safety policy checks.
-7. Produce JSON audit metadata.
-8. Run synthetic evals.
+## Future work
 
-This is a focused pharmacogenomics reference workflow. It is not a full clinical genetics pipeline, not WGS interpretation, not clinical decision support, and not medical advice.
+The proposed future milestones are:
 
-## Safety Boundary
+1. a reproducible profile for fully local open-weight inference with RU/EN
+   quality, resource, and safety benchmarks;
+2. a standalone reproducible security testbed for sensitive agents;
+3. conditional confidential-compute evaluation or integration only if its public
+   interface is stable and appropriate.
 
-OpenCare Proof Kit must not generate:
+The third item is a conditional research path, not a current Sentient or
+Enclave integration. It would follow the relevant official public interface,
+including the [Sentient product requests](https://sentient.foundation/product-requests),
+and preserve consent, minimized context, provenance, and receipts.
 
-- diagnosis;
-- dosage recommendation;
-- treatment plan;
-- start/stop medication instruction;
-- claims without source;
-- actionable claims from VUS or weak/model-only associations;
-- hidden uncertainty.
+No grant amount, delivery date, or funding commitment is specified here.
 
-Every report must include sources, limitations, evidence level, safety note, clinician-review note, and audit metadata.
+## Safety boundary
 
-## Why Now
-
-Agents are moving from chat into workflows that handle private context. Sensitive domains need open trust patterns before that shift becomes normal: local execution where possible, inspectable evidence, explicit policies, audit metadata, and evals that catch unsafe drift.
-
-OpenCare Proof Kit is small enough to review line by line and complete enough to run end to end. That is the point of the proof kit.
-
-## Why This Deserves A Grant
-
-Grant funding supports public-good infrastructure rather than a closed product wedge. The project creates a concrete, runnable reference implementation for:
-
-- local-first sensitive-data AI;
-- deterministic tools before LLM explanations;
-- source-grounded evidence packs;
-- fail-closed safety policy enforcement;
-- audit metadata;
-- evals focused on unsafe medical-advice prevention.
-- person-scoped family access and consent boundaries for private agents.
-
-The grant would fund infrastructure that others can fork, inspect, test, and adapt without accepting a black-box health assistant.
-
-## What Grant Funding Unlocks
-
-Funding would unlock the next product phase rather than retroactively complete
-the current foundation:
-
-- local ingest/provenance conventions for documents, labs, medications, visits, and notes;
-- Conditions/Labs and clinician-review handoff improvements;
-- broader synthetic evals and trust metrics around provenance gaps and access boundaries;
-- maintained reviewer artifacts and reproducible release hygiene;
-- conservative research on future interface/adapters beyond the completed P3
-  boundary.
-
-The next work should deepen safety, evidence, auditability, and reviewer confidence. It should not expand into diagnosis, dosage recommendation, real patient data, WGS/FASTQ/BAM processing, SaaS auth, payments, Telegram, blockchain, or cloud raw genotype upload by default.
+SANO does not claim to diagnose, recommend treatment or dosage, choose or stop
+medication, provide clinical decision support, or be clinically validated.
+Model output cannot mutate canonical health records. Genetics Research remains
+bounded, separately authorized, evidence-labelled, and unable to turn a
+hypothesis into a canonical fact.

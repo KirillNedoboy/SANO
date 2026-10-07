@@ -1,77 +1,106 @@
 # SANO
 
-**Your private health workspace, grounded in evidence.**
+Private, source-grounded personal and family health workspace with auditable AI.
 
-SANO is an open-source, self-hosted workspace for personal and family health information. It keeps source documents, reviewed health history, visits, optional genetics, and explicit access controls in one Person-scoped system. Its purpose is to help people organize evidence and prepare for conversations with clinicians—not to diagnose or prescribe.
+[![main CI](https://github.com/KirillNedoboy/open-care-proof-kit/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/KirillNedoboy/open-care-proof-kit/actions/workflows/ci.yml) [![Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE) [Live demo](https://sanobot.art)
 
-![SANO X2 document view with a synthetic sample and consent controls](docs/assets/sano-x2/documents-1440.webp)
+SANO is an open-source, self-hosted personal and family health workspace that
+keeps source documents, provenance, reviewed health context, explicit access
+controls, and consent-gated AI in one Person-scoped system.
 
-*The X2 document view from this candidate checkout. The sample is fictional. A description requires consent; the screenshot does not show or claim a live OpenAI result.*
+**Live product:** [sanobot.art](https://sanobot.art) · **Repository:** [open-care-proof-kit](https://github.com/KirillNedoboy/open-care-proof-kit)
 
-> **Candidate status:** This checkout includes SANO-X2. The currently published `main` remains at the X1 document boundary until a later publication; this README describes the candidate represented by this branch.
+[Try the live demo](https://sanobot.art) · [Judge guide](docs/judge-guide.md) · [Run locally with Docker](#run-sano-locally) · [Security & trust](docs/architecture/sentient-g5-ecosystem-validation.md) · [Validation](docs/sano-live-validation.md)
 
-The published baseline contains the completed G1-G5, P1, P2, D1, and P3 implementation. Public `main` is mutable, so consult [project status](docs/project-status.md) for the published boundary. This checkout uses the unreleased development version `0.3.0.dev0`; it does not imply a `v0.3.0` release.
+![SANO document view with a synthetic sample](docs/assets/sano-x2/documents-1440.webp)
 
-## What makes SANO different
+*Fictional sample. Provider actions require explicit consent. The screenshot does not represent a live inference result.*
 
-A generic document chat can send a file to a model and return an answer. SANO centers the source and the path from evidence to a reviewed health record:
+SANO is the product name. `open-care-proof-kit` and `opencare-*` remain stable repository, package, and protocol identifiers where changing them would break contracts or history.
+
+Public `main` contains the completed G1–G5, P1, P2, D1, and P3 implementation sequence, including Product Core schema v13 and SANO-X2 document understanding. Seven post-`84fb682` production/product refinements are prepared for integration; they do not introduce X2 or schema v13.
+
+> **Repository status, 7 October 2026:** The verified public-main baseline is `84fb682`; it already includes schema v13 and SANO-X2. This local branch starts from `089a5eb`, seven post-`84fb682` production/product refinements ahead. Those refinements and the redirect-test correction remain unintegrated. See [project status](docs/project-status.md) and the dated [live validation record](docs/sano-live-validation.md) for evidence.
+
+## Why SANO
 
 ```text
-source → provenance → Person scope → human review → health record
-       → timeline / visit preparation → bounded assistant
+user-owned source → provenance → Person scope → human review
+                  → canonical health context → bounded AI
+                  → validated output → Execution Receipt
 ```
 
-Uploading a document stores its original and supports local text recognition. **It does not automatically create a reviewed medical record.** In supported extraction flows, a person reviews or corrects source-backed candidates before they enter canonical health history. The assistant is a bounded interface to selected information; it cannot write canonical records.
+- Preserve original document bytes and source provenance.
+- Support PDF, TXT, JPG, and PNG with local Tesseract OCR for Russian and English.
+- Keep model context limited to selected, authorized evidence; external disclosure is optional and requires per-action consent.
+- Validate provider output and produce an execution receipt. AI cannot change canonical health records.
+- Support explicit, revocable Person-scoped family access.
 
-## Capabilities in this checkout
-
-- **Documents:** Person-scoped storage for PDF, TXT, JPG, and PNG. Embedded PDF text is used where available; scanned PDFs and images can use local OCR with Russian and English language data (`rus+eng`). Original bytes are retained if recognition fails.
-- **Document understanding:** An optional short description and “Ask about this document” action use selected recognized text and page references. Each provider action requires explicit consent. A live X2 summary call through OpenAI has **not been verified**.
-- **Health history:** medication, recorded-condition, and lab records with source provenance, review, correction history, and a timeline. A recorded condition is not a diagnosis.
-- **Visit preparation:** save visits and questions, build a clinician-reviewable Visit Brief from selected confirmed records, and export it.
-- **Family access:** explicit, revocable Person-scoped grants; a family relationship alone does not grant access.
-- **Optional genetics:** bounded local consumer-genotype workflows, reviewed findings, and family comparison under separate genetics permissions. This is not clinical interpretation.
-- **Assistant:** explain selected authorized evidence through a consent-aware runtime. Provider execution produces a receipt; model output cannot mutate canonical health records.
-
-Product Core schema v13 adds document text-processing and summary state in this candidate. OCR requires the documented runtime to include Tesseract and its `eng` and `rus` language packs; the Docker image includes them.
-
-## Evidence stays inspectable
-
-Sources remain available alongside provenance. Derived text and summaries do not replace the original. Where a supported workflow extracts candidate facts, a person reviews or corrects them before promotion. The timeline and Visit Brief use selected confirmed information, not model-generated claims.
+Document summaries and Q&A are separate from medical record creation. A person reviews source-backed candidate facts before they can become canonical records.
 
 ## Run SANO locally
 
-Requires Docker with Compose. This is a local development quickstart for inspection, not an internet-facing production setup.
+Requires Docker with Compose. This quickstart is for local inspection, not internet-facing production.
 
 ```powershell
 Copy-Item .env.example .env
 docker compose up --build
 ```
 
-Open [http://127.0.0.1:8000/bootstrap](http://127.0.0.1:8000/bootstrap) and create the first local account. Then visit `/documents`, `/workspace`, `/family-access`, `/genetics`, and `/chat`. The development configuration uses demo mode and a deterministic local assistant by default; no provider key is needed to inspect the UI. To use an external provider, an operator must configure it and the user must grant the action's explicit consent. See [local deployment](docs/deployment.md) and [production deployment](docs/production_deployment.md) for their respective setup boundaries.
+Open [http://127.0.0.1:8000/bootstrap](http://127.0.0.1:8000/bootstrap) to create the first local account. The deterministic assistant works without a provider key. To use an external provider, an operator must configure it and the user must consent to each action. See [local deployment](docs/deployment.md) and [production deployment](docs/production_deployment.md).
 
 ## Privacy and safety
 
-SANO is designed for self-hosting. Stored Product Core data stays in the operator's installation. Requests are authorized for a specific Person, and external provider disclosure follows an explicit consent flow and creates an execution receipt. For X2 document actions, the selected document's recognized text and page references form the relevant context; the original file and unrelated health records are not part of that document action. Raw genome data is excluded from supported model context.
+SANO stores Product Core data in the self-hosted installation. The user selects the Person and evidence available to an action. When an external model is configured, only the minimized selected context may be disclosed after explicit per-action consent; the execution receipt records the outcome. A fully local inference path is supported. Raw genome data never enters the supported provider context.
 
-Repository fixtures, screenshots, and reviewer examples use synthetic or de-identified data. A self-hosted deployment still depends on the operator's host security, configuration, and backup practices.
+Repository fixtures, screenshots, and reviewer examples are synthetic or de-identified. Deployment security and backup practices depend on the operator. SANO is not clinically validated software, an AI doctor, diagnostic authority, treatment planner, medication or dosage authority, or clinical decision-support system. This is not a claim of public SaaS readiness.
 
-## Current limits
+## Validation and limits
 
-- OCR and X2 document understanding are included in this local candidate, not the currently published X1 `main`.
-- Live OpenRouter consent and receipt flow has been verified for the general guarded runtime. A live OpenAI X2 document-summary call is unverified; Ollama live smoke is deferred/unverified.
-- G5 machine state remains exactly `READY_FOR_SECOND_CLIENT_SMOKE`; the root Agent Plugins two-client gate awaits external evidence.
-- AlphaGenome is paused after C.1.
-- SANO is not clinically validated software, an AI doctor, diagnostic authority, treatment planner, medication or dosage authority, or clinical decision-support system. This self-hosted candidate is not a claim of public SaaS readiness.
+- Public `main` includes Product Core schema v13, SANO-X2 document understanding, PDF/TXT/JPG/PNG, local OCR, and document summary/Q&A.
+- Local inference without an external API and the OpenRouter/DeepSeek live provider flow, including document summary/Q&A, are operator-confirmed; see [SANO live validation](docs/sano-live-validation.md). OpenAI live X2 is unverified.
+- The exact CI and local validation results, dated baselines, and known limits are recorded in [SANO live validation](docs/sano-live-validation.md).
+- G5 status remains exactly `READY_FOR_SECOND_CLIENT_SMOKE`; AlphaGenome is paused after C.1.
 
-See [current candidate status](docs/project-status.md), the [capability matrix](docs/capability-matrix.md), and the [judge guide](docs/judge-guide.md) for an accurate tour of this checkout. Historical validation reports describe their recorded runs, not a guarantee about the current environment.
+## AI / LLM validation
 
-## Engineering references
+SANO uses a provider-independent guarded runtime. Authorization, disclosure,
+consent, structured validation, source/page attribution, and execution receipts
+remain part of the path for every provider. The statuses below distinguish
+deterministic checks from operator-confirmed live provider evidence; GitHub CI
+does not execute paid OpenRouter calls.
 
-- [Architecture overview](docs/architecture.md) · [module boundaries](docs/architecture/module-boundaries.md)
-- [Privacy and safety threat model](docs/privacy_safety_threat_model.md) · [Family authorization matrix](docs/security/family-access-authorization-matrix.md)
-- [Evidence provenance](docs/provenance_semantics.md) · [Visit Brief lifecycle](docs/architecture/visit-brief-lifecycle.md)
-- [Genetics Research Studio boundaries](docs/architecture/p3-genetics-research-studio.md) · [Trust runtime threat model](docs/security/agent-trust-threat-model.md)
-- [Deployment](docs/deployment.md) · [Changelog](CHANGELOG.md) · [Private-alpha release notes](docs/releases/v0.1.0-private-alpha.md) · [Private-alpha operator checklist](docs/private-alpha-operator-checklist.md) · [Security reporting](SECURITY.md)
+| Path | Status |
+| --- | --- |
+| Deterministic local/offline provider path | PASS |
+| Provider-independent contract/conformance tests | PASS |
+| Safety/output validation | PASS |
+| Consent/disclosure flow | PASS |
+| Execution Receipt validation | PASS |
+| OpenRouter live connectivity | LIVE PASS / operator-confirmed |
+| OpenRouter exact model binding | LIVE PASS / operator-confirmed |
+| DeepSeek strict structured output | LIVE PASS / operator-confirmed |
+| SANO document summary through OpenRouter/DeepSeek | LIVE PASS / operator-confirmed |
+| SANO document Q&A through OpenRouter/DeepSeek | LIVE PASS / operator-confirmed |
+| Summary page attribution | PASS / operator-confirmed |
+| Q&A citations | PASS / operator-confirmed |
+| OpenAI provider adapter | TESTED |
+| OpenAI live X2 | UNVERIFIED |
+| Clinical/model correctness | NOT CLAIMED |
 
-The repository retains historical OpenCare and Sentient names where they identify internal modules, APIs, and engineering history. SANO is the product name.
+## Engineering evidence
+
+Python 3.12, FastAPI, Docker Compose, SQLite Product Core, local Tesseract
+OCR (`rus+eng`), provider-independent agent runtime, OpenRouter/DeepSeek live
+validation, portable Trust Envelope, deterministic evals, GitHub Actions, and
+backup/recovery are documented in the [reviewer index](docs/final_reviewer_pack.md).
+
+Read the [architecture](docs/architecture.md), [security and threat
+model](docs/privacy_safety_threat_model.md), [provenance semantics](docs/provenance_semantics.md),
+[Family Access authorization matrix](docs/security/family-access-authorization-matrix.md),
+[Trust Envelope protocol](docs/protocol/opencare-trust-envelope.md), [agent trust
+integration guide](docs/integrations/agent-trust-integration-guide.md), [deployment
+guide](docs/deployment.md), [judge guide](docs/judge-guide.md), and [live
+validation](docs/sano-live-validation.md).
+
+For product behavior, see the [judge guide](docs/judge-guide.md), [capability matrix](docs/capability-matrix.md), [privacy and safety threat model](docs/privacy_safety_threat_model.md), and [security reporting](SECURITY.md). For release history, see the [changelog](CHANGELOG.md), [v0.3.0 preparation notes](docs/releases/v0.3.0.md), and [v0.1.0 private-alpha notes](docs/releases/v0.1.0-private-alpha.md). Read the [private-alpha operator checklist](docs/private-alpha-operator-checklist.md) before running a local instance.

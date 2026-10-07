@@ -1,0 +1,33 @@
+name: Feature request
+description: Suggest a product or developer-experience improvement.
+title: "feature: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Do not include medical records, personal health information, family or
+        genetic data, passwords, API keys, tokens, account credentials, or
+        private deployment logs containing secrets. Use synthetic examples only.
+        SANO does not provide diagnosis, prescribing, dosage, or autonomous
+        health-record mutation. Report security vulnerabilities through
+        SECURITY.md.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Privacy, authorization, or safety considerations
+      description: Use synthetic examples only.
+    validations:
+      required: false

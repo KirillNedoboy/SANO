@@ -2,17 +2,36 @@
 
 > Entries under `[Unreleased]` preserve implementation and phase history. For current published SANO capabilities and status, see [project status](docs/project-status.md) and the [capability matrix](docs/capability-matrix.md).
 
+## [0.3.0] - 2026-10-07 (prepared, not released)
+
+This local release preparation compares the SANO workspace and trust-infrastructure work after `v0.2.0`. No `v0.3.0` tag or GitHub release has been created.
+
+### Added
+
+- Person-scoped document handling for PDF, TXT, JPG, and PNG, with bounded local Russian/English OCR, preserved originals, and provenance.
+- Optional document descriptions and document-scoped Q&A after per-action consent, with selected-evidence disclosure, validated output, and execution receipts.
+- Reusable agent-trust contracts, portable schemas, provider adapters, Family Access, export, backup/recovery, and deterministic evaluations.
+
+### Safety and validation
+
+- Health facts remain subject to human review; assistant output cannot mutate canonical records.
+- Local inference without an external API and OpenRouter/DeepSeek live document
+  summary/Q&A, attribution, citations, and receipts are operator-confirmed.
+  The OpenAI adapter is tested, while OpenAI live X2 remains unverified. The
+  preparation record does not claim particular model IDs or undocumented smoke
+  details.
+- No diagnosis, treatment, dosage, medication start/stop, clinical-validation, or public-SaaS readiness claim is made.
+
 ## [Unreleased]
 
 ### Added
-- D1 evidence document ingest is implemented in the current baseline:
+- D1 evidence document ingest is the historical phase contract:
   authenticated Person-scoped PDF/TXT upload, immutable source bytes, bounded
   embedded-text extraction, and human-reviewed medication/condition/lab
-  provenance. OCR was outside the D1 phase boundary; the SANO-X2 candidate
-  described in [current project status](docs/project-status.md) adds bounded
-  local OCR and consent-gated document actions. Automated clinical/model
-  extraction remains out of scope. Family Access v1/v2/v3 behavior and
-  portable export v4 are integrated.
+  provenance. OCR was outside that D1 phase boundary; published SANO-X2 later
+  adds bounded local OCR and consent-gated document actions. Automated
+  clinical/model extraction remains out of scope. Family Access v1/v2/v3
+  behavior and portable export v4 are integrated.
 
 - P3 Genetics Research Studio is implemented and published on public `main`:
   schema v9 immutable local consumer-genotype sources, bounded selective

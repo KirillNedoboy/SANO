@@ -1,214 +1,133 @@
-# Sentient Alignment (Supporting Grant Context)
+# Sentient Alignment for SANO
 
-> Supporting grant/context document, not the product roadmap or current
-> implementation status. See [ADR 0001](adr/0001-opencare-product-direction.md)
-> and [project status](project-status.md).
+> Supporting grant context. This document explains a possible public-good
+> relationship; it is not evidence of current Sentient integration, Enclave
+> deployment, or confidential-compute support.
 
 ## Positioning
 
-Submit OpenCare Proof Kit as open-source infrastructure for private, inspectable, fail-closed personal agent workflows.
+SANO is an open-source, self-hosted personal and family health workspace with a
+reusable trust boundary for sensitive personal agents. Its approved short pitch
+is:
 
-The health workflow is the reference stress test. It shows the pattern in a domain where privacy, evidence, safety boundaries, and auditability matter from the first run.
+> SANO: private, source-grounded health workspace with auditable AI.
 
-## Why It Fits
+Health is the reference stress test. It forces the system to make authorization,
+provenance, uncertainty, disclosure, and safety visible from the first run. The
+trust boundary is intended to be useful to other sensitive-agent builders while
+SANO remains a health workspace rather than a generic platform claim.
 
-| Criterion | Project fit |
-|---|---|
-| Open-source infrastructure | Code, schemas, evidence-pack format, safety policies, reports, audits, and evals are inspectable. |
-| Private by default | The reference workflow runs locally on synthetic/demo data with no default raw health or genetic upload. |
-| User-controlled | Inputs, evidence packs, generated reports, and JSON audits stay visible to the user/reviewer. |
-| Trustworthy agent substrate | Deterministic tools run before the report-writing layer; unsupported paths fail closed. |
-| Public good | The trust/evidence/policy/audit pattern can be forked and adapted by other sensitive-agent builders. |
-| Conservative claims | The repo explicitly avoids diagnosis, dosage guidance, clinical deployment, real-patient support, and fake ecosystem integrations. |
+## Fit with Sentient principles
 
-## Why Health Is The Proving Ground
+| Principle | SANO alignment |
+| --- | --- |
+| Open | Open source contracts, schemas, evals, security docs, and synthetic fixtures are reviewable. |
+| Yours to keep | A self-hosted installation keeps the workspace and backups under the operator's control. |
+| Accessible | The product is runnable locally with Docker and deterministic checks; accessibility remains part of the UI contract. |
+| Good for humanity | The health reference domain keeps uncertainty, human review, and safety boundaries visible. |
+| Private by default | Person-scoped authorization and local storage are defaults; external disclosure is optional and consented per action. |
+| Empowering rather than extractive | Users retain sources, provenance, review, export, receipts, and explicit sharing decisions. |
 
-Health is not used here because the project wants to become a broad healthcare platform. It is used because health exposes the trust problem quickly:
+## Current repository boundary
 
-- the data is highly sensitive;
-- unsupported claims can be harmful;
-- sources and limitations must be visible;
-- uncertainty cannot be hidden;
-- audit trails matter for review.
+Public GitHub `main` at the dated `84fb682` baseline already contains Product
+Core schema v13 and SANO-X2, including OCR and bounded document understanding.
+Seven post-`84fb682` production/product refinements through `089a5eb` are
+prepared for integration and do not introduce those capabilities. See the
+dated [validation record](sano-live-validation.md) for exact revisions and CI.
 
-Medication-to-Doctor Briefing is narrow enough to validate honestly and demanding enough to test the trust layer. The demo uses synthetic/demo data only and keeps the output clinician-reviewable rather than prescriptive.
+G5 remains exactly `READY_FOR_SECOND_CLIENT_SMOKE`: Agent Skills
+interoperability is verified for OMP 17.3.5 and Hermes Agent 0.19.0, while root
+Agent Plugins two-client evidence is pending. There is no claim of a production
+Sentient identity bridge, Sentient-hosted health workspace, Enclave deployment,
+or confidential-compute integration.
 
-## Infrastructure, Not Just An App Demo
+Local-model inference without an external API and the OpenRouter/DeepSeek live
+provider flow, including document summary/Q&A, are operator-confirmed. Summary
+attribution, Q&A citations, and execution receipts are included in that
+confirmation. OpenAI live X2 is unverified. Model,
+endpoint, prompt, output, and workflow-specific smoke details are stated only
+when recorded in the dated validation report.
 
-The reusable layer is:
+## Fit with public-good infrastructure
 
-```txt
-input context -> evidence -> policy -> report/output -> audit -> evals
+| Public-good concern | SANO evidence |
+| --- | --- |
+| Inspectable behavior | Source, provenance, schemas, authorization rules, receipts, evals, and security docs are reviewable. |
+| User control | Actor identity, Person scope, delegated access, human review, explicit consent, and export are explicit boundaries. |
+| Private-by-default operation | The reference deployment is self-hosted and public fixtures are synthetic or de-identified. |
+| Fail-closed behavior | Missing authorization, consent, provenance, supported evidence, or valid provider output produces a bounded refusal or denial. |
+| Reusable trust pattern | The same policy-bound context and receipt model can guard other sensitive personal-agent workflows. |
+| Honest ecosystem claims | G5 keeps its exact pending state; no current Sentient or Enclave integration is implied. |
+
+## Trust boundary
+
+SANO follows this sequence:
+
+```text
+actor identity and Person scope
+  -> delegated access and purpose-bound consent
+  -> selected evidence and provenance
+  -> disclosure preview
+  -> constrained provider execution
+  -> output validation
+  -> answer or refusal plus execution receipt
 ```
 
-The current app surface demonstrates that the layer runs end to end. The grant case is the layer itself: source-grounded evidence, deterministic safety gates, fail-closed behavior, JSON audit metadata, and evals that reviewers can execute.
+An external provider is optional. If an action sends context outside the local
+installation, the projection must be minimized and authorized for that action;
+the user must give explicit per-action consent and the runtime records a
+receipt. Raw genome data never enters supported provider context. A self-hosted
+operator still owns host, backup, credential, and provider configuration risk.
 
-## Grant Angle
+## Why health is the proving ground
 
-Primary angle:
+Health context combines high sensitivity with a need for source-backed answers:
+documents, medications, labs, visits, family access, and optional genetics all
+need clear provenance and boundaries. SANO preserves the original source,
+requires human review before canonical promotion, and keeps the assistant from
+mutating canonical records. That makes the trust pattern concrete without
+claiming diagnosis, treatment, dosage, or clinical authority.
 
-> Reusable trust infrastructure for private personal agents, demonstrated in health because health is one of the hardest sensitive domains to handle safely.
+## Existing implementation evidence
 
-Reference workflow:
+The published baseline provides:
 
-> Medication-to-Doctor Briefing from synthetic/demo health vault and genotype-like data.
+- Person-scoped documents, health history, visits and Visit Briefs, family
+  access, optional genetics, export, recovery, and audit;
+- a policy-bound context contract with explicit disclosure and validation;
+- bounded SANO-X2 document text processing, local Russian/English OCR, and
+  consented document description and Q&A over selected text and page references;
+- provider portability with receipts and fail-closed error handling;
+- deterministic evals and security documentation using synthetic or
+  de-identified fixtures.
 
-## Roadmap Alignment
+The SANO-X2 capabilities above are already in public `main`. The seven
+post-main production/product refinements are prepared separately for
+integration.
 
-Later roadmap can include:
+## Future alignment path
 
-- stronger evidence-pack tooling;
-- broader synthetic eval coverage;
-- clearer audit schema documentation;
-- local review UX improvements;
-- confidential compute or remote private inference research only after current official docs and privacy/security review;
-- Sentient ecosystem compatibility only if official docs and APIs support it.
+The proposed future milestones are:
 
-## Active Sentient Roadmap
+1. fully local open-weight inference with reproducible RU/EN quality, resource,
+   and safety benchmarks;
+2. a standalone reproducible sensitive-agent security testbed;
+3. conditional evaluation or integration of confidential compute only if its
+   public interface is stable and appropriate.
 
-The active Sentient-targeted sequence is separate from historical session
-labels and from the genetics product roadmap:
+The third milestone is conditional. It may be informed by the [Sentient
+product requests](https://sentient.foundation/product-requests), but no
+particular Sentient API, Enclave, or deployment is assumed. If the public
+interface is unstable or does not preserve SANO’s consent and receipt boundary,
+the correct result is a documented evaluation without integration.
 
-1. Sentient G1 — OpenCare Trust Envelope;
-2. Sentient G2 — Consent-Gated Agent Runtime;
-3. Sentient G2.5 — optional Sentient integration spike; implemented as an
-   optional synthetic-only compatibility spike
-   ([spike contract](integrations/sentient-agent-framework-spike.md));
-4. Sentient G3 — Model Portability;
-5. Sentient G4 — Portable Trust Package;
-6. Sentient G5 — Evaluation and Ecosystem Validation.
+## Claims we will preserve
 
-G1 defines and implements the boundary between authorized sensitive OpenCare
-state and an agent-capable execution context. It does not wrap arbitrary
-internal processing and does not add provider execution. See the
-[binding G1 contract](architecture/sentient-g1-trust-envelope.md).
-
-The G2 implementation work also registers ten named trust-evaluation fixtures
-for the binding runtime acceptance categories. They document intended
-fail-closed checks; they are not evidence of external provider or Sentient
-ecosystem integration.
-
-Historical `G1` genome-profile references in session chronology remain
-historical; genetics is outside the Sentient critical path.
-
-### Sentient G2.5 status (optional spike)
-
-#### Implemented
-
-- Optional Sentient Agent Framework compatibility spike
-  (`sentient-agent-framework==0.3.0` as the `[sentient]` extra; never a core
-  dependency).
-- Synthetic/demo OpenCare agent (`OpenCareSentientDemoAgent`) over the fixed
-  demo context (actor-alice / person-alice).
-- G2-backed deterministic execution: the adapter delegates to the existing G2
-  consent-gated runtime and a deterministic local provider.
-- Sentient event rendering: `OPENCARE_STATUS`, `SOURCES`, `FINAL_RESPONSE`,
-  and `OPENCARE_RECEIPT`, with fail-closed refusal paths.
-- Validated answer and Receipt event: only G2-validated output is surfaced,
-  together with the redacted Execution Receipt.
-
-#### Not implemented
-
-- Production Sentient Chat identity binding.
-- Live personal-vault access through Sentient.
-- Sentient as an OpenCare authorization source.
-- Sentient SDK as a core dependency.
-- External LLM integration.
-
-This is a compatibility spike, not a production Sentient integration.
-
-### Sentient G3 status (implemented)
-
-#### Implemented
-
-- Provider-independent G2 execution contract: `AgentProvider` Protocol plus
-  `ProviderDescriptor` / `ProviderExecutionRequest` / `ProviderExecutionResult`
-  and a shared `build_provider_execution_request` in `app/agent/providers/`.
-- A deterministic baseline provider and one self-hosted Ollama adapter
-  (`app/agent/providers/ollama.py`), built on stdlib `urllib` with zero new
-  Python dependencies, JSON-schema `format` structured output, model-identity
-  check, no-redirect, and fail-closed behavior.
-- Loopback disclosure classification: loopback (`127.0.0.1` / `localhost` /
-  `::1`) is `external=false`; non-loopback is `external=true` and requires the
-  G2 disclosure-preview and exact per-call consent flow. Owning a remote server
-  is not a consent exemption.
-- Same G1/G2 validation and Receipts for every provider; `ExecutionReceipt`
-  records `provider_id`, `model_id`, `provider_kind`, and `external` with no
-  separate model receipt.
-- Operator-only provider configuration via
-  `OPENCARE_AGENT_MODE=ollama`, `OPENCARE_OLLAMA_ENDPOINT`,
-  `OPENCARE_OLLAMA_MODEL`, `OPENCARE_OLLAMA_TIMEOUT_SECONDS`, and
-  `OPENCARE_OLLAMA_MAX_RESPONSE_BYTES`; the default stays deterministic/local
-  and a model runtime is not required for startup.
-- Provider-portability conformance and trust suites under `tests/`
-  (`provider_conformance.py`, `provider_endpoints.py`,
-  `provider_portability_trust.py`) plus a live smoke
-  (`provider_live_smoke.py`) that skips without a real Ollama.
-- Result is `READY_FOR_LIVE_SMOKE` (Ollama is not installed locally); the
-  smoke never auto-installs or downloads a runtime.
-
-#### Not implemented
-
-- Second self-hosted runtime.
-- Generic model marketplace.
-- Model routing.
-- Automatic failover.
-- Cloud fallback.
-- Agent Plugins, MCP, A2A.
-- Production Sentient identity bridge.
-- Diagnosis/treatment AI.
-- RAG, vector DB, genetics, training/fine-tuning.
-
-G3 proves provider portability and security compatibility, not model medical
-correctness. No model-quality or diagnostic benchmarking is introduced.
-
-### Sentient G4 status (implemented)
-
-#### Implemented
-
-- Generic trust layer with a stable public API (`app/agent_trust/api.py`) and
-  zero OpenCare coupling: contract models, canonicalization/hashing,
-  validation, trusted builders, controlled identifiers, and the generic
-  `AuthorizationAdapter` Protocol.
-- OpenCare authorization adapter moved to `app/agent/trust_adapter.py`; it
-  implements the generic Protocol against live Family Access state and remains
-  the only health-specific authority bridge.
-- Deterministic JSON Schema export (`schemas/agent-trust/`) via
-  `scripts/export_agent_trust_schemas.py` / `opencare-trust export-schemas`
-  with a drift test; G1 `contract_version` literals unchanged, no new schema
-  version.
-- Synthetic, offline, not-authorization fixture corpus
-  (`fixtures/agent-trust/`) with deterministic regeneration
-  (`opencare-trust regenerate-fixtures`) and a drift test.
-- `opencare-trust` console entry plus `python -m app.agent_trust.cli`;
-  deterministic exit codes; schema export and fixture regeneration are pure
-  artifact generation; no live-authorization minting path.
-- Agent Plugins v1 **skill-only** package (`agent-plugins/opencare-trust/`):
-  strict 1.0.0 `plugin.json` plus its `skills/` tree (including the canonical
-  `opencare-health-agent` skill and an `opencare-trust-envelope` inspection
-  skill), deterministic packaging from the canonical skill sources, drift
-  test, no symlinks, package containment, secret/path scan, and no `mcp.json`.
-
-#### Not implemented
-
-- MCP: no `mcp.json`, no MCP server; an optional read-only MCP adapter is
-  explicitly deferred until G5 ecosystem validation.
-- Multi-client validation: no claim that any external client has loaded the
-  package (that is G5).
-- No new security model, no new schema or contract version, no live-authority
-  CLI minting, no signatures/PKI/attestation/transparency.
-
-The preserved roadmap note:
-
-```txt
-G4 Portable Trust Package
-→ target Agent Plugins v1 packaging
-→ skill first
-→ optional read-only MCP adapter after safe runtime boundary
-```
-
-G4 (implemented) delivers the skill-first Agent Plugins v1 packaging; the
-optional read-only MCP adapter remains deferred to G5. Agent Plugins
-packaging is not part of G2.5; no `plugin.json`, no `mcp.json` at G2.5.
-
-Do not invent Sentient APIs, claim integration, or add ecosystem requirements without official sources.
+- SANO is self-hosted infrastructure and a reference health workspace.
+- Public fixtures are synthetic or de-identified.
+- External context is optional, minimized, explicitly consented per action, and
+  recorded in a receipt.
+- G5 is `READY_FOR_SECOND_CLIENT_SMOKE`, not PASS.
+- Evals and benchmarks describe engineering behavior; they do not establish
+  clinical validation or medical authority.

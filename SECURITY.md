@@ -1,10 +1,12 @@
 # Security Policy
 
-OpenCare Proof Kit is an open-source, self-hosted Personal and Family Health
-Workspace with local-first trust, provenance, review, and authorization
-boundaries. Public repository content is synthetic/de-identified only. The
-self-hosted runtime is designed to store user-owned sensitive health, document,
-and genetic data locally; this is not a clinical-readiness or compliance claim.
+SANO is an open-source, self-hosted personal and family health workspace with
+local-first trust, provenance, review, and authorization boundaries. Public
+repository content is synthetic/de-identified only. The repository,
+`open-care-proof-kit`, and `opencare-*` protocol identifiers remain stable for
+compatibility. The self-hosted runtime is designed to store user-owned
+sensitive health, document, and genetic data locally; this is not a
+clinical-readiness or compliance claim.
 
 ## Do Not Submit Sensitive Data
 

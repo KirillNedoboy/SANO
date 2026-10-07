@@ -619,7 +619,9 @@ def test_live_pages_require_session_and_revalidate_active_person(
     access_harness.login("bob")
     assert client.get("/workspace").status_code == 200
     assert client.get("/vault").status_code == 404
-    assert client.get("/chat").status_code == 404
+    chat_picker = client.get("/chat", follow_redirects=False)
+    assert chat_picker.status_code == 307
+    assert chat_picker.headers["location"] == "/documents?next=%2Fchat"
 
     def demo_fallback_forbidden(*_args: object, **_kwargs: object) -> object:
         raise AssertionError("live routes must not load demo/local-file vault context")

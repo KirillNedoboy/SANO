@@ -5,12 +5,16 @@ import subprocess
 import tomllib
 from pathlib import Path
 
+from app import __version__
+from app.main import app
+
 ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_URL = "https://github.com/KirillNedoboy/open-care-proof-kit"
 ISSUES_URL = f"{REPOSITORY_URL}/issues"
 REVIEWER_QUICKSTART_URLS = (
-    f"{REPOSITORY_URL}/blob/main/docs/adr/0001-opencare-product-direction.md",
+    f"{REPOSITORY_URL}/blob/main/docs/judge-guide.md",
     f"{REPOSITORY_URL}/blob/main/docs/project-status.md",
+    f"{REPOSITORY_URL}/blob/main/docs/sano-live-validation.md",
 )
 MARKDOWN_LINK_RE = re.compile(r"!?(?:\[[^\]]*\])\(([^)]+)\)")
 
@@ -21,7 +25,7 @@ def _read(path: str) -> str:
 
 def _tracked_markdown_paths() -> list[Path]:
     result = subprocess.run(
-        ["git", "ls-files", "*.md"],
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "--", "*.md"],
         cwd=ROOT,
         check=True,
         capture_output=True,
@@ -30,14 +34,23 @@ def _tracked_markdown_paths() -> list[Path]:
     return [ROOT / path for path in result.stdout.splitlines()]
 
 
-def test_project_metadata_is_complete_without_dependency_or_version_changes() -> None:
+def test_project_metadata_and_license_are_prepared_for_v030() -> None:
     project = tomllib.loads(_read("pyproject.toml"))["project"]
+    lock = tomllib.loads(_read("uv.lock"))
+    locked_project = next(
+        package for package in lock["package"] if package["name"] == "open-care-proof-kit"
+    )
 
-    assert project["version"] == "0.3.0.dev0"
+    assert project["version"] == __version__ == "0.3.0"
+    assert locked_project["version"] == "0.3.0"
     assert project["readme"] == "README.md"
     assert project["license"] == "Apache-2.0"
-    assert project["license-files"] == ["LICENSE"]
-    assert project["urls"] == {"Repository": REPOSITORY_URL, "Issues": ISSUES_URL}
+    assert project["license-files"] == ["LICENSE", "NOTICE"]
+    assert project["urls"] == {
+        "Homepage": "https://sanobot.art",
+        "Repository": REPOSITORY_URL,
+        "Issues": ISSUES_URL,
+    }
     assert project["dependencies"] == [
         "fastapi>=0.111.0",
         "jinja2>=3.1.0",
@@ -54,6 +67,13 @@ def test_project_metadata_is_complete_without_dependency_or_version_changes() ->
         "httpx>=0.27.0",
     ]
     assert "Apache License" in _read("LICENSE")
+    assert "Copyright 2026 OpenCare Proof Kit contributors" in _read("NOTICE")
+
+
+def test_application_metadata_uses_sano_and_prepared_version() -> None:
+    assert app.title == "SANO"
+    assert app.version == __version__ == "0.3.0"
+    assert "SANO" in app.openapi()["info"]["title"]
 
 
 def test_release_documents_preserve_published_v010_and_unreleased_phase2() -> None:
@@ -61,6 +81,9 @@ def test_release_documents_preserve_published_v010_and_unreleased_phase2() -> No
     release_notes = _read("docs/releases/v0.1.0-private-alpha.md")
 
     assert "## [Unreleased]" in changelog
+    assert "## [0.3.0] - 2026-10-07 (prepared, not released)" in changelog
+    assert "after `v0.2.0`" in changelog
+    assert "prepared, not published" in _read("docs/releases/v0.3.0.md")
     assert "## [0.1.0] - 2026-07-31" in changelog
     assert "tag `v0.1.0`" in changelog
     assert "phase 2" in changelog.lower()
@@ -103,14 +126,15 @@ def test_status_and_capability_matrix_describe_phase2_release_state() -> None:
     assert "do not imply clinical validation or production readiness" in matrix.lower()
 
 
-def test_readme_links_to_candidate_documents_and_security_reporting() -> None:
+def test_readme_links_to_release_documents_and_security_reporting() -> None:
     readme = _read("README.md")
 
     for link in (
-        "[Changelog](CHANGELOG.md)",
-        "[Private-alpha release notes](docs/releases/v0.1.0-private-alpha.md)",
-        "[Private-alpha operator checklist](docs/private-alpha-operator-checklist.md)",
-        "[Security reporting](SECURITY.md)",
+        "[changelog](CHANGELOG.md)",
+        "[v0.3.0 preparation notes](docs/releases/v0.3.0.md)",
+        "[v0.1.0 private-alpha notes](docs/releases/v0.1.0-private-alpha.md)",
+        "[private-alpha operator checklist](docs/private-alpha-operator-checklist.md)",
+        "[security reporting](SECURITY.md)",
     ):
         assert link in readme
 

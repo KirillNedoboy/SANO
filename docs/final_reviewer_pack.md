@@ -1,6 +1,6 @@
 # Final Reviewer Pack (Supporting Evidence)
 
-> This pack preserves engineering evidence for verified runtime surfaces. It is not the current judge walkthrough or canonical product status. Start with the [SANO Judge Guide](judge-guide.md); use [project status](project-status.md) and [the capability matrix](capability-matrix.md) for current published claims.
+> This pack preserves supporting engineering evidence. Start with the [SANO Judge Guide](judge-guide.md), [project status](project-status.md), [capability matrix](capability-matrix.md), and dated [live validation](sano-live-validation.md) for the current product and integration boundary.
 
 The sections below remain a supporting engineering review pack.
 
@@ -33,6 +33,7 @@ The sections below remain a supporting engineering review pack.
 - [P3 reviewer guide](p3-reviewer-guide.md)
 - [Reviewer quickstart](reviewer_quickstart.md)
 - [Final submission checklist](final_submission_checklist.md)
+- [SANO live validation](sano-live-validation.md)
 
 ## Key Artifacts
 
@@ -63,10 +64,12 @@ node --check app/static/genetics.js
 
 - Actor-scoped `/workspace`, `/family-access`, `/genetics`, `/vault`, and
   `/chat` surfaces.
-- Product Core schema v9 at the historical P3 phase baseline, with
-  medications, conditions, labs, Visits, Visit Briefs, document evidence,
-  genetics datasets/findings, export, backup, and recovery. For current v12
-  published and v13 candidate status, see [project status](project-status.md).
+- Product Core schema v9 is the historical P3 phase baseline. Public `main`
+  at the dated `84fb682` baseline already contains schema v13 and SANO-X2.
+  Seven post-main production/product refinements are prepared for integration.
+  See [project status](project-status.md).
+- Public-main Person-scoped PDF/TXT/JPG/PNG document support, local
+  Russian/English OCR, and separately consented document summary and Q&A.
 - D1 authenticated PDF/TXT evidence ingest with immutable bytes, bounded
   extraction, provenance, review, and Family Access v3 document grants.
 - P3 selective consumer-genotype indexing, reviewed evidence, PGx associations,
@@ -102,7 +105,7 @@ outside the product boundary.
 
 ## Grant Reviewer Summary
 
-OpenCare is best reviewed as an open-source, self-hosted personal/family health
+SANO is best reviewed as an open-source, self-hosted personal/family health
 workspace with a synthetic reviewer surface and authenticated live Product Core.
 Reviewers can inspect `/workspace`, `/family-access`, `/genetics`, and
 `/demo/health-vault`, plus the authorization matrix, threat models, CI, and

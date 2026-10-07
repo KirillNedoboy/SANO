@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "open-care-proof-kit"
-version = "0.3.0.dev0"
-description = "Open-source self-hosted Personal and Family Health Workspace with reusable trust infrastructure for sensitive personal AI agents."
+version = "0.3.0"
+description = "Open-source self-hosted personal and family health workspace with reusable trust infrastructure for sensitive personal AI agents."
 readme = "README.md"
 requires-python = ">=3.12"
 license = "Apache-2.0"
-license-files = ["LICENSE"]
+license-files = ["LICENSE", "NOTICE"]
 dependencies = [
   "fastapi>=0.111.0",
   "jinja2>=3.1.0",
@@ -21,6 +21,7 @@ dependencies = [
 ]
 
 [project.urls]
+Homepage = "https://sanobot.art"
 Repository = "https://github.com/KirillNedoboy/open-care-proof-kit"
 Issues = "https://github.com/KirillNedoboy/open-care-proof-kit/issues"
 

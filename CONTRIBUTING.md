@@ -1,6 +1,9 @@
 # Contributing
 
-OpenCare Proof Kit welcomes contributions that strengthen local-first, evidence-grounded, safety-checked health AI infrastructure without expanding the project into clinical decision-making.
+SANO welcomes contributions that strengthen local-first, evidence-grounded,
+safety-checked health AI infrastructure without expanding the project into
+clinical decision-making. `open-care-proof-kit` and `opencare-*` identifiers
+remain stable repository and protocol names.
 
 ## Project Boundaries
 
@@ -17,6 +20,12 @@ Do not contribute changes that add:
 - SaaS auth, payments, Telegram, or blockchain;
 - cloud upload of raw health or genetic data by default;
 - clinical claims beyond the local demo evidence pack.
+
+Do not include medical records, personal health information, genetic data,
+passwords, API keys, tokens, credentials, or private deployment logs containing
+secrets in commits, issues, pull requests, screenshots, or reports. Use
+synthetic or de-identified examples only. Report security vulnerabilities
+through [SECURITY.md](SECURITY.md).
 
 ## Welcome Contributions
 
