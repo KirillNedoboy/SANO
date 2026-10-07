@@ -1,7 +1,7 @@
 # SANO Grant Application Pack
 
 > Supporting grant material. This pack describes the published SANO baseline,
-> post-main refinements prepared for integration, and proposed future work; it
+> the integrated post-main refinements, and proposed future work; it
 > does not define runtime semantics. See [project
 > status](project-status.md), the [capability matrix](capability-matrix.md),
 > and the [judge guide](judge-guide.md) for repository truth.
@@ -18,8 +18,9 @@ reusable trust infrastructure for agents handling sensitive personal context.
 Public GitHub `main` at the dated `84fb682` baseline already includes Product
 Core schema v13 and SANO-X2: PDF/TXT/JPG/PNG support, local OCR, and bounded
 document summary/Q&A. The seven post-`84fb682` production/product refinements
-through `089a5eb` are prepared for integration; they do not introduce those
-capabilities. Exact revisions are in the dated [live-validation
+through `089a5eb` are now integrated in the published main; they do not
+introduce those capabilities. Exact revisions and the final publication SHA
+are in the dated [live-validation
 record](sano-live-validation.md).
 
 The exact G5 machine state is `READY_FOR_SECOND_CLIENT_SMOKE`. Agent Skills
@@ -81,8 +82,8 @@ hosted service.
   reviewer fixtures.
 
 These SANO-X2 capabilities are already part of public `main`. The seven
-post-main production/product refinements are prepared separately for
-integration.
+post-main production/product refinements are integrated in the published
+main; `089a5eb` is their dated input baseline.
 
 ## Reusable trust infrastructure
 

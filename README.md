@@ -18,9 +18,9 @@ controls, and consent-gated AI in one Person-scoped system.
 
 SANO is the product name. `open-care-proof-kit` and `opencare-*` remain stable repository, package, and protocol identifiers where changing them would break contracts or history.
 
-Public `main` contains the completed G1–G5, P1, P2, D1, and P3 implementation sequence, including Product Core schema v13 and SANO-X2 document understanding. Seven post-`84fb682` production/product refinements are prepared for integration; they do not introduce X2 or schema v13.
+Public `main` contains the completed G1–G5, P1, P2, D1, and P3 implementation sequence, including Product Core schema v13 and SANO-X2 document understanding. The seven post-`84fb682` production/product refinements are integrated in the published main; they do not introduce X2 or schema v13.
 
-> **Repository status, 7 October 2026:** The verified public-main baseline is `84fb682`; it already includes schema v13 and SANO-X2. This local branch starts from `089a5eb`, seven post-`84fb682` production/product refinements ahead. Those refinements and the redirect-test correction remain unintegrated. See [project status](docs/project-status.md) and the dated [live validation record](docs/sano-live-validation.md) for evidence.
+> **Repository status, 7 October 2026:** `84fb682` is the dated public-main baseline that already included schema v13 and SANO-X2. The seven post-`84fb682` production/product refinements through `089a5eb`, including the redirect-test correction, are now integrated in the published main. See [project status](docs/project-status.md) and the dated [live validation record](docs/sano-live-validation.md) for the final publication SHA and evidence.
 
 ## Why SANO
 

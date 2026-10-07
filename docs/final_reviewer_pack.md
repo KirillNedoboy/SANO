@@ -66,7 +66,8 @@ node --check app/static/genetics.js
   `/chat` surfaces.
 - Product Core schema v9 is the historical P3 phase baseline. Public `main`
   at the dated `84fb682` baseline already contains schema v13 and SANO-X2.
-  Seven post-main production/product refinements are prepared for integration.
+  Seven post-main production/product refinements through `089a5eb` are now
+  integrated in the published main.
   See [project status](project-status.md).
 - Public-main Person-scoped PDF/TXT/JPG/PNG document support, local
   Russian/English OCR, and separately consented document summary and Q&A.

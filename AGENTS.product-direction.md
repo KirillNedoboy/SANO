@@ -43,8 +43,8 @@ There is no G6.
 
 Public GitHub `main` already contains Product Core schema v13 and SANO-X2:
 PDF/TXT/JPG/PNG document support, local OCR, and consent-gated document
-summary/Q&A. Seven post-`84fb682` production/product refinements are prepared
-for integration and do not introduce those capabilities. See
+summary/Q&A. The seven post-`84fb682` production/product refinements are now
+integrated in public `main` and do not introduce those capabilities. See
 `docs/project-status.md` and `docs/capability-matrix.md` for dated evidence.
 
 Family Access v1 and v2 are frozen. Family Access v3 adds document scopes.

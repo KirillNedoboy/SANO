@@ -37,6 +37,9 @@ def test_current_repository_truth_is_published_and_versioned() -> None:
     assert "Product Core schema v13" in status
     assert "already contains Product Core schema v13 and SANO-X2" in status
     assert "post-main production/product refinements" in status
+    assert "integrated in published `main`" in status
+    assert "b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd" in status
+    assert "prepared for integration" not in status
 
 
 def test_public_reviewer_copy_exposes_current_ai_validation_boundary() -> None:
@@ -74,6 +77,8 @@ def test_current_authentication_truth_keeps_registration_and_sharing_boundaries(
     assert "Public `main` contains the completed" in readme
     assert "OpenAI live X2 is unverified" in readme
     assert "post-`84fb682` production/product refinements" in readme
+    assert "integrated in the published main" in readme
+    assert "prepared for integration" not in readme
 
 
 def test_root_agent_artifacts_are_unmistakably_historical() -> None:

@@ -11,8 +11,9 @@ The current repository truth is recorded in the canonical [judge guide](https://
 and [live validation record](https://github.com/KirillNedoboy/open-care-proof-kit/blob/main/docs/sano-live-validation.md).
 Public `main` at the dated `84fb682` baseline already contains Product Core
 schema v13 and SANO-X2: PDF/TXT/JPG/PNG documents, local Russian/English OCR,
-and document summary/Q&A. Seven post-`84fb682` production/product refinements
-are prepared for integration; they do not introduce those capabilities.
+and document summary/Q&A. The seven post-`84fb682` production/product
+refinements are now integrated in the published main; they do not introduce
+those capabilities.
 
 The product name is SANO. The repository name `open-care-proof-kit` and
 `opencare-*` package and protocol identifiers remain stable for compatibility.

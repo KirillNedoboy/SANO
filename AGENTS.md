@@ -28,9 +28,9 @@ There is no G6.
 
 Public `main` already contains Product Core schema v13 and SANO-X2 document
 understanding, including PDF/TXT/JPG/PNG support, local OCR, and consent-gated
-document summary/Q&A. Seven post-`84fb682` production/product refinements are
-prepared for integration; they do not introduce schema v13 or SANO-X2. This
-branch also corrects an outdated redirect-test expectation. The implementation
+document summary/Q&A. The seven post-`84fb682` production/product refinements
+are now integrated in public `main`; they do not introduce schema v13 or
+SANO-X2. The integration also includes the redirect-test correction. The implementation
 includes Person-scoped
 records, provenance and human review, medications, recorded conditions, labs,
 Visits and Visit Briefs, bounded PDF/TXT/JPG/PNG ingest with local OCR and

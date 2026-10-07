@@ -4,9 +4,9 @@
 
 ## Repository baseline
 
-On the record date, public `main` was at `84fb682429c94f7c589530063c8753d882008d58`. That SHA already contains Product Core migration v13 and SANO-X2 document understanding: PDF/TXT/JPG/PNG, local OCR, and document summary/Q&A. The code is directly inspectable in `app/product_core/migrations.py` and the X2 document modules at that revision.
+The dated public-main baseline was `84fb682429c94f7c589530063c8753d882008d58`. That SHA already contains Product Core migration v13 and SANO-X2 document understanding: PDF/TXT/JPG/PNG, local OCR, and document summary/Q&A. The code is directly inspectable in `app/product_core/migrations.py` and the X2 document modules at that revision.
 
-The production branch `codex/sano-production-deployment` at `089a5eb678b198a8e71e5cb15d038083ae0f7085` is seven commits beyond `84fb682`. Those are post-main production/product refinements prepared for integration; they do not introduce v13, X2, OCR, or document summary/Q&A. This local grant-preparation branch starts at `089a5eb` and adds the redirect-test correction. These are dated input baselines, not a claim that either identifier remains the current value of a mutable branch.
+The production branch `codex/sano-production-deployment` at `089a5eb678b198a8e71e5cb15d038083ae0f7085` was the dated seven-commit integration input beyond `84fb682`; those post-main production/product refinements do not introduce v13, X2, OCR, or document summary/Q&A. The final publication commit `b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd` was pushed to public `main` on 7 October 2026 and includes that input plus the redirect-test correction. These are dated baselines, not a claim that either identifier remains the current value of a mutable branch.
 
 ## GitHub Actions evidence
 
@@ -14,9 +14,9 @@ GitHub Actions is a separate evidence class. The workflow checks deterministic
 tests, lint, typing, evals, trust metrics, and reviewer gates; it does not run
 paid OpenRouter or other live provider calls.
 
-- The last inspected successful GitHub Actions run for `main` was [run 37200437345](https://github.com/KirillNedoboy/open-care-proof-kit/actions/runs/37200437345), created 4 October 2026 for `84fb682429c94f7c589530063c8753d882008d58`. Its required job contexts were `validate`, `Family access credentials (ubuntu-latest)`, and `Family access credentials (windows-latest)`.
-- [Run 37644787220](https://github.com/KirillNedoboy/open-care-proof-kit/actions/runs/37644787220), created 7 October 2026 for `089a5eb678b198a8e71e5cb15d038083ae0f7085`, failed with 1 failed, 1,197 passed, and 2 skipped. The failed assertion expected an authenticated `/chat` request without an active Person to return 404. The route now intentionally redirects to the Person picker; the regression test was updated to assert `307` and the safe `/documents?next=%2Fchat` path. This local change has not been pushed and has no new GitHub Actions result.
-- The seven post-main production/product refinements and local redirect-test correction have not been integrated. No final integrated SHA for those refinements exists in this local preparation.
+- The dated pre-integration public-main run was [run 37200437345](https://github.com/KirillNedoboy/open-care-proof-kit/actions/runs/37200437345), created 4 October 2026 for `84fb682429c94f7c589530063c8753d882008d58`. Its required job contexts were `validate`, `Family access credentials (ubuntu-latest)`, and `Family access credentials (windows-latest)`.
+- [Run 37644787220](https://github.com/KirillNedoboy/open-care-proof-kit/actions/runs/37644787220), created 7 October 2026 for the dated `089a5eb678b198a8e71e5cb15d038083ae0f7085` input, failed with 1 failed, 1,197 passed, and 2 skipped. The failed assertion expected an authenticated `/chat` request without an active Person to return 404. The route intentionally redirects to the Person picker; the corrected test asserts `307` and the safe `/documents?next=%2Fchat` path. This is historical input-branch evidence.
+- Final public-main run [37683527310](https://github.com/KirillNedoboy/open-care-proof-kit/actions/runs/37683527310) for `b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd` passed. Its required contexts were `validate`, `Family access credentials (ubuntu-latest)`, and `Family access credentials (windows-latest)`.
 
 ## Automated and local validation
 
@@ -96,9 +96,11 @@ model identifiers, deployed SHAs, hardware details, or raw smoke logs.
   link/image, stale-claim, secret-pattern, and diff checks passed on this
   prepared tree, the local packaging state is
   `SANO_GRANT_PACKAGING_LOCAL=READY`.
-- Repository publication remains `SANO_SENTIENT_GRANT_REPO=BLOCKED` until
-  publication is separately authorized, the final integrated public SHA has
-  green CI, and the resulting public `main` has been reviewed.
+- Repository publication and exact-SHA CI are complete at
+  `b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd`; the local packaging state and
+  public repository state are `SANO_GRANT_PACKAGING_LOCAL=READY` and
+  `SANO_SENTIENT_GRANT_REPO=READY`. Release creation, deployment, settings
+  changes, and remote branch cleanup remain separate manual actions.
 - Public `main` at the dated `84fb682` baseline already includes Product Core schema v13, PDF/TXT/JPG/PNG document support, local Tesseract `rus+eng` OCR, and consent-gated descriptions and document Q&A. The seven post-main refinements through `089a5eb` do not introduce those capabilities.
 - SANO stores health context in the self-hosted installation. External disclosure is optional, minimized to selected evidence, consented per action, and receipted. Raw genome data never enters supported provider context.
 - Agent Skills interoperability is verified; G5 machine state remains exactly `READY_FOR_SECOND_CLIENT_SMOKE`. Root Agent Plugins two-client evidence remains pending. AlphaGenome is paused after C.1.
@@ -128,4 +130,4 @@ stale-branch review candidates:
 - `origin/codex/opencare-guarded-chat-ui`
 - `origin/codex/sentient-grant-positioning`
 
-The production branch `origin/codex/sano-production-deployment` is deliberately excluded: it contains the seven post-main production/product refinements and must not be deleted. No branch was deleted. Recheck current refs and pull requests before proposing any cleanup.
+The production branch `origin/codex/sano-production-deployment` remains a dated input branch containing the seven post-main production/product refinements. Keep it until current PR/ref review; no branch was deleted. Recheck current refs and pull requests before proposing any cleanup.

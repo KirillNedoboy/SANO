@@ -17,9 +17,9 @@ architecture documents; they do not change the product identity.
 
 Public GitHub `main` at the dated `84fb682` baseline already contains Product
 Core schema v13 and SANO-X2, including local OCR and bounded document
-understanding. Seven post-`84fb682` production/product refinements through
-`089a5eb` are prepared for integration; they do not introduce X2. See the dated
-[live-validation record](sano-live-validation.md) for exact source identities
+understanding. The seven post-`84fb682` production/product refinements through
+`089a5eb` are now integrated in the published main; they do not introduce X2.
+See the dated [live-validation record](sano-live-validation.md) for exact source identities
 and CI status.
 
 The G5 machine state is exactly `READY_FOR_SECOND_CLIENT_SMOKE`. This records

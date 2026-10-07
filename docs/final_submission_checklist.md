@@ -1,13 +1,13 @@
 # SANO Sentient grant readiness checklist
 
-This checklist is for review before submitting a Sentient Foundation public-goods grant application. It does not authorize publishing, release creation, deployment, GitHub settings changes, or remote branch deletion.
+This checklist records the public-main packaging preflight for a Sentient Foundation public-goods grant application. Publication is complete; it does not authorize release creation, deployment, GitHub settings changes, or remote branch deletion.
 
 ## Repository and product truth
 
-- [ ] Confirm the seven post-`84fb682` production/product refinements and their CI are green on GitHub.
-- [ ] Integrate the post-main refinements into public `main`; check the resulting commit against the dated validation baseline.
-- [ ] Confirm README, project status, capability matrix, judge guide, reviewer pack, and grant materials tell the same current story.
-- [ ] Keep `SANO_SENTIENT_GRANT_REPO=BLOCKED` while the post-main refinements are unintegrated or CI is not green.
+- [x] Confirm the seven post-`84fb682` production/product refinements and their CI are green on GitHub.
+- [x] Integrate the post-main refinements into public `main` at `b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd`; preserve `84fb682` and `089a5eb` as dated baselines.
+- [x] Confirm README, project status, capability matrix, judge guide, reviewer pack, and grant materials tell the same current story.
+- [x] Record `SANO_SENTIENT_GRANT_REPO=READY` for the published final SHA with green CI.
 - [ ] Preserve G5 exactly as `READY_FOR_SECOND_CLIENT_SMOKE` and AlphaGenome as paused after C.1.
 - [ ] State plainly that clinical validation and clinical authority are not claimed.
 
@@ -38,23 +38,23 @@ This checklist is for review before submitting a Sentient Foundation public-good
 ## Remote branch snapshot
 
 Read-only snapshot inspected 7 October 2026. Ahead/behind counts compare each
-remote head with `origin/main` at `84fb682429c94f7c589530063c8753d882008d58`.
+remote head with `origin/main` at `b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd`.
 CI is reported only when a GitHub Actions run was found for that exact head SHA.
 Recheck refs, runs, and open pull requests before any cleanup request.
 
 | Remote branch | Head SHA | Ahead / behind | Latest CI for exact SHA | Purpose and recommendation |
 | --- | --- | ---: | --- | --- |
-| `origin/main` | `84fb682429c94f7c589530063c8753d882008d58` | 0 / 0 | success ([run 37200437345](https://github.com/KirillNedoboy/open-care-proof-kit/actions/runs/37200437345)) | Published baseline; keep. |
-| `origin/codex/sano-production-deployment` | `089a5eb678b198a8e71e5cb15d038083ae0f7085` | 7 / 0 | failure ([run 37644787220](https://github.com/KirillNedoboy/open-care-proof-kit/actions/runs/37644787220)) | Seven post-84fb production/product refinements; keep for integration. |
-| `origin/codex/fix-demo-medication-citations` | `b30733cf7fde66ee9f35e5b5677e4f0929e3b3c5` | 0 / 228 | success ([run 29511166104](https://github.com/KirillNedoboy/open-care-proof-kit/actions/runs/29511166104)) | Medication citation fix; cleanup candidate after PR/ref review. |
-| `origin/codex/opencare-guarded-chat-ui` | `b7f978e11743fa793002afd8edd4aa65559a5d95` | 0 / 230 | success ([run 29439170817](https://github.com/KirillNedoboy/open-care-proof-kit/actions/runs/29439170817)) | Guarded chat UI; cleanup candidate after PR/ref review. |
-| `origin/codex/sentient-grant-positioning` | `14283ae4027a32407f33f76a7a070c944539e816` | 0 / 250 | no run found for exact head SHA | Grant positioning history; cleanup candidate after PR/ref review. |
-| `origin/master` | `f380cd6b1621e1ebb41d4a7895a153c6dc0abbb3` | 0 / 262 | no run found for exact head SHA | Legacy default branch; cleanup candidate after PR/ref review. |
-| `origin/phase-1-demo-assets` | `ba6b4f90a4344b350438ed0246924b9fc6d4146b` | 0 / 256 | no run found for exact head SHA | Historical demo assets; PR #1 is merged; cleanup candidate after PR/ref review. |
-| `origin/phase-1-evidence-hardening` | `dda7958fe484728dae4b5341baf472350a4e2d22` | 0 / 260 | no run found for exact head SHA | Historical evidence validation work; cleanup candidate after PR/ref review. |
-| `origin/phase-1-github-grant-readiness` | `0a74740fb30ba87922d8f01d069de78260f724c5` | 0 / 252 | success ([run 28376292489](https://github.com/KirillNedoboy/open-care-proof-kit/actions/runs/28376292489)) | Historical repository readiness docs; cleanup candidate after PR/ref review. |
-| `origin/phase-1-pipeline-evals` | `608fc11c8f86024810a6d44e7443619b5863e89f` | 0 / 259 | no run found for exact head SHA | Historical pipeline evals; cleanup candidate after PR/ref review. |
-| `origin/phase-1-web-demo` | `b46e3365ebdbda0b5433a8831a78557ee94163d6` | 0 / 261 | no run found for exact head SHA | Historical local web demo; cleanup candidate after PR/ref review. |
+| `origin/main` | `b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd` | 0 / 0 | success ([run 37683527310](https://github.com/KirillNedoboy/open-care-proof-kit/actions/runs/37683527310)) | Published final baseline; keep. |
+| `origin/codex/sano-production-deployment` | `089a5eb678b198a8e71e5cb15d038083ae0f7085` | 0 / 1 | historical failure ([run 37644787220](https://github.com/KirillNedoboy/open-care-proof-kit/actions/runs/37644787220)) | Integrated input branch; cleanup review candidate, no deletion. |
+| `origin/codex/fix-demo-medication-citations` | `b30733cf7fde66ee9f35e5b5677e4f0929e3b3c5` | 0 / 236 | success ([run 29511166104](https://github.com/KirillNedoboy/open-care-proof-kit/actions/runs/29511166104)) | Medication citation fix; cleanup candidate after PR/ref review. |
+| `origin/codex/opencare-guarded-chat-ui` | `b7f978e11743fa793002afd8edd4aa65559a5d95` | 0 / 238 | success ([run 29439170817](https://github.com/KirillNedoboy/open-care-proof-kit/actions/runs/29439170817)) | Guarded chat UI; cleanup candidate after PR/ref review. |
+| `origin/codex/sentient-grant-positioning` | `14283ae4027a32407f33f76a7a070c944539e816` | 0 / 258 | no run found for exact head SHA | Grant positioning history; cleanup candidate after PR/ref review. |
+| `origin/master` | `f380cd6b1621e1ebb41d4a7895a153c6dc0abbb3` | 0 / 270 | no run found for exact head SHA | Legacy default branch; cleanup candidate after PR/ref review. |
+| `origin/phase-1-demo-assets` | `ba6b4f90a4344b350438ed0246924b9fc6d4146b` | 0 / 264 | no run found for exact head SHA | Historical demo assets; PR #1 is merged; cleanup candidate after PR/ref review. |
+| `origin/phase-1-evidence-hardening` | `dda7958fe484728dae4b5341baf472350a4e2d22` | 0 / 268 | no run found for exact head SHA | Historical evidence validation work; cleanup candidate after PR/ref review. |
+| `origin/phase-1-github-grant-readiness` | `0a74740fb30ba87922d8f01d069de78260f724c5` | 0 / 260 | success ([run 28376292489](https://github.com/KirillNedoboy/open-care-proof-kit/actions/runs/28376292489)) | Historical repository readiness docs; cleanup candidate after PR/ref review. |
+| `origin/phase-1-pipeline-evals` | `608fc11c8f86024810a6d44e7443619b5863e89f` | 0 / 267 | no run found for exact head SHA | Historical pipeline evals; cleanup candidate after PR/ref review. |
+| `origin/phase-1-web-demo` | `b46e3365ebdbda0b5433a8831a78557ee94163d6` | 0 / 269 | no run found for exact head SHA | Historical local web demo; cleanup candidate after PR/ref review. |
 
 No branch cleanup is authorized by this checklist.
 

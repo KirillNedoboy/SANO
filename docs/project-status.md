@@ -1,8 +1,8 @@
 # SANO current project status
 
-Status checked on 7 October 2026. Public `main` is a mutable Git ref. The dated public-main baseline `84fb682429c94f7c589530063c8753d882008d58` already contains Product Core schema v13 and SANO-X2: PDF/TXT/JPG/PNG support, local OCR, and document summary/Q&A. The seven commits from `84fb682` to `089a5eb` are post-main production/product refinements prepared for integration; they do not introduce schema v13 or X2. This local branch starts at `089a5eb` and also corrects an outdated redirect-test expectation. See the dated validation record for exact commit and CI identities.
+Status checked on 7 October 2026. Public `main` is a mutable Git ref. The dated public-main baseline `84fb682429c94f7c589530063c8753d882008d58` already contains Product Core schema v13 and SANO-X2: PDF/TXT/JPG/PNG support, local OCR, and document summary/Q&A. The seven commits from `84fb682` to `089a5eb` are dated post-main production/product refinements; they do not introduce schema v13 or X2. They are now integrated in published `main` at final validation baseline `b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd`, including the redirect-test correction. See the dated validation record for exact commit and CI identities.
 
-The two published release tags remain `v0.1.0` and `v0.2.0`. This checkout prepares package version `0.3.0`; there is no `v0.3.0` tag or release. A release does not imply public SaaS readiness or clinical validation.
+The two published release tags remain `v0.1.0` and `v0.2.0`. Public `main` now prepares package version `0.3.0`; there is no `v0.3.0` tag or release. A release does not imply public SaaS readiness or clinical validation.
 
 ## Delivery status
 
@@ -14,8 +14,8 @@ The two published release tags remain `v0.1.0` and `v0.2.0`. This checkout prepa
 
 ```text
 Public main baseline: `84fb682`, Product Core schema v13 / SANO-X2
-Post-main refinements: seven production/product commits through `089a5eb`, prepared for integration
-Local branch: post-main refinements plus redirect-test correction
+Post-main refinements: seven production/product commits through `089a5eb`, integrated in published `main`
+Published final validation baseline: `b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd`
 G5: READY_FOR_SECOND_CLIENT_SMOKE
 AlphaGenome: PAUSED after C.1
 v0.3.0: locally prepared; not released

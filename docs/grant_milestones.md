@@ -15,10 +15,10 @@ Approved short pitch: **SANO: private, source-grounded health workspace with aud
 ## Current baseline
 
 Public GitHub `main` at the dated `84fb682` baseline already contains SANO-X2
-and Product Core schema v13. Seven post-`84fb682` production/product
-refinements through `089a5eb` are prepared for integration and do not introduce
-those capabilities. No future milestone below should be read as evidence of
-Sentient integration or confidential-compute deployment. See the dated
+and Product Core schema v13. The seven post-`84fb682` production/product
+refinements through `089a5eb` are now integrated in the published main and do
+not introduce those capabilities. No future milestone below should be read as
+evidence of Sentient integration or confidential-compute deployment. See the dated
 [validation record](sano-live-validation.md) for exact source identities.
 
 G5 remains exactly `READY_FOR_SECOND_CLIENT_SMOKE`. AlphaGenome remains paused

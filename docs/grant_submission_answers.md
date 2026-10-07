@@ -1,18 +1,18 @@
 # SANO Grant Submission Answers
 
 > Copy-ready English answers for a public-good or Sentient-related grant form.
-> They describe the published SANO baseline and post-main refinements prepared
-> for integration. Current implementation truth remains in [project status](project-status.md)
+> They describe the published SANO baseline and integrated post-main
+> refinements. Current implementation truth remains in [project status](project-status.md)
 > and the [capability matrix](capability-matrix.md).
 
 ## Submission facts
 
 Public GitHub `main` at the dated `84fb682` baseline already contains Product
 Core schema v13 and SANO-X2, including local OCR and bounded document
-understanding. Seven post-`84fb682` production/product refinements through
-`089a5eb` are prepared for integration; they do not introduce those features.
-See the dated [live-validation record](sano-live-validation.md) for revision
-and CI evidence.
+understanding. The seven post-`84fb682` production/product refinements through
+`089a5eb` are now integrated in the published main; they do not introduce those
+features. See the dated [live-validation record](sano-live-validation.md) for
+revision and CI evidence.
 
 G5 remains exactly `READY_FOR_SECOND_CLIENT_SMOKE`: Agent Skills
 interoperability is verified for OMP 17.3.5 and Hermes Agent 0.19.0, while root
@@ -140,8 +140,9 @@ and health-record lifecycle, family access, optional genetics, export, recovery,
 bounded assistant context, policy and receipt contracts, provider portability,
 security docs, deterministic evals, and synthetic reviewer fixtures. Public
 `main` already contains schema v13, local OCR, and bounded document
-understanding. Seven post-main production/product refinements remain prepared
-for integration.
+understanding. The seven post-main production/product refinements are
+integrated in the published main; `089a5eb` remains their dated
+pre-integration baseline.
 
 The exact G5 machine state is `READY_FOR_SECOND_CLIENT_SMOKE`. AlphaGenome is
 paused after C.1.

@@ -27,7 +27,7 @@ The product may have no records for a newly selected Person. `/demo/health-vault
 
 ## Evidence and current boundaries
 
-- Public GitHub `main` at the dated `84fb682` baseline includes Product Core schema v13, SANO-X2, PDF/TXT/JPG/PNG support, local `rus+eng` OCR, and document summary/Q&A. Seven post-main production/product refinements remain prepared for integration.
+- Public GitHub `main` at the dated `84fb682` baseline includes Product Core schema v13, SANO-X2, PDF/TXT/JPG/PNG support, local `rus+eng` OCR, and document summary/Q&A. The seven post-main production/product refinements through `089a5eb` are now integrated in the published main.
 - Local-model inference without an external API and the OpenRouter/DeepSeek live
   provider flow, including document summary/Q&A, are operator-confirmed. Summary
   attribution, Q&A citations, and execution receipts are also operator-confirmed.

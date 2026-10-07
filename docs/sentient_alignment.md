@@ -32,8 +32,8 @@ SANO remains a health workspace rather than a generic platform claim.
 
 Public GitHub `main` at the dated `84fb682` baseline already contains Product
 Core schema v13 and SANO-X2, including OCR and bounded document understanding.
-Seven post-`84fb682` production/product refinements through `089a5eb` are
-prepared for integration and do not introduce those capabilities. See the
+The seven post-`84fb682` production/product refinements through `089a5eb` are
+now integrated in the published main and do not introduce those capabilities. See the
 dated [validation record](sano-live-validation.md) for exact revisions and CI.
 
 G5 remains exactly `READY_FOR_SECOND_CLIENT_SMOKE`: Agent Skills
@@ -103,8 +103,8 @@ The published baseline provides:
   de-identified fixtures.
 
 The SANO-X2 capabilities above are already in public `main`. The seven
-post-main production/product refinements are prepared separately for
-integration.
+post-main production/product refinements are integrated in the published main;
+`089a5eb` remains their dated pre-integration baseline.
 
 ## Future alignment path
 
