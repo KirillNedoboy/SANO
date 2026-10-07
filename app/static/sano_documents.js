@@ -380,7 +380,7 @@
       executing: t("documents.summary_processing", "Sano is preparing the description…"),
       failed: t("documents.summary_failed", "The description could not be created. The document remains saved. You can try again and give consent again."),
       completed: t("documents.summary_complete", "Description is ready."),
-      partial: t("documents.summary_partial_status", "The description covers selected pages only."),
+      partial: t("documents.summary_partial_status", "Only part of the extracted text was used to prepare the description."),
     }[status] || "";
     byId("documents-summary-status").textContent = statusLabel;
     if (!result) {
@@ -401,10 +401,9 @@
     };
     fillList("documents-summary-points", result.key_points);
     fillList("documents-summary-questions", result.discussion_questions);
-    const pages = Array.isArray(result.page_numbers) ? result.page_numbers.join(", ") : "";
     byId("documents-summary-coverage").textContent = result.coverage_complete
-      ? t("documents.summary_all_pages", "All document pages are represented.")
-      : t("documents.summary_partial", "The description covers selected pages only.").replace("{pages}", pages);
+      ? t("documents.summary_all_pages", "All extracted text was used to prepare the description.")
+      : t("documents.summary_partial", "Only part of the extracted text was used to prepare the description.");
   }
 
   async function loadSummary(documentItem, generation = state.viewerGeneration) {

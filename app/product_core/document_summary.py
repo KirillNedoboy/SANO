@@ -23,6 +23,18 @@ from app.product_core.errors import DocumentValidationError, SourceNotFoundError
 from app.product_core.runtime import ProductCoreRuntime
 
 
+def _coverage_fields(
+    total_chars: int, selected: tuple[tuple[int, str], ...]
+) -> dict[str, Any]:
+    complete = sum(len(text) for _, text in selected) == total_chars
+    return {
+        "coverage_complete": complete,
+        "coverage_note": None
+        if complete
+        else "Some extracted text was omitted by the document-processing limit.",
+    }
+
+
 class DocumentSummaryService:
     def __init__(
         self,
@@ -141,8 +153,7 @@ class DocumentSummaryService:
                     "fields": json.loads(fields),
                     "covered_pages": [number for number, _ in selected],
                     "total_pages": extraction.page_count,
-                    "coverage_complete": len(selected) == extraction.page_count
-                    and sum(len(text) for _, text in selected) == extraction.total_chars,
+                    **_coverage_fields(extraction.total_chars, selected),
                 }
         except sqlite3.IntegrityError:
             with self.runtime.database.uow() as uow:
@@ -191,7 +202,7 @@ class DocumentSummaryService:
                 extraction_id=row["extraction_id"],
                 input_text_hash=row["input_text_hash"],
             )
-            selected = self._selected_for_run(row)
+            extraction, selected = self._snapshot_for_run(row)
             fields = [f"page:{number}" for number, _ in selected]
         # This is the explicit consent action. No provider call occurs if the
         # session/access/source/provider binding no longer passes G2 checks.
@@ -228,11 +239,14 @@ class DocumentSummaryService:
             reason = result.reason_code or "summary_generation_failed"
         else:
             reason = None
+        coverage = _coverage_fields(extraction.total_chars, selected)
+        if parsed is not None:
+            parsed = {**parsed, **coverage}
         final_status = (
             "failed"
             if parsed is None
             else "completed"
-            if parsed.get("coverage_complete")
+            if coverage["coverage_complete"]
             else "partial"
         )
         receipt_id = (
@@ -291,14 +305,20 @@ class DocumentSummaryService:
                 (reason_code, now, now, run_id),
             )
 
-    def _selected_for_run(self, row: Any) -> tuple[tuple[int, str], ...]:
+    def _snapshot_for_run(
+        self, row: Any
+    ) -> tuple[Any, tuple[tuple[int, str], ...]]:
         spec = {
             "person_id": row["person_id"],
             "source_id": row["source_id"],
             "extraction_id": row["extraction_id"],
             "input_text_hash": row["input_text_hash"],
         }
-        _source, _snapshot, selected = self.trust_adapter.load_snapshot(spec)
+        _source, extraction, selected = self.trust_adapter.load_snapshot(spec)
+        return extraction, selected
+
+    def _selected_for_run(self, row: Any) -> tuple[tuple[int, str], ...]:
+        _extraction, selected = self._snapshot_for_run(row)
         return selected
 
     def _session_actor(self, session_token: str) -> str:

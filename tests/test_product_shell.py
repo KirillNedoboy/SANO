@@ -99,14 +99,52 @@ def test_authenticated_chat_renders_shared_shell_and_localized_content(
     assert 'href="/chat" aria-current="page"' in english.text
     assert 'class="chat-content"' in english.text
     assert 'class="chat-sidebar"' not in english.text
-    assert "Ask about your recorded vault" in english.text
+    assert "saved, source-backed records" in english.text
+    assert "uploaded file" in english.text
+    assert "Documents" in english.text
+    assert "Ask about this document" in english.text
 
     product_core_client.cookies.set("opencare_locale", "ru", path="/")
     russian = product_core_client.get("/chat")
     assert russian.status_code == 200
     assert '<html lang="ru">' in russian.text
-    assert "Спросите о записанных данных" in russian.text
+    assert "сохранённым записям с указанием источников" in russian.text
+    assert "загруженному файлу" in russian.text
+    assert "Документы" in russian.text
+    assert "Спросить об этом документе" in russian.text
     assert "Отправить" in russian.text
+
+
+def test_selected_document_chat_uses_distinct_document_subtitle(
+    product_core_client: TestClient,
+) -> None:
+    selected = product_core_client.put(
+        "/api/family-access/v1/active-person", json={"person_id": "person-1"}
+    )
+    assert selected.status_code == 204
+    upload = product_core_client.post(
+        "/api/product-core/v1/people/person-1/documents",
+        content=b"Synthetic selected document",
+        headers={
+            "content-type": "text/plain; charset=utf-8",
+            "x-opencare-filename": "selected.txt",
+        },
+    )
+    assert upload.status_code == 201, upload.text
+    source_id = upload.json()["document"]["source_id"]
+
+    english = product_core_client.get(f"/chat?source_id={source_id}")
+    assert english.status_code == 200
+    assert "<p>Answers use only the selected document" in english.text
+    assert "Selected document" in english.text
+
+    product_core_client.cookies.set("opencare_locale", "ru", path="/")
+    russian = product_core_client.get(f"/chat?source_id={source_id}")
+    assert russian.status_code == 200
+    assert (
+        "<p>Ответы строятся только по распознанным страницам выбранного документа"
+        in russian.text
+    )
 
 
 def test_demo_chat_keeps_demo_endpoint_without_authenticated_shell(

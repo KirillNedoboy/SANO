@@ -9,7 +9,11 @@ from fastapi.testclient import TestClient
 from PIL import Image
 
 import app.main as main_module
-from app.agent.document_summary_trust import DocumentSummaryTrustAdapter
+from app.agent.document_summary_trust import (
+    SUMMARY_PROMPT_VERSION,
+    DocumentSummaryAnswer,
+    DocumentSummaryTrustAdapter,
+)
 from app.agent.g2_runtime import EnvelopeProjection
 from app.agent.providers.contract import ProviderDescriptor, ProviderExecutionResult
 from app.family_access.policy import OWNER_SCOPES_V2
@@ -299,8 +303,14 @@ def test_summary_requires_explicit_consent_and_reuses_completed_result(
             assert request.purpose_id == "document_summary"
             assert request.action_id == "document.summarize"
             assert "only the supplied page list" in request.system_instructions
-            assert "coverage_complete is true" in request.system_instructions
-            assert "coverage_complete is false" in request.system_instructions
+            assert "coverage_complete" not in request.system_instructions
+            assert "coverage_note" not in request.system_instructions
+            assert request.allowed_fields == (
+                "summary",
+                "key_points",
+                "discussion_questions",
+                "page_numbers",
+            )
             assert len(request.evidence) == 1
             assert set(request.evidence[0]) == {"page_number", "text"}
             return ProviderExecutionResult(
@@ -309,8 +319,6 @@ def test_summary_requires_explicit_consent_and_reuses_completed_result(
                     "key_points": ["It contains a sample measurement."],
                     "discussion_questions": ["Would you like to ask your clinician about it?"],
                     "page_numbers": [1],
-                    "coverage_complete": True,
-                    "coverage_note": None,
                 },
                 provider_id=self.descriptor.provider_id,
                 model_id=self.descriptor.model_id,
@@ -350,12 +358,117 @@ def test_summary_requires_explicit_consent_and_reuses_completed_result(
     assert result["receipt_id"]
     assert result["consent_id"]
     assert result["result"]["page_numbers"] == [1]
+    assert result["result"]["coverage_complete"] is True
+    assert result["result"]["coverage_note"] is None
     assert provider.calls == 1
 
     repeated = product_core_client.post(root + "/prepare", json={})
     assert repeated.status_code == 200
     assert repeated.json()["status"] == "completed"
     assert provider.calls == 1
+
+
+def test_summary_coverage_is_server_owned_for_bounded_input(
+    product_core_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("app.agent.document_summary_trust.MAX_DOCUMENT_AI_TEXT_CHARS", 10)
+
+    class SummaryProvider:
+        calls = 0
+        descriptor = ProviderDescriptor(
+            provider_id="synthetic.external",
+            provider_kind="external_http",
+            provider_mode="external_provider",
+            endpoint_class="non_loopback",
+            external=True,
+            model_id="synthetic-model",
+        )
+
+        def execute(self, request):
+            self.calls += 1
+            assert request.allowed_fields == (
+                "summary",
+                "key_points",
+                "discussion_questions",
+                "page_numbers",
+            )
+            return ProviderExecutionResult(
+                answer={
+                    "summary": "A bounded synthetic report.",
+                    "key_points": [],
+                    "discussion_questions": [],
+                    "page_numbers": [1],
+                },
+                provider_id=self.descriptor.provider_id,
+                model_id=self.descriptor.model_id,
+                tool_calls=(),
+                failure=None,
+            )
+
+    provider = SummaryProvider()
+    monkeypatch.setattr(main_module.app.state, "agent_provider", provider)
+    upload = _upload(product_core_client, b"0123456789abcdef")
+    assert upload.status_code == 201, upload.text
+    source_id = upload.json()["document"]["source_id"]
+    active = product_core_client.put(
+        "/api/family-access/v1/active-person", json={"person_id": "person-1"}
+    )
+    assert active.status_code == 204, active.text
+    root = f"/api/product-core/v1/people/person-1/documents/{source_id}/summary"
+
+    prepared = product_core_client.post(root + "/prepare", json={})
+    assert prepared.status_code == 200, prepared.text
+    prepared_payload = prepared.json()
+    assert prepared_payload["coverage_complete"] is False
+    assert prepared_payload["coverage_note"]
+    assert prepared_payload["covered_pages"] == [1]
+    completed = product_core_client.post(
+        root + f"/runs/{prepared_payload['run_id']}/consent", json={}
+    )
+    assert completed.status_code == 200, completed.text
+    result = completed.json()
+    assert result["status"] == "partial"
+    assert result["result"]["coverage_complete"] is False
+    assert result["result"]["coverage_note"]
+    assert result["result"]["page_numbers"] == [1]
+    assert provider.calls == 1
+
+
+def test_summary_contract_excludes_provider_coverage_metadata() -> None:
+    properties = DocumentSummaryAnswer.model_json_schema()["properties"]
+    assert set(properties) == {
+        "summary",
+        "key_points",
+        "discussion_questions",
+        "page_numbers",
+    }
+    assert SUMMARY_PROMPT_VERSION == "sano-document-summary-v3"
+
+    valid = DocumentSummaryTrustAdapter.answer_validator(
+        {
+            "summary": "A source-backed description.",
+            "key_points": [],
+            "discussion_questions": [],
+            "page_numbers": [1],
+        },
+        _document_projection("document.summarize"),
+    )
+    assert valid.valid is True
+
+    provider_owned = DocumentSummaryTrustAdapter.answer_validator(
+        {
+            "summary": "A source-backed description.",
+            "key_points": [],
+            "discussion_questions": [],
+            "page_numbers": [1],
+            "coverage_complete": True,
+            "coverage_note": None,
+        },
+        _document_projection("document.summarize"),
+    )
+    assert provider_owned.valid is False
+    assert provider_owned.diagnostic.value == "schema_validation_failed"
+    assert provider_owned.diagnostic_error_type == "extra_forbidden"
 
 
 def test_document_question_uses_only_selected_document_and_requires_consent(
@@ -593,8 +706,6 @@ def test_document_summary_rejects_unsafe_russian_output_without_persisting_resul
                     "key_points": [],
                     "discussion_questions": [],
                     "page_numbers": [1],
-                    "coverage_complete": True,
-                    "coverage_note": None,
                 },
                 provider_id=self.descriptor.provider_id,
                 model_id=self.descriptor.model_id,
@@ -681,8 +792,6 @@ def _summary_answer(**overrides: object) -> dict[str, object]:
         "key_points": [],
         "discussion_questions": [],
         "page_numbers": [1],
-        "coverage_complete": True,
-        "coverage_note": None,
     }
     answer.update(overrides)
     return answer
@@ -714,7 +823,7 @@ def _summary_answer(**overrides: object) -> dict[str, object]:
         (
             _summary_answer(coverage_complete=True, coverage_note="pages 1-2"),
             ("page:1",),
-            "coverage_inconsistent",
+            "schema_validation_failed",
         ),
         (
             _summary_answer(summary="safe\x01text"),
@@ -759,17 +868,6 @@ def test_document_validator_classifies_empty_page_numbers_before_schema_validati
     assert result.valid is False
     assert result.reason_code == "summary_invalid"
     assert result.diagnostic.value == "page_numbers_missing"
-
-
-def test_document_validator_requires_non_empty_coverage_note_when_incomplete() -> None:
-    result = DocumentSummaryTrustAdapter.answer_validator(
-        _summary_answer(coverage_complete=False, coverage_note="   "),
-        _document_projection("document.summarize"),
-    )
-
-    assert result.valid is False
-    assert result.reason_code == "summary_invalid"
-    assert result.diagnostic.value == "coverage_inconsistent"
 
 
 def test_document_validator_keeps_page_allowlist_for_question_answers() -> None:
@@ -901,8 +999,6 @@ def test_document_validator_keeps_page_allowlist_for_question_answers() -> None:
                 "key_points": [],
                 "discussion_questions": [],
                 "page_numbers": [1],
-                "coverage_complete": True,
-                "coverage_note": None,
             },
         ),
         (
@@ -915,8 +1011,6 @@ def test_document_validator_keeps_page_allowlist_for_question_answers() -> None:
                 "key_points": [],
                 "discussion_questions": [],
                 "page_numbers": [1],
-                "coverage_complete": True,
-                "coverage_note": None,
             },
         ),
     ],
@@ -966,8 +1060,6 @@ def test_document_validator_rejects_russian_unsafe_answers_and_summaries(
                 "key_points": [],
                 "discussion_questions": [],
                 "page_numbers": [1],
-                "coverage_complete": True,
-                "coverage_note": None,
             },
         ),
         (
@@ -993,8 +1085,6 @@ def test_document_validator_rejects_russian_unsafe_answers_and_summaries(
                 "key_points": [],
                 "discussion_questions": [],
                 "page_numbers": [1],
-                "coverage_complete": True,
-                "coverage_note": None,
             },
         ),
     ],

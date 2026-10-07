@@ -246,6 +246,17 @@ def test_demo_report_endpoint_returns_safe_no_claim_for_unsupported_drug() -> No
     assert "no demo evidence-pack rules exist for this drug" in payload["report_markdown"].lower()
 
 
+def test_document_summary_coverage_copy_uses_extracted_text_not_citations() -> None:
+    script = (Path("app") / "static" / "sano_documents.js").read_text(encoding="utf-8")
+    translations = (Path("app") / "ui_localization.py").read_text(encoding="utf-8")
+
+    assert "result.page_numbers.join" not in script
+    assert "All extracted text was used to prepare the description." in translations
+    assert "Only part of the extracted text was used to prepare the description." in translations
+    assert "Для описания использован весь распознанный текст." in translations
+    assert "Для описания использована только часть распознанного текста." in translations
+
+
 def test_reviewer_quickstart_endpoint_returns_markdown() -> None:
     response = get("/reviewer-quickstart")
 

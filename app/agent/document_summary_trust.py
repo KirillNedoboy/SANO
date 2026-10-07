@@ -40,7 +40,7 @@ SUMMARY_ACTION = "document.summarize"
 SUMMARY_CONSENT_BASIS = "document-summary-per-source-v1"
 SUMMARY_REQUEST_PREFIX = "sano-document-summary-v1:"
 MAX_DOCUMENT_AI_TEXT_CHARS = 60_000
-SUMMARY_PROMPT_VERSION = "sano-document-summary-v2"
+SUMMARY_PROMPT_VERSION = "sano-document-summary-v3"
 
 _SUMMARY_DIAGNOSTIC_FIELDS = frozenset(
     {
@@ -48,8 +48,6 @@ _SUMMARY_DIAGNOSTIC_FIELDS = frozenset(
         "key_points",
         "discussion_questions",
         "page_numbers",
-        "coverage_complete",
-        "coverage_note",
         "answer",
         "unknowns",
     }
@@ -93,8 +91,6 @@ class DocumentSummaryAnswer(BaseModel):
     key_points: list[str] = Field(max_length=8)
     discussion_questions: list[str] = Field(max_length=8)
     page_numbers: list[int] = Field(min_length=1, max_length=200)
-    coverage_complete: bool
-    coverage_note: str | None = Field(default=None, max_length=300)
 
 
 class DocumentQuestionAnswer(BaseModel):
@@ -424,8 +420,6 @@ class DocumentSummaryTrustAdapter:
                     "key_points",
                     "discussion_questions",
                     "page_numbers",
-                    "coverage_complete",
-                    "coverage_note",
                 )
             ),
             output_contract=(
@@ -447,10 +441,7 @@ class DocumentSummaryTrustAdapter:
                     "Use only its text. Do not diagnose, interpret results, recommend treatment, "
                     "or suggest medication changes. Keep uncertainty explicit. Every "
                     "page number must refer to supplied evidence. Use only the supplied page "
-                    "list for page citations; never invent or cite another page. If the supplied "
-                    "pages do not cover the whole document, set coverage_complete false and say "
-                    "which pages are covered. When coverage_complete is true, coverage_note must "
-                    "be null. When coverage_complete is false, coverage_note must be non-empty."
+                    "list for page citations; never invent or cite another page."
                 )
             ),
             disclosure_constraints=tuple(projection.disclosure_constraints),
@@ -474,7 +465,6 @@ class DocumentSummaryTrustAdapter:
             if question_mode:
                 parsed_question = DocumentQuestionAnswer.model_validate(answer)
                 content_values = [parsed_question.answer, *parsed_question.unknowns]
-                coverage_valid = True
             else:
                 parsed_summary = DocumentSummaryAnswer.model_validate(answer)
                 content_values = [
@@ -482,13 +472,6 @@ class DocumentSummaryTrustAdapter:
                     *parsed_summary.key_points,
                     *parsed_summary.discussion_questions,
                 ]
-                coverage_valid = (
-                    parsed_summary.coverage_complete and parsed_summary.coverage_note is None
-                ) or (
-                    not parsed_summary.coverage_complete
-                    and parsed_summary.coverage_note is not None
-                    and bool(parsed_summary.coverage_note.strip())
-                )
         except ValidationError as error:
             diagnostic_field, diagnostic_error_type = _safe_schema_diagnostic(error)
             return ValidationResult(
@@ -525,22 +508,9 @@ class DocumentSummaryTrustAdapter:
                 "summary_invalid",
                 diagnostic=ValidationDiagnostic.PAGE_OUT_OF_SCOPE,
             )
-        if not coverage_valid:
-            return ValidationResult(
-                False,
-                "summary_invalid",
-                diagnostic=ValidationDiagnostic.COVERAGE_INCONSISTENT,
-            )
         if any(
             any(ord(char) < 32 and char not in "\n\t" for char in value)
             for value in content_values
-        ) or (
-            not question_mode
-            and parsed_summary.coverage_note is not None
-            and any(
-                ord(char) < 32 and char not in "\n\t"
-                for char in parsed_summary.coverage_note
-            )
         ):
             return ValidationResult(
                 False,

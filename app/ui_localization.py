@@ -265,13 +265,17 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "documents.summary_consent_required": (
             "Choose whether to allow Sano to process this document."
         ),
-        "documents.summary_partial": "The description covers pages {pages} only.",
-        "documents.summary_partial_status": "The description covers only part of the document.",
+        "documents.summary_partial": (
+            "Only part of the extracted text was used to prepare the description."
+        ),
+        "documents.summary_partial_status": (
+            "Only part of the extracted text was used to prepare the description."
+        ),
         "documents.summary_complete": "Description is ready.",
         "documents.summary_processing": "Sano is preparing the description…",
         "documents.summary_preparing": "Preparing a secure preview…",
         "documents.summary_available": "You can ask Sano for an optional description.",
-        "documents.summary_all_pages": "All document pages are represented.",
+        "documents.summary_all_pages": "All extracted text was used to prepare the description.",
         "documents.summary_new_consent": "Prepare another attempt to give consent again.",
         "documents.summary_cancelled": "No description was created.",
         "documents.selected_provider": "the selected provider",
@@ -709,7 +713,11 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "nav.assistant": "Assistant",
         "chat.title": "Sano Assistant",
         "chat.kicker": "Source-backed conversation",
-        "chat.subtitle": "Answers stay within the authorized Person scope.",
+        "chat.subtitle": (
+            "Answers use saved, source-backed records. For questions about an uploaded file, "
+            "open it in Documents and choose ‘Ask about this document’."
+        ),
+        "chat.document_subtitle": "Answers use only the selected document’s recognized pages.",
         "chat.document_context": "Selected document",
         "chat.document_context_help": (
             "Your question uses only this document's recognized pages. It does not include "
@@ -1451,7 +1459,14 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "nav.assistant": "Помощник",
         "chat.title": "Ассистент Sano",
         "chat.kicker": "Разговор на основе источников",
-        "chat.subtitle": "Ответы остаются в пределах разрешённого пользователя.",
+        "chat.subtitle": (
+            "Ответы строятся по сохранённым записям с указанием источников. Если вопрос "
+            "относится к загруженному файлу, откройте его в разделе «Документы» и выберите "
+            "«Спросить об этом документе»."
+        ),
+        "chat.document_subtitle": (
+            "Ответы строятся только по распознанным страницам выбранного документа."
+        ),
         "chat.document_context": "Выбранный документ",
         "chat.document_context_help": (
             "Ответ строится только по распознанным страницам этого документа. Другие "
@@ -2024,13 +2039,17 @@ TRANSLATIONS["ru"].update(
         "documents.summary_consent_required": (
             "Выберите, разрешаете ли вы Sano обработать этот документ."
         ),
-        "documents.summary_partial": "Описание охватывает только страницы: {pages}.",
-        "documents.summary_partial_status": "Описание охватывает не весь документ.",
+        "documents.summary_partial": (
+            "Для описания использована только часть распознанного текста."
+        ),
+        "documents.summary_partial_status": (
+            "Для описания использована только часть распознанного текста."
+        ),
         "documents.summary_complete": "Описание готово.",
         "documents.summary_processing": "Sano готовит описание…",
         "documents.summary_preparing": "Готовим безопасный просмотр перед отправкой…",
         "documents.summary_available": "Можно попросить Sano создать описание документа.",
-        "documents.summary_all_pages": "Учтены все страницы документа.",
+        "documents.summary_all_pages": "Для описания использован весь распознанный текст.",
         "documents.summary_new_consent": (
             "Чтобы повторить попытку, подготовьте её и дайте новое согласие."
         ),
