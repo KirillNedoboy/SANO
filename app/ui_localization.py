@@ -726,8 +726,9 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         ),
         "chat.empty_title": "Ask about your recorded vault",
         "chat.empty_intro": (
-            "Sano summarizes source-backed information, identifies unknown details, "
-            "and prepares clinician discussion questions."
+            "Ask about confirmed, source-backed records, or select one authorized document. "
+            "If there are no confirmed records yet, choose a document to ask about "
+            "its recognized pages."
         ),
         "chat.empty_safety": (
             "Answers are policy-checked and validated before display. Validation cannot "
@@ -749,6 +750,40 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "chat.document_empty_intro": "Ask about a result or phrase on its recognized pages.",
         "chat.document_ask_label": "Ask a question about this document",
         "chat.document_placeholder": "Ask about a result or phrase in the selected document…",
+        "chat.select_document": "Select a document",
+        "chat.change_source": "Change source",
+        "chat.source_choice_title": "Choose what Sano can use",
+        "chat.change_source_help": (
+            "Choose confirmed records or one accessible document. Starting a new source "
+            "opens a fresh conversation."
+        ),
+        "chat.select_document_help": (
+            "Choose one accessible document for this Person. Only its recognized pages will "
+            "be used."
+        ),
+        "chat.documents_loading": "Loading accessible documents…",
+        "chat.documents_unavailable": "Documents are unavailable for this Person.",
+        "chat.documents_none": "No documents are available for this Person yet.",
+        "chat.documents_open_archive": "Open Documents",
+        "chat.use_confirmed_records": "Use confirmed records",
+        "chat.document_ready": "Ready to ask about recognized pages",
+        "chat.document_pending": "Text recognition is still in progress.",
+        "chat.document_unavailable": "This document has no usable recognized text.",
+        "chat.record_context_empty": (
+            "There are no confirmed, source-backed records for this Person yet."
+        ),
+        "chat.record_context_empty_next": (
+            "Select one authorized document to ask about its recognized pages, or add "
+            "and review a record first. No provider was contacted."
+        ),
+        "chat.authentication_required": "Your session is no longer available. Sign in again.",
+        "chat.forbidden_access": "This request is no longer available for the selected Person.",
+        "chat.origin_rejected": "This request was blocked because its origin was not allowed.",
+        "chat.csrf_rejected": "This request could not be verified. Refresh and try again.",
+        "chat.malformed_request": "Check the question and try again.",
+        "chat.runtime_failure": "Sano could not prepare this request. No provider was contacted.",
+        "chat.request_failed": "Sano could not complete this request. Try again.",
+        "chat.empty_context_heading": "No confirmed records are available yet",
         "chat.send": "Send",
         "chat.status_prepare": "Preparing an exact disclosure…",
         "chat.status_check": "Checking vault context and sources…",
@@ -776,6 +811,7 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "chat.consent_declined": "No provider call was made because disclosure was not approved.",
         "chat.consent_not_granted": "Consent was not granted.",
         "chat.no_provider_output": "No provider output was displayed.",
+        "chat.no_provider_call": "No provider was contacted.",
         "chat.receipt": "Receipt",
         "chat.status": "status",
         "chat.recorded": "recorded",
@@ -1475,8 +1511,9 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         ),
         "chat.empty_title": "Спросите о записанных данных",
         "chat.empty_intro": (
-            "Sano обобщает сведения из источников, показывает неизвестные детали и "
-            "готовит вопросы для обсуждения с врачом."
+            "Спросите о подтверждённых записях с указанием источников или выберите один "
+            "доступный документ. Если подтверждённых записей пока нет, выберите документ, "
+            "чтобы спросить о его распознанных страницах."
         ),
         "chat.empty_safety": (
             "Ответы проверяются политиками и проходят валидацию до показа. Валидация не "
@@ -1500,6 +1537,40 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         ),
         "chat.document_ask_label": "Задайте вопрос об этом документе",
         "chat.document_placeholder": "Спросите о показателе или фрагменте в выбранном документе…",
+        "chat.select_document": "Выбрать документ",
+        "chat.change_source": "Сменить источник",
+        "chat.source_choice_title": "Выберите источник для Sano",
+        "chat.change_source_help": (
+            "Выберите подтверждённые записи или один доступный документ. Новый источник "
+            "откроет новый разговор."
+        ),
+        "chat.select_document_help": (
+            "Выберите один доступный документ этого пользователя. Будут использованы только "
+            "его распознанные страницы."
+        ),
+        "chat.documents_loading": "Загружаем доступные документы…",
+        "chat.documents_unavailable": "Документы этого пользователя недоступны.",
+        "chat.documents_none": "Для этого пользователя пока нет доступных документов.",
+        "chat.documents_open_archive": "Открыть документы",
+        "chat.use_confirmed_records": "Использовать подтверждённые записи",
+        "chat.document_ready": "Можно спросить о распознанных страницах",
+        "chat.document_pending": "Распознавание текста ещё выполняется.",
+        "chat.document_unavailable": "В документе нет пригодного распознанного текста.",
+        "chat.record_context_empty": (
+            "Для этого пользователя пока нет подтверждённых записей с указанием источников."
+        ),
+        "chat.record_context_empty_next": (
+            "Выберите один доступный документ, чтобы спросить о его распознанных страницах, "
+            "или сначала добавьте и проверьте запись. Провайдер не вызывался."
+        ),
+        "chat.authentication_required": "Сессия больше недоступна. Войдите снова.",
+        "chat.forbidden_access": "Этот запрос больше недоступен для выбранного пользователя.",
+        "chat.origin_rejected": "Запрос заблокирован: источник запроса не разрешён.",
+        "chat.csrf_rejected": "Не удалось проверить запрос. Обновите страницу и повторите.",
+        "chat.malformed_request": "Проверьте вопрос и повторите попытку.",
+        "chat.runtime_failure": "Sano не смог подготовить запрос. Провайдер не вызывался.",
+        "chat.request_failed": "Sano не смог выполнить запрос. Повторите попытку.",
+        "chat.empty_context_heading": "Подтверждённых записей пока нет",
         "chat.send": "Отправить",
         "chat.status_prepare": "Подготавливаем точное раскрытие…",
         "chat.status_check": "Проверяем контекст хранилища и источники…",
@@ -1529,6 +1600,7 @@ TRANSLATIONS: Final[dict[Locale, dict[str, str]]] = {
         "chat.consent_declined": "Вызов провайдера не выполнен: раскрытие не было одобрено.",
         "chat.consent_not_granted": "Согласие не предоставлено.",
         "chat.no_provider_output": "Ответ провайдера не показан.",
+        "chat.no_provider_call": "Провайдер не вызывался.",
         "chat.receipt": "Квитанция",
         "chat.status": "статус",
         "chat.recorded": "зафиксирован",

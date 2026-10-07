@@ -659,6 +659,64 @@ async def _chat_json(request: Request, *, keys: set[str]) -> dict[str, Any] | JS
     return payload
 
 
+_SAFE_CHAT_REFUSAL_CODES = frozenset(
+    {
+        "authentication_required",
+        "authorization_expired",
+        "context_changed",
+        "context_limit_exceeded",
+        "evidence_scope_invalid",
+        "person_access_denied",
+        "person_mismatch",
+        "provenance_missing",
+        "provider_disclosure_denied",
+        "safety_refused",
+    }
+)
+
+
+def _chat_refusal_response(request: Request, refusal: BuildRefused) -> JSONResponse:
+    """Return a bounded, localized response for a refused live-chat build."""
+    locale = resolve_locale(request)
+    if "record_context_empty" in refusal.reason_codes:
+        return JSONResponse(
+            {
+                "status": "refused",
+                "reason_code": "record_context_empty",
+                "answer": translate(locale, "chat.record_context_empty"),
+                "next_step": translate(locale, "chat.record_context_empty_next"),
+                "actions": [
+                    {
+                        "code": "select_document",
+                        "label": translate(locale, "chat.select_document"),
+                    }
+                ],
+            }
+        )
+    reason_code = next(
+        (code for code in refusal.reason_codes if code in _SAFE_CHAT_REFUSAL_CODES),
+        "forbidden_access",
+    )
+    if reason_code == "authentication_required":
+        return JSONResponse(
+            {
+                "status": "error",
+                "reason_code": reason_code,
+                "answer": translate(locale, "chat.authentication_required"),
+            },
+            status_code=401,
+        )
+    return JSONResponse(
+        {
+            "status": "error",
+            "reason_code": reason_code,
+            "answer": translate(locale, "chat.forbidden_access"),
+            "boundary_notices": [translate(locale, "chat.no_provider_call")],
+        },
+        status_code=403,
+    )
+
+
 @app.post("/api/chat/prepare")
 async def chat_prepare(request: Request) -> JSONResponse:
     guarded = _chat_request_guard(request)
@@ -691,8 +749,36 @@ async def chat_prepare(request: Request) -> JSONResponse:
             purpose_id="record_explanation",
             action_id="answer_question",
         )
-    except (PermissionError, BuildRefused, ValueError) as exc:
-        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except BuildRefused as exc:
+        return _chat_refusal_response(request, exc)
+    except PermissionError:
+        return JSONResponse(
+            {
+                "status": "error",
+                "reason_code": "authentication_required",
+                "answer": translate(resolve_locale(request), "chat.authentication_required"),
+            },
+            status_code=401,
+        )
+    except ValueError:
+        return JSONResponse(
+            {
+                "status": "error",
+                "reason_code": "provider_runtime_failure",
+                "answer": translate(resolve_locale(request), "chat.runtime_failure"),
+            },
+            status_code=503,
+        )
+    except Exception:
+        logger.warning("Live chat prepare failed", exc_info=False)
+        return JSONResponse(
+            {
+                "status": "error",
+                "reason_code": "provider_runtime_failure",
+                "answer": translate(resolve_locale(request), "chat.runtime_failure"),
+            },
+            status_code=503,
+        )
     return JSONResponse({"status": "prepared", **jsonable_encoder(result.__dict__)})
 
 

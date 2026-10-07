@@ -99,6 +99,10 @@ def test_authenticated_chat_renders_shared_shell_and_localized_content(
     assert 'href="/chat" aria-current="page"' in english.text
     assert 'class="chat-content"' in english.text
     assert 'class="chat-sidebar"' not in english.text
+    assert 'data-chat-person="person-1"' in english.text
+    assert 'id="chat-source-picker"' in english.text
+    assert 'id="chat-select-document"' in english.text
+    assert "Select a document" in english.text
     assert "saved, source-backed records" in english.text
     assert "uploaded file" in english.text
     assert "Documents" in english.text
@@ -112,6 +116,7 @@ def test_authenticated_chat_renders_shared_shell_and_localized_content(
     assert "загруженному файлу" in russian.text
     assert "Документы" in russian.text
     assert "Спросить об этом документе" in russian.text
+    assert "Выбрать документ" in russian.text
     assert "Отправить" in russian.text
 
 

@@ -182,10 +182,22 @@ class LiveChatAuthority(TrustAuthority):
         credential_id: str,
         person_id: str,
     ) -> TrustEnvelope:
+        required_scopes = ACTION_REQUIREMENTS[LIVE_CHAT_ACTION][0]
+        authorization = self.authorize(
+            actor_id=actor_id,
+            credential_id=credential_id,
+            person_id=person_id,
+            required_scopes=required_scopes,
+            authorized_at=self.clock(),
+        )
+        if authorization.decision != "allow" or authorization.snapshot is None:
+            raise BuildRefused(authorization.reason_codes or ["person_access_denied"])
         self.read_scopes = live_chat_read_scopes(self.family_service, actor_id, person_id)
         evidence, _ = current_live_chat_evidence(
             self.product_runtime, person_id, self.clock(), read_scopes=self.read_scopes
         )
+        if not evidence:
+            raise BuildRefused(["record_context_empty"])
         descriptor = self.provider.descriptor
         provider_descriptor = ProviderDescriptorContract(
             provider_id=descriptor.provider_id,
