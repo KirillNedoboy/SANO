@@ -120,6 +120,20 @@ def test_authenticated_chat_renders_shared_shell_and_localized_content(
     assert "Отправить" in russian.text
 
 
+def test_chat_sends_authenticated_session_without_person_to_existing_picker(
+    product_core_client: TestClient,
+) -> None:
+    cleared = product_core_client.put(
+        "/api/family-access/v1/active-person", json={"person_id": None}
+    )
+    assert cleared.status_code == 204
+
+    response = product_core_client.get("/chat?source_id=synthetic-source", follow_redirects=False)
+
+    assert response.status_code == 307
+    assert response.headers["location"] == "/documents?next=%2Fchat%3Fsource_id%3Dsynthetic-source"
+
+
 def test_selected_document_chat_uses_distinct_document_subtitle(
     product_core_client: TestClient,
 ) -> None:

@@ -576,6 +576,14 @@ def chat_page(request: Request) -> Response:
     access = _resolve_browser_access(request)
     if isinstance(access, Response):
         return access
+    if access.active_person_id is None:
+        next_path = request.url.path
+        if request.url.query:
+            next_path = f"{next_path}?{request.url.query}"
+        return RedirectResponse(
+            url=f"/documents?next={quote(next_path, safe='')}",
+            status_code=307,
+        )
     try:
         person_id = access.require_active_person("chat.use", "person.read")
         person = access.runtime.people.get(person_id)
