@@ -1,15 +1,16 @@
 # AGENTS.md
 
-SANO is the product name; `open-care-proof-kit` and `opencare-*` remain the
-stable repository, package, and protocol identifiers. Current product and
-schema status is documented in `docs/project-status.md` and
+SANO is the product and GitHub repository name. `open-care-proof-kit` is the
+stable Python package identifier, while `opencare-*` identifiers remain stable
+for protocols and schemas. Current product and schema status is documented in `docs/project-status.md` and
 `docs/capability-matrix.md`.
 
 ## Project overview
 
 SANO is an open-source, self-hosted personal and family health workspace plus
-reusable trust infrastructure for sensitive personal AI agents. The repository
-and `opencare-*` package/protocol identifiers remain stable.
+reusable trust infrastructure for sensitive personal AI agents. The Python
+distribution remains `open-care-proof-kit`, and `opencare-*` identifiers remain
+stable for protocols and schemas.
 
 Public `main` contains the completed implementation sequence:
 
@@ -69,7 +70,7 @@ AI is never the source of canonical truth.
 
 ## Repository role
 
-This repository is the combined OpenCare product and trust foundation. Do not
+This repository is the combined SANO product and trust foundation. Do not
 create a replacement repository or parallel implementation for already-shipped
 capabilities.
 
@@ -366,10 +367,9 @@ device compliance, or clinical readiness.
 
 ## Package and release identity
 
-The development package version may be ahead of the latest published tag.
-
-Do not infer a public release from untagged local package metadata. The
-prepared `0.3.0` metadata remains unpublished until an explicit release.
+`v0.3.0` is the published stable SANO release dated 8 October 2026. Do not
+infer a public release from untagged local package metadata; use the explicit
+release/tag and dated validation records.
 
 Do not create a tag, release, PR, deploy, or mutate GitHub settings unless the
 user explicitly asks for that exact remote action.

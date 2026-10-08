@@ -1,6 +1,6 @@
 # SANO product
 
-SANO is an open-source, self-hosted personal and family health workspace. It helps people preserve medical documents and source history, organize reviewed records, prepare for visits, and share a Person's information through explicit grants.
+SANO is an open-source, self-hosted personal and family health workspace. It helps people keep health history together, find earlier results, prepare for visits, and share a Person's information through explicit grants.
 
 ## Product purpose
 
@@ -16,7 +16,7 @@ SANO is not an AI doctor, diagnosis or treatment authority, dosage recommender, 
 
 ## Product identity
 
-SANO is the product name. The `open-care-proof-kit` repository name and `opencare-*` package, protocol, and schema identifiers remain stable for compatibility and historical traceability.
+SANO is the product and GitHub repository name. `open-care-proof-kit` is the stable Python package identifier, while `opencare-*` identifiers remain stable for protocols and schemas.
 
 ## Design principles
 

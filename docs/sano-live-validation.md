@@ -1,12 +1,12 @@
 # SANO live and repository validation
 
-**Record date:** 7 October 2026. **Purpose:** Preserve the evidence checked while preparing the SANO Sentient grant baseline. This report contains no credentials, private deployment details, or health data.
+**Record date:** 8 October 2026. **Purpose:** Preserve the evidence checked for the published SANO v0.3.0 release and Sentient grant baseline. This report contains no credentials, private deployment details, or health data.
 
 ## Repository baseline
 
 The dated public-main baseline was `84fb682429c94f7c589530063c8753d882008d58`. That SHA already contains Product Core migration v13 and SANO-X2 document understanding: PDF/TXT/JPG/PNG, local OCR, and document summary/Q&A. The code is directly inspectable in `app/product_core/migrations.py` and the X2 document modules at that revision.
 
-The production branch `codex/sano-production-deployment` at `089a5eb678b198a8e71e5cb15d038083ae0f7085` was the dated seven-commit integration input beyond `84fb682`; those post-main production/product refinements do not introduce v13, X2, OCR, or document summary/Q&A. The final publication commit `b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd` was pushed to public `main` on 7 October 2026 and includes that input plus the redirect-test correction. These are dated baselines, not a claim that either identifier remains the current value of a mutable branch.
+The production branch `codex/sano-production-deployment` at `089a5eb678b198a8e71e5cb15d038083ae0f7085` was the dated seven-commit integration input beyond `84fb682`; those post-main production/product refinements do not introduce v13, X2, OCR, or document summary/Q&A. The validated implementation publication baseline `b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd` was pushed to public `main` on 7 October 2026 and includes that input plus the redirect-test correction. The release/documentation baseline `2730d65fea3a5a1909b05f5b25e9144fe2376215` was published on 8 October 2026 and is the target of stable `v0.3.0`. These are dated baselines, not a claim that either identifier remains the current value of a mutable branch.
 
 ## GitHub Actions evidence
 
@@ -14,9 +14,9 @@ GitHub Actions is a separate evidence class. The workflow checks deterministic
 tests, lint, typing, evals, trust metrics, and reviewer gates; it does not run
 paid OpenRouter or other live provider calls.
 
-- The dated pre-integration public-main run was [run 37200437345](https://github.com/KirillNedoboy/open-care-proof-kit/actions/runs/37200437345), created 4 October 2026 for `84fb682429c94f7c589530063c8753d882008d58`. Its required job contexts were `validate`, `Family access credentials (ubuntu-latest)`, and `Family access credentials (windows-latest)`.
-- [Run 37644787220](https://github.com/KirillNedoboy/open-care-proof-kit/actions/runs/37644787220), created 7 October 2026 for the dated `089a5eb678b198a8e71e5cb15d038083ae0f7085` input, failed with 1 failed, 1,197 passed, and 2 skipped. The failed assertion expected an authenticated `/chat` request without an active Person to return 404. The route intentionally redirects to the Person picker; the corrected test asserts `307` and the safe `/documents?next=%2Fchat` path. This is historical input-branch evidence.
-- Final public-main run [37683527310](https://github.com/KirillNedoboy/open-care-proof-kit/actions/runs/37683527310) for `b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd` passed. Its required contexts were `validate`, `Family access credentials (ubuntu-latest)`, and `Family access credentials (windows-latest)`.
+- The dated pre-integration public-main run was [run 37200437345](https://github.com/KirillNedoboy/SANO/actions/runs/37200437345), created 4 October 2026 for `84fb682429c94f7c589530063c8753d882008d58`. Its required job contexts were `validate`, `Family access credentials (ubuntu-latest)`, and `Family access credentials (windows-latest)`.
+- [Run 37644787220](https://github.com/KirillNedoboy/SANO/actions/runs/37644787220), created 7 October 2026 for the dated `089a5eb678b198a8e71e5cb15d038083ae0f7085` input, failed with 1 failed, 1,197 passed, and 2 skipped. The failed assertion expected an authenticated `/chat` request without an active Person to return 404. The route intentionally redirects to the Person picker; the corrected test asserts `307` and the safe `/documents?next=%2Fchat` path. This is historical input-branch evidence.
+- Final public-main run [37683527310](https://github.com/KirillNedoboy/SANO/actions/runs/37683527310) for `b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd` passed. Its required contexts were `validate`, `Family access credentials (ubuntu-latest)`, and `Family access credentials (windows-latest)`.
 
 ## Automated and local validation
 
@@ -94,28 +94,32 @@ model identifiers, deployed SHAs, hardware details, or raw smoke logs.
 
 - After the repository-truth, release-metadata, wheel-packaging, Markdown
   link/image, stale-claim, secret-pattern, and diff checks passed on this
-  prepared tree, the local packaging state is
+  validated tree, the local packaging state is
   `SANO_GRANT_PACKAGING_LOCAL=READY`.
 - Repository publication and exact-SHA CI are complete at
-  `b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd`; the local packaging state and
-  public repository state are `SANO_GRANT_PACKAGING_LOCAL=READY` and
-  `SANO_SENTIENT_GRANT_REPO=READY`. Release creation, deployment, settings
-  changes, and remote branch cleanup remain separate manual actions.
+  `b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd`; the release/documentation
+  baseline is `2730d65fea3a5a1909b05f5b25e9144fe2376215`, published on 8 October
+  2026. The local packaging state and public repository state are
+  `SANO_GRANT_PACKAGING_LOCAL=READY` and `SANO_SENTIENT_GRANT_REPO=READY`.
+  Deployment, settings changes, and remote branch cleanup remain separate
+  manual actions.
 - Public `main` at the dated `84fb682` baseline already includes Product Core schema v13, PDF/TXT/JPG/PNG document support, local Tesseract `rus+eng` OCR, and consent-gated descriptions and document Q&A. The seven post-main refinements through `089a5eb` do not introduce those capabilities.
 - SANO stores health context in the self-hosted installation. External disclosure is optional, minimized to selected evidence, consented per action, and receipted. Raw genome data never enters supported provider context.
 - Agent Skills interoperability is verified; G5 machine state remains exactly `READY_FOR_SECOND_CLIENT_SMOKE`. Root Agent Plugins two-client evidence remains pending. AlphaGenome is paused after C.1.
 - No diagnosis, prescribing, dosage, autonomous canonical-record mutation, clinical validation, or general-purpose public SaaS readiness is claimed.
-- Version `0.3.0` and release notes are prepared locally. There is no published `v0.3.0` tag or release.
+- Stable `v0.3.0` was published on 8 October 2026 at the dated
+  release/documentation baseline `2730d65fea3a5a1909b05f5b25e9144fe2376215`;
+  the release target and body are mirrored in [the release notes](releases/v0.3.0.md).
 
 ## GitHub repository settings checked
 
-GitHub API and repository metadata were inspected on 7 October 2026. Homepage was empty; `main` was not protected; Dependabot security updates and vulnerability alerts were disabled; secret scanning and push protection were enabled. The repository had no Code of Conduct or issue/PR templates at that point. The repository description did not name SANO; topics did not include `sentient` or `ocr`. Code-scanning status could not be confirmed through the available repository API and remains a Security-tab check. No remote setting was changed.
+GitHub API and repository metadata were inspected on 8 October 2026. The public repository is `KirillNedoboy/SANO`, with homepage `https://sanobot.art` and the SANO description. Ruleset `24697249` is active for `main` and requires a pull request, `validate`, `Family access credentials (ubuntu-latest)`, and `Family access credentials (windows-latest)` with strict status checks; non-fast-forward updates and branch deletion are blocked. Topics include `sentient` and `ocr`. Vulnerability-alert and branch-protection endpoints do not report enabled settings; automated security fixes are disabled. Secret-scanning and push-protection state could not be confirmed through the available repository API. No remote setting was changed.
 
 ## Remote branch review candidates
 
 `git branch --remotes --merged origin/main`, ahead/behind counts, exact-head
 Actions runs, and the repository's pull-request list were inspected on 7 October
-2026. The only returned pull request was [PR #1](https://github.com/KirillNedoboy/open-care-proof-kit/pull/1),
+2026. The only returned pull request was [PR #1](https://github.com/KirillNedoboy/SANO/pull/1),
 merged from `phase-1-demo-assets`; no other listed branch had a returned PR.
 The following refs were ancestors of `origin/main` and therefore possible
 stale-branch review candidates:

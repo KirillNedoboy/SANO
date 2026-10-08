@@ -2,9 +2,9 @@
 
 SANO is an open-source, self-hosted personal and family health workspace with
 local-first trust, provenance, review, and authorization boundaries. Public
-repository content is synthetic/de-identified only. The repository,
-`open-care-proof-kit`, and `opencare-*` protocol identifiers remain stable for
-compatibility. The self-hosted runtime is designed to store user-owned
+repository content is synthetic/de-identified only. `open-care-proof-kit` is
+the stable Python package identifier, while `opencare-*` protocol and schema
+identifiers remain stable for compatibility. The self-hosted runtime is designed to store user-owned
 sensitive health, document, and genetic data locally; this is not a
 clinical-readiness or compliance claim.
 

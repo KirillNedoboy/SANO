@@ -20,7 +20,10 @@ def test_current_repository_truth_is_published_and_versioned() -> None:
     assert "Public `main` is a mutable Git ref." in status
     assert "P3-final implementation" in status
     assert "R1 repository-truth" in status
-    assert "contains the completed G1–G5, P1, P2, D1, and P3 implementation sequence" in readme
+    assert (
+        "Private, source-grounded personal and family health workspace with auditable AI."
+        in readme
+    )
     assert "P3 Genetics Research Studio is implemented and published on public `main`" in status
     assert "P3 is part of the published" in matrix
     assert "P3 branch" not in matrix
@@ -39,6 +42,8 @@ def test_current_repository_truth_is_published_and_versioned() -> None:
     assert "post-main production/product refinements" in status
     assert "integrated in published `main`" in status
     assert "b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd" in status
+    assert "PUBLISHED STABLE (8 October 2026)" in status
+    assert "2730d65fea3a5a1909b05f5b25e9144fe2376215" in status
     assert "prepared for integration" not in status
 
 
@@ -74,10 +79,9 @@ def test_current_authentication_truth_keeps_registration_and_sharing_boundaries(
     assert "not a claim of public SaaS readiness" in readme
     assert "never creates installation-admin status" in agents
     assert "READY_FOR_SECOND_CLIENT_SMOKE" in status
-    assert "Public `main` contains the completed" in readme
+    assert "SANO v0.3.0 is the published stable release" in readme
     assert "OpenAI live X2 is unverified" in readme
-    assert "post-`84fb682` production/product refinements" in readme
-    assert "integrated in the published main" in readme
+    assert "published stable release dated 8 October 2026" in readme
     assert "prepared for integration" not in readme
 
 

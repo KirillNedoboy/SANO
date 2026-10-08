@@ -4,9 +4,8 @@ This matrix describes the published SANO product and the additional local
 post-main refinements. Public GitHub `main` at the dated baseline `84fb682`
 already contains SANO-X2 and Product Core schema v13. The seven commits through
 `089a5eb` are now integrated in the published main and do not introduce those
-capabilities.
-The only published release tags are `v0.1.0` and
-`v0.2.0`.
+capabilities. The published release tags are `v0.1.0`, `v0.2.0`, and the
+stable `v0.3.0` release dated 8 October 2026.
 
 P3 is part of the published baseline.
 

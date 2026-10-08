@@ -78,7 +78,7 @@ What this category teaches us:
 
 ## Our Baseline
 
-- https://github.com/KirillNedoboy/open-care-proof-kit
+- https://github.com/KirillNedoboy/SANO
 
 What this category teaches us:
 

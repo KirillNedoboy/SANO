@@ -32,7 +32,7 @@ The product may have no records for a newly selected Person. `/demo/health-vault
   provider flow, including document summary/Q&A, are operator-confirmed. Summary
   attribution, Q&A citations, and execution receipts are also operator-confirmed.
   OpenAI live X2 is unverified; see the dated live-validation record.
-- The [dated live-validation record](sano-live-validation.md) reports the available CI, focused test, and live health evidence, and identifies remaining integration blockers.
+- The [dated live-validation record](sano-live-validation.md) records the dated CI, local validation, operator checks, and remaining declared limitations.
 - The G5 state is exactly `READY_FOR_SECOND_CLIENT_SMOKE`. AlphaGenome is paused after C.1.
 
 ## Engineering references
