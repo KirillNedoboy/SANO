@@ -14,6 +14,12 @@ SANO is for people who keep track of their health and parents who manage care fo
 
 *Fictional sample. Provider actions require explicit consent. The screenshot does not represent a live inference result.*
 
+## See SANO in action
+
+[![SANO promo video cover: source-grounded health workspace](docs/assets/sano-promo/sano-promo-t056.250.png)](https://raw.githubusercontent.com/KirillNedoboy/SANO/media/sano-promo-video/sano-promo.mp4)
+
+[Watch or download the full-quality 60-second promo video](https://raw.githubusercontent.com/KirillNedoboy/SANO/media/sano-promo-video/sano-promo.mp4) · 1920×1080 · 60 fps · H.264/AAC
+
 SANO is the product and GitHub repository name. `open-care-proof-kit` is the stable Python package identifier, while `opencare-*` identifiers remain stable for protocols and schemas.
 
 ## Why SANO
