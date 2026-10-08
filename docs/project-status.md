@@ -1,8 +1,8 @@
 # SANO current project status
 
-Status checked on 7 October 2026. Public `main` is a mutable Git ref. The dated public-main baseline `84fb682429c94f7c589530063c8753d882008d58` already contains Product Core schema v13 and SANO-X2: PDF/TXT/JPG/PNG support, local OCR, and document summary/Q&A. The seven commits from `84fb682` to `089a5eb` are dated post-main production/product refinements; they do not introduce schema v13 or X2. They are now integrated in published `main` at final validation baseline `b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd`, including the redirect-test correction. See the dated validation record for exact commit and CI identities.
+Status checked on 8 October 2026. Public `main` is a mutable Git ref. The dated public-main baseline `84fb682429c94f7c589530063c8753d882008d58` already contains Product Core schema v13 and SANO-X2: PDF/TXT/JPG/PNG support, local OCR, and document summary/Q&A. The seven commits from `84fb682` to `089a5eb` are dated post-main production/product refinements; they do not introduce schema v13 or X2. They were integrated in the dated validated implementation publication baseline `b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd` on 7 October 2026, including the redirect-test correction. The dated release/documentation baseline is `2730d65fea3a5a1909b05f5b25e9144fe2376215` on 8 October 2026. See the dated validation record for exact commit and CI identities.
 
-The two published release tags remain `v0.1.0` and `v0.2.0`. Public `main` now prepares package version `0.3.0`; there is no `v0.3.0` tag or release. A release does not imply public SaaS readiness or clinical validation.
+The published release tags are `v0.1.0`, `v0.2.0`, and stable `v0.3.0`, published on 8 October 2026. The Python package version is `0.3.0`. A release does not imply public SaaS readiness or clinical validation.
 
 ## Delivery status
 
@@ -10,15 +10,16 @@ The two published release tags remain `v0.1.0` and `v0.2.0`. Public `main` now p
 - Document descriptions and document-scoped Q&A use selected recognized text and page references after explicit, per-action consent. They do not create reviewed health records.
 - Local inference without an external API and the OpenRouter/DeepSeek live provider flow, including document summary/Q&A, are operator-confirmed. Summary attribution, Q&A citations, and execution receipts are also operator-confirmed. OpenAI live X2 is unverified; models and detailed smoke artifacts are recorded only when evidence exists.
 - See [SANO live validation](sano-live-validation.md) for dated GitHub Actions and provider evidence.
-- Package/repository product name: SANO. `open-care-proof-kit` and `opencare-*` remain stable package, protocol, and schema identifiers.
+- Product and GitHub repository name: SANO. `open-care-proof-kit` is the stable Python package identifier; `opencare-*` identifiers remain stable for protocols and schemas.
 
 ```text
 Public main baseline: `84fb682`, Product Core schema v13 / SANO-X2
 Post-main refinements: seven production/product commits through `089a5eb`, integrated in published `main`
-Published final validation baseline: `b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd`
+Validated implementation publication baseline (7 October 2026): `b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd`
+Release/documentation baseline (8 October 2026): `2730d65fea3a5a1909b05f5b25e9144fe2376215`
 G5: READY_FOR_SECOND_CLIENT_SMOKE
 AlphaGenome: PAUSED after C.1
-v0.3.0: locally prepared; not released
+v0.3.0: PUBLISHED STABLE (8 October 2026)
 ```
 
 The implementation sequence remains G1–G5, P1, P2, D1, and P3. There is no G6. G5 machine status remains exactly `READY_FOR_SECOND_CLIENT_SMOKE`: Agent Skills interoperability is verified, while root Agent Plugins two-client evidence remains pending.

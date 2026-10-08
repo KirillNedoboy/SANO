@@ -9,7 +9,7 @@ from app import __version__
 from app.main import app
 
 ROOT = Path(__file__).resolve().parents[1]
-REPOSITORY_URL = "https://github.com/KirillNedoboy/open-care-proof-kit"
+REPOSITORY_URL = "https://github.com/KirillNedoboy/SANO"
 ISSUES_URL = f"{REPOSITORY_URL}/issues"
 REVIEWER_QUICKSTART_URLS = (
     f"{REPOSITORY_URL}/blob/main/docs/judge-guide.md",
@@ -34,7 +34,7 @@ def _tracked_markdown_paths() -> list[Path]:
     return [ROOT / path for path in result.stdout.splitlines()]
 
 
-def test_project_metadata_and_license_are_prepared_for_v030() -> None:
+def test_project_metadata_and_license_are_current_for_v030() -> None:
     project = tomllib.loads(_read("pyproject.toml"))["project"]
     lock = tomllib.loads(_read("uv.lock"))
     locked_project = next(
@@ -70,7 +70,7 @@ def test_project_metadata_and_license_are_prepared_for_v030() -> None:
     assert "Copyright 2026 OpenCare Proof Kit contributors" in _read("NOTICE")
 
 
-def test_application_metadata_uses_sano_and_prepared_version() -> None:
+def test_application_metadata_uses_sano_and_published_version() -> None:
     assert app.title == "SANO"
     assert app.version == __version__ == "0.3.0"
     assert "SANO" in app.openapi()["info"]["title"]
@@ -81,9 +81,11 @@ def test_release_documents_preserve_published_v010_and_unreleased_phase2() -> No
     release_notes = _read("docs/releases/v0.1.0-private-alpha.md")
 
     assert "## [Unreleased]" in changelog
-    assert "## [0.3.0] - 2026-10-07 (prepared, not released)" in changelog
+    assert "## [0.3.0] - 2026-10-08" in changelog
     assert "after `v0.2.0`" in changelog
-    assert "prepared, not published" in _read("docs/releases/v0.3.0.md")
+    v030_release_notes = _read("docs/releases/v0.3.0.md")
+    assert "Release: v0.3.0" in v030_release_notes
+    assert "Target commit: 2730d65fea3a5a1909b05f5b25e9144fe2376215" in v030_release_notes
     assert "## [0.1.0] - 2026-07-31" in changelog
     assert "tag `v0.1.0`" in changelog
     assert "phase 2" in changelog.lower()
@@ -131,7 +133,7 @@ def test_readme_links_to_release_documents_and_security_reporting() -> None:
 
     for link in (
         "[changelog](CHANGELOG.md)",
-        "[v0.3.0 preparation notes](docs/releases/v0.3.0.md)",
+        "[v0.3.0 release notes](docs/releases/v0.3.0.md)",
         "[v0.1.0 private-alpha notes](docs/releases/v0.1.0-private-alpha.md)",
         "[private-alpha operator checklist](docs/private-alpha-operator-checklist.md)",
         "[security reporting](SECURITY.md)",

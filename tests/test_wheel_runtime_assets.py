@@ -5,7 +5,7 @@ import zipfile
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-REPOSITORY_URL = "https://github.com/KirillNedoboy/open-care-proof-kit"
+REPOSITORY_URL = "https://github.com/KirillNedoboy/SANO"
 REVIEWER_QUICKSTART_URLS = (
     f"{REPOSITORY_URL}/blob/main/docs/judge-guide.md",
     f"{REPOSITORY_URL}/blob/main/docs/project-status.md",

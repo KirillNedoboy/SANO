@@ -40,10 +40,11 @@ DEFAULT_OUTPUT = REPO_ROOT / "agent-plugins" / "opencare-trust"
 
 PLUGIN_SCHEMA_URL = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
 
-# Canonical manifest. ``version`` is deliberately omitted: the root
-# pyproject.toml version (0.1.0) predates the published Git release history
-# (v0.2.0) and must not be reused as a portable-plugin release claim.
-# See README.md in the package for the full rationale.
+# Canonical manifest. ``version`` is deliberately omitted because the plugin
+# package is versioned independently from the SANO application release. No
+# standalone Agent Plugin release version has been minted yet, so the manifest
+# intentionally omits ``version`` rather than borrowing the SANO application
+# version. See README.md in the package for the full rationale.
 PLUGIN_MANIFEST = {
     "$schema": PLUGIN_SCHEMA_URL,
     "name": "opencare-trust",
@@ -52,7 +53,7 @@ PLUGIN_MANIFEST = {
         "verify provenance, policy, and disclosure fields, and summarize source-backed "
         "health context. Skill-only; verification is never authorization."
     ),
-    "repository": "https://github.com/KirillNedoboy/open-care-proof-kit",
+    "repository": "https://github.com/KirillNedoboy/SANO",
     "license": "Apache-2.0",
     "keywords": [
         "opencare",
@@ -88,12 +89,11 @@ Plugins 1.0.0 §6.2 permits a missing MCP location).
 
 ## Why there is no `version` field
 
-`plugin.json` intentionally omits `version`. The root `pyproject.toml` version
-(`0.1.0`) predates the published Git release history (the project has since
-released `v0.2.0`), so reusing it would publish a stale release claim. A
-portable plugin version should be minted with the first actual plugin release;
-until then the manifest carries no version rather than a wrong one. The root
-project version is unchanged.
+`plugin.json` intentionally omits `version`. The plugin package is versioned
+independently from the SANO application release. No standalone Agent Plugin
+release version has been minted yet, so the manifest intentionally omits
+`version` rather than borrowing the SANO application version. The root project
+version is unchanged.
 
 ## Source of truth
 

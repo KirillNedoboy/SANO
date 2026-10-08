@@ -2,8 +2,9 @@
 
 SANO welcomes contributions that strengthen local-first, evidence-grounded,
 safety-checked health AI infrastructure without expanding the project into
-clinical decision-making. `open-care-proof-kit` and `opencare-*` identifiers
-remain stable repository and protocol names.
+clinical decision-making. `open-care-proof-kit` remains the stable Python
+package identifier, and `opencare-*` identifiers remain stable protocol and
+schema names.
 
 ## Project Boundaries
 

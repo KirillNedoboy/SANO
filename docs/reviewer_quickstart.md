@@ -10,7 +10,12 @@ For the quickest trust-infrastructure review, follow the evidence in this order:
 4. Check Family Access grants, Person isolation, and revocation behavior.
 5. Read the [G5 status and evidence](architecture/sentient-g5-ecosystem-validation.md).
 
-The open-source product name is SANO. The repository name `open-care-proof-kit` and `opencare-*` package and protocol identifiers remain for stability. Public GitHub `main` at the dated `84fb682` baseline already has Product Core schema v13, SANO-X2, PDF/TXT/JPG/PNG support, and local Russian/English OCR. The seven post-main production/product refinements through `089a5eb` are now integrated in the published main.
+SANO is the product and GitHub repository name. `open-care-proof-kit` is the
+stable Python package identifier, while `opencare-*` identifiers remain stable
+for protocols and schemas. Public GitHub `main` at the dated `84fb682` baseline
+already has Product Core schema v13, SANO-X2, PDF/TXT/JPG/PNG support, and local
+Russian/English OCR. The seven post-main production/product refinements through
+`089a5eb` are now integrated in the published main.
 
 Local-model inference without an external API and OpenRouter/DeepSeek document
 summary/Q&A are operator-confirmed, including attribution, citations, and

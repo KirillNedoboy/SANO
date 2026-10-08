@@ -7,9 +7,11 @@ override the current runtime.
 
 ## Canonical identity
 
-SANO is an open-source, self-hosted personal and family health workspace plus
-reusable trust infrastructure for sensitive personal AI agents. `open-care-proof-kit`
-and `opencare-*` remain stable repository, package, and protocol identifiers.
+SANO is the product and GitHub repository name: an open-source, self-hosted
+personal and family health workspace plus reusable trust infrastructure for
+sensitive personal AI agents. `open-care-proof-kit` is the stable Python
+package identifier, while `opencare-*` identifiers remain stable for protocols
+and schemas.
 
 Its product thesis is:
 
@@ -166,7 +168,7 @@ Do not add clinical-readiness or regulatory-compliance claims.
 
 ## Repository role
 
-This repository remains the combined OpenCare product and trust foundation.
+This repository remains the combined SANO product and trust foundation.
 
 Do not:
 

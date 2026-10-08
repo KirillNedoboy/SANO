@@ -2,9 +2,9 @@
 
 > Entries under `[Unreleased]` preserve implementation and phase history. For current published SANO capabilities and status, see [project status](docs/project-status.md) and the [capability matrix](docs/capability-matrix.md).
 
-## [0.3.0] - 2026-10-07 (prepared, not released)
+## [0.3.0] - 2026-10-08
 
-This local release preparation compares the SANO workspace and trust-infrastructure work after `v0.2.0`. No `v0.3.0` tag or GitHub release has been created.
+Published stable SANO release covering the workspace and trust-infrastructure work completed after `v0.2.0`. The matching GitHub release and tag were published on 8 October 2026; the dated target baseline is recorded in the release notes and live-validation record.
 
 ### Added
 

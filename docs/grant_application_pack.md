@@ -23,6 +23,9 @@ introduce those capabilities. Exact revisions and the final publication SHA
 are in the dated [live-validation
 record](sano-live-validation.md).
 
+Stable release `v0.3.0` was published on 8 October 2026; its dated release and
+documentation baseline is recorded in the same validation record.
+
 The exact G5 machine state is `READY_FOR_SECOND_CLIENT_SMOKE`. Agent Skills
 interoperability is verified for OMP 17.3.5 and Hermes Agent 0.19.0; root Agent
 Plugins two-client evidence remains pending. No production Sentient integration,
@@ -43,11 +46,13 @@ smoke details are not invented here.
 
 ## Short description
 
-SANO gives people and families a self-hosted place to organize source
-documents, reviewed health history, visits, optional genetics, and family
-access. The product preserves the path from source to provenance to human review
-before a record becomes canonical. A bounded assistant can explain selected
-authorized evidence, but model output cannot mutate canonical health records.
+SANO is for people who keep track of their health and parents who manage care
+for a family. When appointments involve different doctors, documents and past
+results can be hard to keep together. SANO keeps each person's health history in
+one place, so you can find an earlier result and prepare for the next visit.
+The product preserves the path from source to provenance to human review before
+a record becomes canonical. A bounded assistant can explain selected authorized
+evidence, but model output cannot mutate canonical health records.
 
 The shared trust layer makes actor identity, Person scope, consent, selected
 context, disclosure, validation, and execution receipts explicit. It is useful

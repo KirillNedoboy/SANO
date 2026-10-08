@@ -6,17 +6,18 @@ inspect an original and its provenance, review a consented summary or Q&A,
 inspect attribution and the execution receipt, then check Family Access.
 Genetics is an optional secondary path.
 
-The current repository truth is recorded in the canonical [judge guide](https://github.com/KirillNedoboy/open-care-proof-kit/blob/main/docs/judge-guide.md),
-[project status](https://github.com/KirillNedoboy/open-care-proof-kit/blob/main/docs/project-status.md),
-and [live validation record](https://github.com/KirillNedoboy/open-care-proof-kit/blob/main/docs/sano-live-validation.md).
+The current repository truth is recorded in the canonical [judge guide](https://github.com/KirillNedoboy/SANO/blob/main/docs/judge-guide.md),
+[project status](https://github.com/KirillNedoboy/SANO/blob/main/docs/project-status.md),
+and [live validation record](https://github.com/KirillNedoboy/SANO/blob/main/docs/sano-live-validation.md).
 Public `main` at the dated `84fb682` baseline already contains Product Core
 schema v13 and SANO-X2: PDF/TXT/JPG/PNG documents, local Russian/English OCR,
 and document summary/Q&A. The seven post-`84fb682` production/product
 refinements are now integrated in the published main; they do not introduce
 those capabilities.
 
-The product name is SANO. The repository name `open-care-proof-kit` and
-`opencare-*` package and protocol identifiers remain stable for compatibility.
+SANO is the product and GitHub repository name. `open-care-proof-kit` is the
+stable Python package identifier, while `opencare-*` identifiers remain stable
+for protocols and schemas.
 
 ## Reviewer route
 
@@ -31,7 +32,7 @@ The product name is SANO. The repository name `open-care-proof-kit` and
    receipt. Model output cannot mutate canonical health records.
 5. Open **Workspace** and **Family Access** to inspect review, Person scope,
    explicit revocable grants, and the deny-by-default boundary.
-6. Read the [G5 evidence](https://github.com/KirillNedoboy/open-care-proof-kit/blob/main/docs/architecture/sentient-g5-ecosystem-validation.md)
+6. Read the [G5 evidence](https://github.com/KirillNedoboy/SANO/blob/main/docs/architecture/sentient-g5-ecosystem-validation.md)
    when reviewing reusable trust infrastructure. The exact G5 state is
    `READY_FOR_SECOND_CLIENT_SMOKE`.
 
