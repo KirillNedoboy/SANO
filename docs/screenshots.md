@@ -1,136 +1,58 @@
-# Screenshot Guide
+# Screenshots and media
 
-The committed PNGs are historical Phase 1.9/PGx reference captures using
-synthetic/demo data only. They do not represent the current `/workspace`,
-`/family-access`, or `/genetics` visuals. No new screenshots are committed in
-R1 because a stable authenticated capture pipeline for those live surfaces is
-not available; screenshots must not be fabricated.
+The public visual set uses synthetic or de-identified content. The current
+README screenshot is the SANO-X2 document workspace capture at
+`docs/assets/sano-x2/documents-1440.webp`; it is a static reviewer visual, not
+evidence of a live provider response.
 
-The current reviewer path is `/workspace` → `/family-access` → `/genetics`,
-with `/demo/health-vault` kept as the synthetic read-only reviewer surface.
+The README also links the existing promo cover at
+`docs/assets/sano-promo/sano-promo-t056.250.png` and the 60-second video on the
+`media/sano-promo-video` branch. The video is an existing repository artifact;
+capture work does not require downloading or replaying it. X1 responsive
+captures remain documented in [SANO-X1 validation](sano-x1-validation.md).
 
-Start the server:
+## Current local capture path
+
+Use the isolated Python 3.12 environment and local server:
 
 ```powershell
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
 ```
 
-## Screenshot Files
+Review the authenticated product surfaces with synthetic fixtures only:
 
-### Landing Page
+- `http://127.0.0.1:8000/workspace`
+- `http://127.0.0.1:8000/family-access`
+- `http://127.0.0.1:8000/genetics`
+- `http://127.0.0.1:8000/demo/health-vault`
 
-URL:
+The `/demo/health-vault` surface is read-only. The authenticated workspace
+surfaces require the normal local bootstrap and authorization flow. Do not use
+production deployments, real documents, real genetic files, or live provider
+requests for screenshot capture.
 
-```txt
-http://127.0.0.1:8000/
-```
+## Safe capture guidance
 
-Caption:
+1. Start the local server from the repository root and use a stable viewport.
+2. Use only the committed synthetic/demo fixtures or freshly generated
+   synthetic values. Keep source provenance and safety labels visible where
+   they are part of the reviewer behavior.
+3. Capture the page content without a desktop, private browser profile,
+   address-bar secrets, local filesystem paths, or unrelated notifications.
+4. Inspect the image before saving it. Reject any real patient, family,
+   genetic, credential, token, API-key, private URL, or provider-response
+   content.
+5. Save only approved public visuals under `docs/assets/`. Update this guide
+   and the relevant validation document when a new capture replaces a current
+   one; do not add historical screenshot dumps or an `docs/archive` folder.
 
-```txt
-OpenCare Proof Kit landing page showing the local-first, evidence-grounded health AI proof-kit framing and reviewer navigation.
-```
+## Public asset references
 
-File:
+- [README](../README.md) — current X2 screenshot and promo media.
+- [SANO-X1 validation](sano-x1-validation.md) — responsive X1 visual set.
+- [Documentation index](README.md) — navigation to current product and
+  validation documents.
 
-```txt
-docs/assets/screenshots/landing.png
-```
-
-What it proves:
-
-```txt
-The repository has a reviewer-facing local web entry point with explicit boundaries and quick links.
-```
-
-### Demo Patient And Pipeline
-
-URL:
-
-```txt
-http://127.0.0.1:8000/demo
-```
-
-Caption:
-
-```txt
-Synthetic demo patient view with the Medication-to-Doctor Briefing question and deterministic local pipeline steps.
-```
-
-File:
-
-```txt
-docs/assets/screenshots/demo.png
-```
-
-What it proves:
-
-```txt
-The demo is synthetic-only and shows the local pipeline before report generation.
-```
-
-### Sertraline Matched Demo Rule Report
-
-URL:
-
-```txt
-http://127.0.0.1:8000/demo/report-view?drug=sertraline
-```
-
-Caption:
-
-```txt
-Clinician-reviewable sertraline briefing generated from synthetic data, local demo evidence, safety policy checks, and JSON audit metadata.
-```
-
-File:
-
-```txt
-docs/assets/screenshots/sertraline-report.png
-```
-
-What it proves:
-
-```txt
-The supported-drug demo path produces a source-cited, safety-bounded report with audit metadata.
-```
-
-### Aspirin Unsupported-Drug No-Claim Report
-
-URL:
-
-```txt
-http://127.0.0.1:8000/demo/report-view?drug=aspirin
-```
-
-Caption:
-
-```txt
-Unsupported-drug aspirin path showing safe no-claim behavior and explicit demo evidence-pack coverage limits.
-```
-
-File:
-
-```txt
-docs/assets/screenshots/aspirin-safe-no-claim.png
-```
-
-What it proves:
-
-```txt
-The unsupported-drug path fails closed: no invented clinical claim and explicit demo-only coverage limits.
-```
-
-## Manual Capture Fallback
-
-If automated screenshot tooling is not available:
-
-1. Start the local server with the command above.
-2. Open each URL listed in this guide.
-3. Capture the page content only, without browser address bars when possible.
-4. Save files to the exact paths listed above.
-5. Verify screenshots contain only synthetic/demo data and no private desktop paths, secrets, tokens, real patient data, or real genetic data.
-
-## Safety Reminder
-
-Screenshots must not include real patient data, secrets, private URLs, API keys, or non-demo generated reports. The current demo pages should show synthetic/demo content only.
+Screenshots are supporting reviewer evidence. They do not establish clinical
+validation, medical correctness, provider availability, or production
+security.

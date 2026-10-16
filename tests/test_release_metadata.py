@@ -31,7 +31,7 @@ def _tracked_markdown_paths() -> list[Path]:
         capture_output=True,
         text=True,
     )
-    return [ROOT / path for path in result.stdout.splitlines()]
+    return [ROOT / path for path in result.stdout.splitlines() if (ROOT / path).is_file()]
 
 
 def test_project_metadata_and_license_are_current_for_v030() -> None:

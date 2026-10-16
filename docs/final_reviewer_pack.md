@@ -32,7 +32,7 @@ The sections below remain a supporting engineering review pack.
 - [Capability matrix](capability-matrix.md)
 - [P3 reviewer guide](p3-reviewer-guide.md)
 - [Reviewer quickstart](reviewer_quickstart.md)
-- [Final submission checklist](final_submission_checklist.md)
+- [Release checklist](release_checklist.md)
 - [SANO live validation](sano-live-validation.md)
 
 ## Key Artifacts

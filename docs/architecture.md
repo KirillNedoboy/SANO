@@ -1,133 +1,64 @@
-# Architecture (Historical Overview)
+# Architecture
 
-> This is a historical implementation overview. Intended ownership and
-> dependency rules are canonical in
-> [docs/architecture/module-boundaries.md](architecture/module-boundaries.md).
-> Current runtime facts are in [docs/project-status.md](project-status.md).
+This document describes the current public main implementation. Product Core schema v13 and SANO-X2 are published; historical phase notes remain in the roadmap and ADRs. Runtime ownership and dependency rules are canonical in [module boundaries](architecture/module-boundaries.md), while dated delivery facts are recorded in [project status](project-status.md).
 
-## Pipeline
+## Product flow
 
-```txt
-Local UI / CLI
-  -> Health Vault Loader
-  -> Genotype Parser
-  -> Evidence Pack Loader
-  -> PGx Rule Matcher
-  -> Safety Policy Engine
-  -> Report Writer
-  -> Markdown Report + JSON Audit
-  -> Eval Runner
-```
+~~~text
+user-owned source
+  -> immutable Source registration
+  -> extraction or candidate fact
+  -> provenance and human review
+  -> canonical Person-scoped record
+  -> timeline / Visit preparation
+  -> selected authorized context
+  -> validated answer or refusal
+  -> audit / Execution Receipt
+~~~
 
-## Components
+AI output never promotes itself into canonical truth. Document summaries and document questions are separate, consent-gated projections; they do not create reviewed health records.
 
-- `app/vault`: health vault schema and demo patient loading.
-- `app/health_vault`: Health/Family Vault Core schemas, validation, provenance links, synthetic family demo loading, and deterministic read models.
-- `app/genetics`: demo genotype/VCF-like parsing and normalization.
-- `app/evidence`: evidence pack schema and loading.
-- `app/pgx`: deterministic medication/genotype matching.
-- `app/safety`: safety policy checks.
-- `app/ai`: report-writing adapter. No clinical reasoning authority.
-- `app/reports`: Markdown and audit JSON output.
-- `evals`: synthetic safety/evidence eval runner.
+## Current module map
 
-## Data flow
+| Area | Ownership |
+| --- | --- |
+| app/product_core | Product Core schema v13: Sources, candidates, canonical records, timeline, Visits, Visit Briefs, document processing, genetics persistence, export, backup, and recovery. |
+| app/family_access | Actor sessions, Person authorization, relationships, assignments, consent, and frozen Family Access generations. |
+| app/agent_trust | Generic Trust Envelope, policy-bound authorization, schemas, validation, and portable trust package contracts. |
+| app/agent | Minimized context, providers, disclosure, consent-gated execution, validation, and audit. |
+| app/genetics | Consumer-genotype parsing, normalization, evidence, comparison, and bounded Research contracts. |
+| app/health_vault | Synthetic reviewer/demo vault, deterministic read model, artifact generation, and trace graph. It is separate from live Actor-scoped Product Core data. |
+| app/static and app/templates | Authenticated workspace, Documents, Genetics, Family Access, chat, demo, and shared product-shell surfaces. |
+| evals and tests | Deterministic phase reviewers, trust metrics, contract tests, security checks, and browser acceptance helpers. |
 
-1. Load synthetic patient vault.
-2. Parse genotype-like data.
-3. Load evidence pack.
-4. Match drug-specific rules.
-5. Produce findings.
-6. Render report.
-7. Run safety policy.
-8. Export report and audit JSON.
+## Evidence and authorization boundaries
 
-## Health/Family Vault Core
+Product Core preserves original source bytes and integrity metadata before any derived extraction. Candidate facts retain source and locator provenance until a person reviews them. Unsupported, conflicting, absent, no-call, build-incompatible, and ambiguous states remain explicit.
 
-V1A adds a separate `app/health_vault` domain for structured personal and family medical context. It models a synthetic family, people, relationships, medications, conditions/concerns, lab results, visits, timeline events, question threads, document sources, and evidence links.
+Every live health operation resolves the authenticated Actor, explicit Person, assignment and scope generation through the centralized policy. Relationships do not grant access. Genetics grants (genetics.read, genetics.write, genetics.research, genetics.compare, and genetics.export) remain separate from ordinary Family Access. Revocation applies to the next authorization decision.
 
-The V1A loader validates the synthetic demo dataset from `data/demo_patients/demo_family_vault.json`. Records must reference known people, important facts must carry source/provenance links, and evidence links must reference known synthetic document sources.
+The agent receives a selected projection, never unrestricted vault or database access. External disclosure requires purpose-bound consent. Provider responses are strictly validated, citations are checked against selected evidence, and receipts record the result. Agent output and Research hypotheses cannot mutate canonical records.
 
-This phase does not add genetics, `genome_profile`, VCF/raw genotype support, API routes, CLI commands, dashboard UI, or AI-generated medical decisions. Conditions represent user/demo-recorded context only; they are not OpenCare diagnoses.
+## Documents and genetics
 
-## Health/Family Vault Read Model
+The document path supports bounded local TXT/PDF text extraction and local Tesseract OCR for PDF, TXT, JPG, and PNG flows. The original bytes and extracted page text remain source/provenance material. Normal agent context contains only an explicitly selected authorized projection.
 
-V1B adds a deterministic read-model layer in `app/health_vault/read_model.py`. It turns the validated synthetic family vault into source-preserving summaries for family overview, people, relationships, per-person medications, conditions/concerns, labs, visits, timeline events, questions, provenance coverage, and safety boundary notices.
+Genetics imports are bounded consumer-genotype workflows. Raw genome bytes are highly sensitive and never enter provider context. Ambiguous orientation, missing chip coverage, incompatible builds, and unresolved evidence fail closed; absence from supplied coverage is not treated as a negative finding. Family comparison is compatibility/IBS-style evidence, not legal or forensic kinship proof.
 
-The read model preserves source links for every important summary item. Provenance coverage records total important records, records with source/provenance, records missing source/provenance, and missing item IDs.
+## Synthetic reviewer surfaces
 
-The read-model builder does not use an LLM and does not perform medical interpretation. Conditions remain recorded context, medications remain recorded medication context, labs remain recorded lab context, questions remain questions rather than answers, and timeline entries remain factual source-linked records.
+The legacy Health/Family Vault pipeline remains useful for deterministic review:
 
-## Health/Family Vault Local Artifacts
-
-V1C adds a deterministic local artifact builder in `app/health_vault/artifacts.py`. It turns the validated synthetic Health/Family Vault read model into reviewer-friendly local files:
-
-- `family-vault-read-model.json`: structured JSON read-model artifact;
-- `family-vault-summary.md`: Markdown summary of recorded demo context;
-- `family-vault-manifest.json`: manifest with artifact types, provenance coverage, builder metadata, and safety boundary flags.
-
-The artifact builder does not use LLM generation, does not add API routes, does not add CLI commands, does not add UI/templates, and does not add genetics or `genome_profile` support. Artifact content reorganizes existing validated synthetic vault/read-model data only and does not add medical interpretation.
-
-V1D packages committed reviewer demo artifacts under `docs/assets/health_vault/`. These files are generated from the V1C builder and the synthetic dataset, not hand-written:
-
-```txt
+~~~text
 data/demo_patients/demo_family_vault.json
   -> app.health_vault.loader
   -> app.health_vault.read_model
   -> app.health_vault.artifacts
   -> docs/assets/health_vault/
-  -> future UI or agent context
-```
+~~~
 
-V1D still adds no LLM generation, genetics, API routes, CLI commands, UI, or templates. The committed artifacts are reviewer demo assets, not real user output and not a real-patient export path.
+The /demo/health-vault route is read-only and uses synthetic data. It does not share live Actor sessions, Product Core authorization, or user-owned records. The original Medication-to-Doctor Briefing and PGx demo path remains separate from the live workspace.
 
-## Health/Family Vault Reviewer UI
+## Trust and ecosystem status
 
-V1G adds one server-rendered local reviewer route at `/demo/health-vault`. The route loads the synthetic family vault dataset, validates it, builds the deterministic read model, reads committed manifest safety flags, and renders a read-only reviewer page through the existing Jinja/FastAPI pattern.
-
-The reviewer UI renders deterministic read-model data only. It accepts no user input, performs no upload, uses no LLM generation, adds no genetics support, and does not change the existing Medication-to-Doctor Briefing or PGx behavior.
-
-## Health/Family Vault Trace Graph
-
-V1H adds `app/health_vault/trace_graph.py` as a deterministic traceability layer over the validated vault/read-model surface. The builder connects recorded demo context nodes to people, document sources, safety boundary nodes, and reviewer artifact nodes.
-
-The trace graph renders in the existing reviewer route as compact text/table output. It does not add user input, JSON APIs, uploads, LLM generation, genetics support, or medical interpretation.
-
-## Provenance and Threat Model Layer
-
-V1E documents the Health/Family Vault provenance and threat-model layer without
-changing runtime behavior. It makes the current guarantees explicit: the vault
-artifacts are synthetic/demo-only, deterministic reorganizations of recorded
-context; every important surfaced item must keep source/provenance references;
-and provenance means traceability, not clinical truth.
-
-Review these V1E docs with the committed Health/Family Vault artifacts:
-
-- [docs/privacy_safety_threat_model.md](privacy_safety_threat_model.md)
-- [docs/provenance_semantics.md](provenance_semantics.md)
-- [docs/vault_artifact_guarantees.md](vault_artifact_guarantees.md)
-
-## CI and Trust Metrics Layer
-
-V1F adds automated review checks without changing product runtime behavior.
-GitHub Actions runs the portable validation sequence on `push` and
-`pull_request`: tests, ruff, mypy, deterministic evals, and local trust metrics.
-
-The trust metrics module in `evals/trust_metrics.py` reuses
-`evals.runner.run_evals()` for eval totals and reads
-`docs/assets/health_vault/family-vault-manifest.json` for synthetic/demo
-artifact safety flags. It also checks the repository ignore convention for
-generated `reports/` demo outputs.
-
-The output is a deterministic local Markdown report for automated
-demo/reviewer trust checks. It is not clinical validation and does not claim the
-project is clinically correct.
-
-## Risk controls
-
-- No real patient data in repo.
-- No cloud upload by default.
-- No raw genotype in logs.
-- No medical advice.
-- Deterministic tools before LLM.
-- Evals for unsafe output patterns.
+G1 through G5, P1, P2, D1, and P3 are implemented on public main; there is no G6. Agent Skills interoperability is verified across OMP 17.3.5 and Hermes Agent 0.19.0. The root Agent Plugins two-client evidence gate remains exactly READY_FOR_SECOND_CLIENT_SMOKE. The current capability and validation boundaries are in the [capability matrix](capability-matrix.md) and [live validation record](sano-live-validation.md).
