@@ -7,6 +7,8 @@ from app import __version__
 from app.product_core.migrations import PRODUCT_MIGRATIONS
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
 def _read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
@@ -17,14 +19,20 @@ def test_current_repository_truth_is_published_and_versioned() -> None:
     readme = _read("README.md")
     project = tomllib.loads(_read("pyproject.toml"))["project"]
 
-    assert "Public `main` is a mutable Git ref." in status
+    assert "Public " + chr(96) + "main" + chr(96) + " is a mutable Git ref." in status
     assert "P3-final implementation" in status
     assert "R1 repository-truth" in status
     assert (
         "Private, source-grounded personal and family health workspace with auditable AI."
         in readme
     )
-    assert "P3 Genetics Research Studio is implemented and published on public `main`" in status
+    assert (
+        "P3 Genetics Research Studio is implemented and published on public "
+        + chr(96)
+        + "main"
+        + chr(96)
+        in status
+    )
     assert "P3 is part of the published" in matrix
     assert "P3 branch" not in matrix
     assert "pending integration" not in matrix
@@ -40,7 +48,7 @@ def test_current_repository_truth_is_published_and_versioned() -> None:
     assert "Product Core schema v13" in status
     assert "already contains Product Core schema v13 and SANO-X2" in status
     assert "post-main production/product refinements" in status
-    assert "integrated in published `main`" in status
+    assert "integrated in published " + chr(96) + "main" + chr(96) in status
     assert "b378fe28f8798ff41d72f1244ecb9b68d5d4bbbd" in status
     assert "PUBLISHED STABLE (8 October 2026)" in status
     assert "2730d65fea3a5a1909b05f5b25e9144fe2376215" in status
@@ -51,18 +59,23 @@ def test_public_reviewer_copy_exposes_current_ai_validation_boundary() -> None:
     readme = _read("README.md")
     validation = _read("docs/sano-live-validation.md")
 
-    assert "## AI / LLM validation" in readme
+    assert "## Validation status" in readme
     for required in (
-        "SANO document summary through OpenRouter/DeepSeek",
-        "SANO document Q&A through OpenRouter/DeepSeek",
-        "OpenAI live X2",
-        "UNVERIFIED",
+        "OpenRouter/DeepSeek live provider flow",
+        "OpenAI live X2 is",
+        "unverified",
+        "operator-confirmed",
     ):
         assert required in readme
+    assert "[SANO live validation](docs/sano-live-validation.md)" in readme
+    assert "[project status](docs/project-status.md)" in readme
+    assert "READY_FOR_SECOND_CLIENT_SMOKE" not in readme
+    assert "AlphaGenome" not in readme
     assert "LIVE PASS / operator-confirmed" in validation
     assert "Backup / verify / recovery" in validation
     assert "Q&A source/page citations" in validation
-    assert "G5 machine state remains exactly `READY_FOR_SECOND_CLIENT_SMOKE`" in validation
+    assert "G5 machine state remains exactly" in validation
+    assert "READY_FOR_SECOND_CLIENT_SMOKE" in validation
 
 
 def test_current_authentication_truth_keeps_registration_and_sharing_boundaries() -> None:
@@ -75,27 +88,118 @@ def test_current_authentication_truth_keeps_registration_and_sharing_boundaries(
     assert "OPENCARE_PUBLIC_REGISTRATION=false" in environment
     assert "invitations are an explicit family-sharing mechanism" in status
     assert "Optional public self-registration is disabled by default" in status
-    assert "Email verification / password recovery | `NOT IMPLEMENTED`" in matrix
-    assert "not a claim of public SaaS readiness" in readme
+    assert (
+        "Email verification / password recovery | "
+        + chr(96)
+        + "NOT IMPLEMENTED"
+        + chr(96)
+        in matrix
+    )
+    assert "Deployment security, backups," in readme
     assert "never creates installation-admin status" in agents
     assert "READY_FOR_SECOND_CLIENT_SMOKE" in status
+    assert "G5: READY_FOR_SECOND_CLIENT_SMOKE" in status
+    assert "AlphaGenome: PAUSED after C.1" in status
     assert "SANO v0.3.0 is the published stable release" in readme
     assert "OpenAI live X2 is unverified" in readme
-    assert "published stable release dated 8 October 2026" in readme
+    assert "8 October 2026" in readme
+    assert "READY_FOR_SECOND_CLIENT_SMOKE" not in readme
+    assert "AlphaGenome" not in readme
     assert "prepared for integration" not in readme
 
 
-def test_root_agent_artifacts_are_unmistakably_historical() -> None:
-    first_prompt = _read("FIRST_CODEX_PROMPT.md")
-    checkpoint = _read("CHECKPOINT.md")
-    session_notes = _read("SESSION_NOTES.md")
+def test_public_documentation_entrypoints_and_cleanup_contracts() -> None:
+    index = _read("docs/README.md")
+    architecture = _read("docs/architecture.md")
+    checklist = _read("docs/release_checklist.md")
+    adr = _read("docs/adr/0007-document-summary-coverage.md")
+    reviewer_pack = _read("docs/final_reviewer_pack.md")
+    screenshots = _read("docs/screenshots.md")
 
-    assert first_prompt.startswith("# HISTORICAL PROJECT ARTIFACT")
-    assert "DO NOT USE AS CURRENT REPOSITORY INSTRUCTIONS" in first_prompt
-    for document in (first_prompt, checkpoint, session_notes):
-        assert "AGENTS.md" in document
-        assert "AGENTS.product-direction.md" in document
-        assert "docs/project-status.md" in document
+    required_paths = (
+        "docs/project-status.md",
+        "docs/capability-matrix.md",
+        "docs/architecture.md",
+        "docs/architecture/module-boundaries.md",
+        "docs/roadmap/product-core-roadmap.md",
+        "docs/sano-live-validation.md",
+        "docs/adr/0007-document-summary-coverage.md",
+        "docs/screenshots.md",
+        "docs/assets/sano-x2/documents-1440.webp",
+        "docs/assets/sano-promo/sano-promo-t056.250.png",
+        "reports/.gitkeep",
+        "evals/results/.gitkeep",
+    )
+    for path in required_paths:
+        assert (ROOT / path).is_file(), path
+
+    for required in (
+        "Project status",
+        "Capability matrix",
+        "Architecture",
+        "Product Core roadmap",
+        "Live validation",
+        "release checklist",
+        "CONTRIBUTING.md",
+        "LICENSE",
+    ):
+        assert required in index
+
+    assert "current public main implementation" in architecture
+    assert "app/product_core" in architecture
+    assert "Raw genome bytes" in architecture
+    assert "python -m evals.p3_review" in checklist
+    assert "CHECKPOINT.md" not in checklist
+    assert "SESSION_NOTES.md" not in checklist
+    assert "docs/screenshots.md" in checklist
+    assert "OpenAI live X2 remains explicitly unverified" in checklist
+    assert "Release checklist" in reviewer_pack
+    assert "final_submission_checklist.md" not in reviewer_pack
+    assert "documents-1440.webp" in screenshots
+    assert "sano-promo-t056.250.png" in screenshots
+    assert "real patient" in screenshots
+    assert "coverage is a server-owned fact" in adr.lower()
+    assert "Raw document pages are not added to general chat context." in adr
+
+    deleted = (
+        "FIRST_CODEX_PROMPT.md",
+        "CHECKPOINT.md",
+        "SESSION_NOTES.md",
+        "sentient-g1-trust-envelope-plan.md",
+        "docs/grant_application_pack.md",
+        "docs/grant_pitch.md",
+        "docs/grant_short_pitch.md",
+        "docs/grant_submission_answers.md",
+        "docs/master_plan.md",
+        "docs/project_status.md",
+        "docs/demo_script.md",
+        "docs/demo_video_script.md",
+        "docs/product_brief.md",
+        "docs/darktech_chat_ui_reference.md",
+        "docs/roadmap.md",
+        "docs/superpowers/plans/2026-10-07-document-summary-coverage.md",
+        "docs/superpowers/specs/2026-10-04-document-summary-coverage-design.md",
+        "docs/final_submission_checklist.md",
+        "docs/assets/screenshots/landing.png",
+        "docs/assets/screenshots/demo.png",
+        "docs/assets/screenshots/sertraline-report.png",
+        "docs/assets/screenshots/aspirin-safe-no-claim.png",
+    )
+    for path in deleted:
+        assert not (ROOT / path).exists(), path
+
+
+def test_document_summary_contract_is_documented_without_provider_authority() -> None:
+    adr = _read("docs/adr/0007-document-summary-coverage.md")
+
+    for required in (
+        "summary, key_points, discussion_questions, and page_numbers",
+        "Provider output cannot choose either field.",
+        "page_numbers remains model output used for citation allowlisting",
+        "Documents → “Ask about this document”",
+        "no database migration or public endpoint change",
+    ):
+        assert required in adr
 
 
 def test_current_eval_and_capability_documents_do_not_overclaim() -> None:
@@ -105,7 +209,7 @@ def test_current_eval_and_capability_documents_do_not_overclaim() -> None:
 
     assert "## Latest Validation Result" not in eval_results
     assert "Historical Phase 1.5 / Legacy Demo Eval Baseline" in eval_results
-    assert "| Guarded chat | `IMPLEMENTED` |" in matrix
+    assert "| Guarded chat | " + chr(96) + "IMPLEMENTED" + chr(96) + " |" in matrix
     assert "first-five-minute reviewer path" in reviewer
 
 
